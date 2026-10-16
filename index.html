@@ -1,0 +1,1268 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>词根联想英语词汇</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#1e293b;--muted:#64748b;--blue:#2563eb;--line:#e2e8f0;--green:#15803d;--red:#dc2626;--amber:#b45309}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:linear-gradient(120deg,#173b75,#3478e5);color:white;padding:25px max(18px,calc((100% - 1100px)/2)) 22px}
+header h1{margin:0;font-size:clamp(23px,4vw,32px)}header p{margin:5px 0 0;color:#e4edff}
+main{max-width:1100px;margin:22px auto;padding:0 16px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat,.panel,.word-card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 4px 14px #0f172a08}.stat{padding:14px 16px}.stat strong{display:block;font-size:24px}.stat span{color:var(--muted);font-size:13px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button,select,input{font:inherit}
+.tab,button{border:1px solid var(--line);background:white;border-radius:10px;padding:9px 13px;cursor:pointer}
+.tab.active,button.primary{background:var(--blue);color:white;border-color:var(--blue)}button:disabled{opacity:.45;cursor:not-allowed}
+.controls{display:grid;grid-template-columns:minmax(180px,1fr) 180px auto;gap:10px;margin-bottom:14px}.controls input,.controls select{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:white}
+.panel{padding:20px}
+.word-card{padding:clamp(18px,4vw,32px);min-height:270px;display:flex;flex-direction:column;justify-content:center}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.word{font-size:clamp(32px,6vw,48px);font-weight:750;letter-spacing:-.03em;margin:3px 0}
+.sent-en{font-size:clamp(21px,3.6vw,30px);font-weight:650;line-height:1.45;margin:8px 0 4px}
+.phonetic{color:var(--muted)}
+.definition{font-size:21px;margin:18px 0 8px}
+.detail{padding-top:12px;border-top:1px solid var(--line);margin-top:12px;white-space:pre-wrap}
+.detail b{display:block;color:#334155;font-size:13px;margin-bottom:4px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+.list{display:grid;gap:8px}
+.item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:white;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.item .w{font-weight:700}.item small{display:block;color:var(--muted)}.item button{padding:6px 10px}
+.item .item-actions{display:flex;gap:6px;align-items:center;white-space:nowrap}
+.hidden{display:none!important}
+.progress{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin:10px 0 18px}.progress div{height:100%;background:#22c55e;width:0;transition:width .2s}
+.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.quiz-options button{text-align:left;min-height:52px;line-height:1.4}
+.quiz-options.one-col{grid-template-columns:1fr}
+.feedback{margin-top:14px;font-weight:600}
+.footer{color:var(--muted);font-size:12px;text-align:center;margin:28px 0}
+
+/* ---- 发音 ---- */
+.word-line{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.speak{border:1px solid var(--line);background:white;border-radius:14px;padding:9px 13px;font-size:20px;line-height:1;cursor:pointer;flex:none;transition:.15s}
+.speak:hover:not(:disabled){border-color:var(--blue);background:#eff4ff}
+.speak.speaking{background:var(--blue);border-color:var(--blue)}
+.speak-bar{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:-2px 0 14px;color:var(--muted);font-size:13px}
+.speak-bar label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.speak-bar select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:white;font-size:13px}
+
+/* ---- 模式切换 ---- */
+.mode-bar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:0 0 14px;color:var(--muted);font-size:13px}
+.mode-bar label{display:flex;align-items:center;gap:6px}
+.mode-bar select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:white;font-size:13px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:7px 14px;background:white;color:var(--ink);font-size:13px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--blue);color:#fff}
+
+/* ---- 提示 / 警告 ---- */
+.notice{background:#fffbeb;border:1px solid #fde68a;color:var(--amber);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.6;margin:0 0 14px}
+.notice.bad{background:#fef2f2;border-color:#fecaca;color:var(--red)}
+
+/* ---- 口语跟读 ---- */
+.target-en{font-size:clamp(20px,3.4vw,28px);font-weight:650;line-height:1.45;margin:6px 0}
+.tok{display:inline-block;padding:1px 4px;margin:2px 3px 2px 0;border-radius:6px;background:#f1f5f9}
+.tok.hit{background:#dcfce7;color:var(--green)}
+.tok.miss{background:#fee2e2;color:var(--red);text-decoration:underline wavy var(--red)}
+.heard{margin-top:10px;color:var(--muted);font-size:14px;min-height:22px}
+.heard b{color:var(--ink)}
+.listen-box{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0 4px}
+.mic-on{background:var(--red)!important;border-color:var(--red)!important;color:#fff!important;animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 #dc262655}50%{box-shadow:0 0 0 10px #dc262600}}
+.score-big{font-size:34px;font-weight:750}
+
+/* ---- 默写练习 ---- */
+.d-prompt{font-size:clamp(20px,3.4vw,28px);font-weight:650;line-height:1.45;margin:6px 0}
+.d-hint{font-family:ui-monospace,Consolas,"Courier New",monospace;letter-spacing:.14em;color:var(--amber);margin-top:8px;word-break:break-word;min-height:22px}
+.d-input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:white;font:inherit;margin-top:12px;resize:none;overflow:hidden;min-height:50px;line-height:1.5}
+.d-input:focus{outline:2px solid #bfdbfe;border-color:var(--blue)}
+.d-input.ok{border-color:var(--green);background:#f0fdf4}
+.d-input.bad{border-color:var(--red);background:#fef2f2}
+@media(max-width:620px){.stats{grid-template-columns:repeat(2,1fr);gap:7px}.stat{padding:10px}.stat strong{font-size:20px}
+.controls{grid-template-columns:1fr}.quiz-options{grid-template-columns:1fr}.item{padding:10px}.speak{padding:7px 11px;font-size:17px}}
+</style>
+</head>
+<body>
+<header><h1>词根联想 · 英语词汇</h1><p>把单词拆开、联想、复习，让记忆更轻松。</p></header>
+<main>
+<div class="stats">
+ <div class="stat"><strong id="total">—</strong><span>词库单词</span></div>
+ <div class="stat"><strong id="learned">0</strong><span>已掌握单词</span></div>
+ <div class="stat"><strong id="sentTotal">—</strong><span>短句总数</span></div>
+ <div class="stat"><strong id="sentLearned">0</strong><span>已掌握短句</span></div>
+</div>
+<div class="progress"><div id="progress"></div></div>
+<div class="tabs">
+ <button class="tab active" data-view="study">单词学习</button>
+ <button class="tab" data-view="sent">短句学习</button>
+ <button class="tab" data-view="quiz">小测验</button>
+ <button class="tab" data-view="listen">听力测试</button>
+ <button class="tab" data-view="speak">口语跟读</button>
+ <button class="tab" data-view="dict">默写练习</button>
+ <button class="tab" data-view="list">词库检索</button>
+ <button class="tab" data-view="review">待复习</button>
+</div>
+
+<!-- ================= 单词学习 ================= -->
+<section id="study" class="view">
+ <div class="controls"><input id="searchStudy" placeholder="搜索单词或中文释义…"><select id="listStudy"><option value="">全部 Word List</option></select><button id="shuffle">随机抽词</button></div>
+ <div class="speak-bar" id="speakBar">
+  <button class="speak" id="speakBtn" title="朗读（快捷键 S）">🔊</button>
+  <label>口音
+   <select id="accent">
+    <option value="auto" selected>自动</option>
+    <option value="en-US">美音 en-US</option>
+    <option value="en-GB">英音 en-GB</option>
+   </select>
+  </label>
+  <label>声音
+   <select id="gender">
+    <option value="female" selected>女声</option>
+    <option value="male">男声</option>
+    <option value="any">不限</option>
+   </select>
+  </label>
+  <label>语速
+   <select id="rate"><option value="0.6">慢速</option><option value="0.85" selected>正常</option><option value="1">较快</option></select>
+  </label>
+  <label><input type="checkbox" id="autoSpeak"> 切换时自动朗读</label>
+  <span id="voiceInfo"></span>
+ </div>
+ <div class="mode-bar">
+  <span>学习方式</span>
+  <span class="seg" id="wModeSeg">
+   <button data-wmode="seq" class="on">按顺序</button>
+   <button data-wmode="random">随机</button>
+  </span>
+  <label>范围
+   <select id="wordScope">
+    <option value="all" selected>全部单词</option>
+    <option value="unmastered">只看未掌握</option>
+    <option value="review">只看待复习</option>
+   </select>
+  </label>
+  <button id="restart">从头开始</button>
+ </div>
+ <article class="word-card">
+  <div class="eyebrow" id="counter">准备开始</div>
+  <div class="word-line"><div class="word" id="word">Welcome!</div><button class="speak" id="speakTop" title="朗读单词（快捷键 S）">🔊</button></div>
+  <div class="phonetic" id="phonetic">点击“显示释义”开始学习</div>
+  <div id="answer" class="hidden"><div class="definition" id="definition"></div><div class="detail" id="memoryWrap"><b>记忆提示</b><span id="memory"></span></div><div class="detail" id="exampleWrap"><b>例句</b><span id="example"></span></div></div>
+  <div class="actions"><button class="primary" id="reveal">显示释义</button><button id="unknown">还不熟</button><button id="master">标记掌握 ✓</button><button id="prev">上一个</button><button id="next">下一个 →</button></div>
+ </article>
+</section>
+
+<!-- ================= 短句学习 ================= -->
+<section id="sent" class="view hidden">
+ <div class="controls"><input id="searchSent" placeholder="搜索短句英文或中文…"><select id="listSent"><option value="">全部 Word List</option></select><button id="sentRandom">随机抽句</button></div>
+ <div class="mode-bar">
+  <span>学习方式</span>
+  <span class="seg" id="sModeSeg">
+   <button data-smode="seq" class="on">按顺序</button>
+   <button data-smode="random">随机</button>
+  </span>
+  <label>范围
+   <select id="sentScope">
+    <option value="all" selected>全部短句</option>
+    <option value="unmastered">只看未掌握</option>
+    <option value="review">只看待复习</option>
+   </select>
+  </label>
+  <button id="sentRestart">从头开始</button>
+ </div>
+ <article class="word-card">
+  <div class="eyebrow" id="sCounter">准备开始</div>
+  <div class="sent-en" id="sEn">Loading…</div>
+  <div class="actions" style="margin-top:6px">
+   <button class="speak" id="sSpeak" title="朗读整句（快捷键 S）">🔊</button>
+   <button class="speak" id="sSpeakSlow" title="慢速朗读">🐢</button>
+   <span class="phonetic" id="sWord" style="align-self:center"></span>
+  </div>
+  <div id="sAnswer" class="hidden"><div class="detail"><b>中文</b><span id="sZh"></span></div></div>
+  <div class="actions"><button class="primary" id="sReveal">显示中文</button><button id="sUnknown">还不熟</button><button id="sMaster">标记掌握 ✓</button><button id="sPrev">上一句</button><button id="sNext">下一句 →</button></div>
+ </article>
+</section>
+
+<!-- ================= 小测验 ================= -->
+<section id="quiz" class="view hidden"><div class="panel"><div class="section-title"><h2>单词小测验</h2><span id="quizScore">得分：0</span></div><p id="quizPrompt">选择正确的中文释义。</p><div class="word-line"><div class="word" id="quizWord">—</div><button class="speak" id="quizSpeak" title="朗读题目单词">🔊</button></div><div class="phonetic" id="quizPhonetic"></div><div class="quiz-options" id="quizOptions"></div><div id="quizFeedback" class="feedback"></div><div class="actions"><button class="primary" id="nextQuiz">下一题</button></div></div></section>
+
+<!-- ================= 听力测试 ================= -->
+<section id="listen" class="view hidden"><div class="panel">
+ <div class="section-title"><h2>听力测试</h2><span id="lScore">得分：0 / 0</span></div>
+ <div class="mode-bar">
+  <label>题型
+   <select id="lKind">
+    <option value="word" selected>听单词 · 选拼写</option>
+    <option value="sent">听句子 · 选意思</option>
+   </select>
+  </label>
+  <label><input type="checkbox" id="lAuto" checked> 每题自动播放</label>
+ </div>
+ <p id="lPrompt" class="phonetic">听发音，选出正确的答案。</p>
+ <div class="listen-box">
+  <button class="primary" id="lPlay">🔊 播放</button>
+  <button id="lSlow">🐢 慢速</button>
+  <span id="lTip" class="phonetic"></span>
+ </div>
+ <div class="word-line" style="margin-top:10px"><div class="word" id="lReveal" style="font-size:clamp(24px,4vw,34px)">? ? ?</div><span class="phonetic" id="lRevealPh"></span></div>
+ <div class="quiz-options" id="lOptions"></div>
+ <div id="lFeedback" class="feedback"></div>
+ <div class="actions"><button class="primary" id="lNext">下一题</button></div>
+</div></section>
+
+<!-- ================= 口语跟读 ================= -->
+<section id="speak" class="view hidden"><div class="panel">
+ <div class="section-title"><h2>口语跟读</h2><span id="pScore">平均：—</span></div>
+ <div id="pNotice" class="notice hidden"></div>
+ <div class="mode-bar">
+  <label>题型
+   <select id="pKind">
+    <option value="word" selected>跟读单词</option>
+    <option value="sent">跟读短句</option>
+   </select>
+  </label>
+  <label>范围 <select id="pList"><option value="">全部</option></select></label>
+ </div>
+ <div class="target-en" id="pTarget">—</div>
+ <div class="phonetic" id="pTargetSub"></div>
+ <div class="actions">
+  <button class="primary" id="pRecord">🎤 开始录音</button>
+  <button id="pPlay">🔊 听示范</button>
+  <button id="pPlaySlow">🐢 慢速示范</button>
+  <button id="pNext">换一个</button>
+ </div>
+ <div id="pStatus" class="feedback"></div>
+ <div class="heard" id="pHeard"></div>
+ <div id="pDiff" style="margin-top:10px"></div>
+</div></section>
+
+<!-- ================= 默写练习 ================= -->
+<section id="dict" class="view hidden"><div class="panel">
+ <div class="section-title"><h2>默写练习</h2><span id="dScore">正确率：—</span></div>
+ <div class="mode-bar">
+  <label>题型
+   <select id="dKind">
+    <option value="word" selected>默写单词（看中文写英文）</option>
+    <option value="sent">默写短句（看中文写整句）</option>
+   </select>
+  </label>
+  <label>范围
+   <select id="dScope">
+    <option value="all" selected>全部</option>
+    <option value="unmastered">只看未掌握</option>
+    <option value="review">只看待复习</option>
+    <option value="missed">只看默写错过的</option>
+   </select>
+  </label>
+  <span class="seg" id="dModeSeg">
+   <button data-dmode="seq" class="on">按顺序</button>
+   <button data-dmode="random">随机</button>
+  </span>
+ </div>
+ <div class="mode-bar">
+  <label><input type="checkbox" id="dHint" checked> 显示首字母提示</label>
+  <label><input type="checkbox" id="dAutoWrong" checked> 答错加入待复习</label>
+  <label><input type="checkbox" id="dSpeak" checked> 答对后朗读</label>
+ </div>
+ <div class="eyebrow" id="dCounter">准备开始</div>
+ <div class="d-prompt" id="dPrompt">—</div>
+ <div class="phonetic" id="dSub"></div>
+ <div class="d-hint" id="dHintLine"></div>
+ <textarea id="dInput" class="d-input" rows="1" placeholder="在这里输入英文，按 Enter 提交（答完再按 Enter 进入下一题）" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+ <div class="actions">
+  <button class="primary" id="dSubmit">提交（Enter）</button>
+  <button id="dHintBtn">给点提示</button>
+  <button id="dGiveUp">看答案</button>
+  <button id="dSkip">跳过 →</button>
+ </div>
+ <div id="dResult" class="feedback"></div>
+ <div id="dDiff" style="margin-top:10px"></div>
+ <div id="dAnswer" class="hidden" style="margin-top:12px"><div class="detail"><b>正确答案</b><span id="dAnswerText"></span></div></div>
+</div></section>
+
+<!-- ================= 词库检索 ================= -->
+<section id="list" class="view hidden">
+ <div class="controls"><input id="searchList" placeholder="输入英文、中文、词根联想…"><select id="listFilter"><option value="">全部 Word List</option></select><button id="clearSearch">清空搜索</button></div>
+ <div class="mode-bar"><span>内容</span>
+  <span class="seg" id="listKindSeg">
+   <button data-lkind="word" class="on">单词</button>
+   <button data-lkind="sent">短句</button>
+  </span>
+ </div>
+ <div class="section-title"><h2 id="listTitle">词库</h2><span id="resultCount"></span></div>
+ <div id="wordList" class="list"></div>
+ <div class="actions"><button id="more">加载更多</button></div>
+</section>
+
+<!-- ================= 待复习 ================= -->
+<section id="review" class="view hidden">
+ <div class="section-title"><h2>待复习单词</h2><span id="reviewCount"></span></div>
+ <p style="color:var(--muted)">点“还不熟”会加入这里；掌握后可以从待复习中移除。</p>
+ <div id="reviewList" class="list"></div>
+ <div class="section-title" style="margin-top:24px"><h2>待复习短句</h2><span id="sReviewCount"></span></div>
+ <div id="sReviewList" class="list"></div>
+</section>
+
+<p class="footer">学习记录保存在当前浏览器中。此网页为个人学习辅助工具；词库与短句内容来自你提供的电子书，仅建议个人学习使用。</p>
+</main>
+<script>
+/* ===== 沙箱免疫层（必须最先执行）=====
+   某些嵌入环境（如预览面板的沙箱 iframe）会禁用 localStorage，一碰就抛 SecurityError，
+   之前整个脚本会当场崩掉、页面看起来"点了没反应"。这里探测可用性，不行就退回内存模式
+   （功能照常，只是不跨会话记忆进度）。 */
+const STORE = (() => {
+  try { const t = window.localStorage; t.getItem("__probe__"); return t; }
+  catch (e) {
+    const m = new Map();
+    return {
+      getItem: k => m.has(k) ? m.get(k) : null,
+      setItem: (k, v) => m.set(k, String(v)),
+      removeItem: k => m.delete(k),
+      key: i => [...m.keys()][i],
+      get length() { return m.size; }
+    };
+  }
+})();
+/* 出错时把错误直接显示在页面上，避免"默默崩掉看不出原因" */
+if (window.addEventListener) window.addEventListener("error", e => {
+  try { reportErr("页面脚本出错：" + (e && e.message ? e.message : e)); } catch (_) {}
+});
+if (window.addEventListener) window.addEventListener("unhandledrejection", e => {
+  try { reportErr("异步操作出错：" + ((e && e.reason && e.reason.message) || (e && e.reason) || "")); } catch (_) {}
+});
+/* 出错一定要看得见：数据没加载出来时写在卡片上；已加载则弹一条可点击关闭的提示条。
+   之前的写法在 __vocabLoaded 后直接 return，导致「点了没反应、也没提示」这种最难查的情况。 */
+function reportErr(msg){
+  try {
+    if (!window.__vocabLoaded) {
+      const el = document.getElementById("phonetic");
+      if (el) { el.textContent = "⚠️ " + msg + "（把这行截图发给我即可定位）"; el.style.color = "#dc2626"; }
+      return;
+    }
+    let box = document.getElementById("errBox");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "errBox";
+      box.style.cssText = "position:fixed;left:12px;right:12px;bottom:12px;z-index:9999;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:10px;padding:10px 12px;font:13px/1.5 system-ui,-apple-system,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.18);cursor:pointer";
+      box.onclick = () => { try { box.remove(); } catch (_) {} };
+      (document.body || document.documentElement).appendChild(box);
+    }
+    box.textContent = "⚠️ " + msg + "（点这行可关闭；截图给我即可定位）";
+  } catch (_) {}
+}
+
+let words=[], sents=[], index=0, sentIndex=0, visibleCount=80, quizCurrent=null, score=0, answered=false;
+let listKind="word", wMode="seq", sMode="seq";
+const $=id=>document.getElementById(id);
+
+/* ==================== 本地存储 ==================== */
+const loadSet=k=>{try{return new Set(JSON.parse(STORE.getItem(k)||"[]"))}catch(e){return new Set()}};
+const saveSet=(k,s)=>STORE.setItem(k,JSON.stringify([...s]));
+let mastered=loadSet("vocab-mastered"), review=loadSet("vocab-review");
+let sMastered=loadSet("vocab-sent-mastered"), sReview=loadSet("vocab-sent-review");
+function save(){saveSet("vocab-mastered",mastered);saveSet("vocab-review",review);updateStats()}
+function saveS(){saveSet("vocab-sent-mastered",sMastered);saveSet("vocab-sent-review",sReview);updateStats()}
+
+/* ==================== 发音模块（Web Speech API，免联网免 Key） ==================== */
+const synth = window.speechSynthesis;
+let enVoices = [], speakTimer = null, userActed = false;
+document.addEventListener("pointerdown", ()=>{ userActed = true; }, true);
+document.addEventListener("keydown", ()=>{ userActed = true; }, true);
+
+const norm = l => (l||"").replace(/_/g,"-").toLowerCase();
+
+/* Web Speech API 不提供性别字段，只能按语音名推断。
+   用词边界匹配，避免 "Maria" 里含 "aria" 这类误判。 */
+const FEMALE = ["zira","hazel","aria","jenny","michelle","ana","samantha","victoria","karen","moira",
+  "tessa","fiona","serena","allison","ava","susan","joanna","kendra","kimberly","salli","ivy","emily",
+  "female","woman","girl","xiaoxiao","xiaoyi","huihui","yaoyao","lili","meijia"];
+const MALE = ["david","mark","guy","george","ryan","alex","daniel","fred","tom","oliver","thomas","james",
+  "matthew","brian","eric","christopher","male","man","joey","liam","william","ravi","rishi","kangkang","yunxi"];
+const femaleRe = new RegExp("\\b(" + FEMALE.join("|") + ")\\b","i");
+const maleRe   = new RegExp("\\b(" + MALE.join("|") + ")\\b","i");
+function guessGender(name){
+  const n = (name||"").toLowerCase();
+  if(femaleRe.test(n)) return "female";
+  if(maleRe.test(n)) return "male";
+  return "";                       // 未知
+}
+function genderPref(){ return $("gender") ? $("gender").value : "female"; }
+function accentPref(){ return $("accent") ? $("accent").value : "auto"; }
+
+function pickVoice(){
+  if(!synth) return;
+  enVoices = synth.getVoices().filter(v => /^en([-_]|$)/i.test(v.lang));
+  updateVoiceInfo();
+}
+function currentLang(){
+  const a = accentPref();
+  if(a !== "auto") return a;
+  const sys = norm(navigator.language);
+  return /^en([-_]|$)/.test(sys) ? sys : "en-US";
+}
+/* 挑语音：先按口音精确匹配；再按性别过滤；同条件下优先离线语音 */
+function voiceFor(lang, strict){
+  const want = norm(lang);
+  let cand = enVoices.filter(v => norm(v.lang) === want);
+  if(!cand.length){
+    if(strict) return null;
+    cand = enVoices.slice();
+  }
+  if(!cand.length) return null;
+  const g = genderPref();
+  if(g !== "any"){
+    const gv = cand.filter(v => guessGender(v.name) === g);
+    if(gv.length) cand = gv;
+  }
+  return cand.find(v => v.localService) || cand[0];
+}
+function updateVoiceInfo(){
+  const info = $("voiceInfo"); if(!info) return;
+  if(!synth){ info.textContent = "当前浏览器不支持语音朗读，建议改用 Chrome 或 Edge。"; return; }
+  const lang = currentLang();
+  const v = voiceFor(lang, accentPref() !== "auto");
+  if(!v){ info.textContent = `未安装 ${lang} 语音，已请浏览器按该口音兜底（可能退回默认语音）。`; return; }
+  const g = guessGender(v.name);
+  info.textContent = `当前语音：${v.name}（${v.lang}${g === "female" ? " · 女声" : g === "male" ? " · 男声" : ""}）`;
+}
+if(synth){ pickVoice(); synth.onvoiceschanged = pickVoice; }
+
+/* 朗读。opts.rate 可覆盖全局语速（如句子慢读） */
+let speakWatch = null, speakWarned = false, speakRetried = 0;
+function warnSpeak(msg){
+  const info = $("voiceInfo"); if(!info) return;
+  info.textContent = msg; info.style.color = "#dc2626"; speakWarned = true;
+}
+function clearSpeakWarn(){
+  if(!speakWarned) return;
+  speakWarned = false;
+  const info = $("voiceInfo"); if(info) info.style.color = "";
+  updateVoiceInfo();
+}
+function speak(text, btn, opts){
+  opts = opts || {};
+  if(!text) return;
+  if(!synth){ alert("当前浏览器不支持语音朗读，建议改用 Chrome 或 Edge。"); return; }
+  clearTimeout(speakTimer); clearTimeout(speakWatch);
+  try{ synth.cancel(); }catch(e){}
+  const lang = currentLang();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang;                        // 注意：一旦设置 voice，lang 会被该语音的口音覆盖
+  const v = voiceFor(lang, accentPref() !== "auto");
+  if(v) u.voice = v;
+  u.rate = opts.rate || parseFloat($("rate").value) || 0.85;
+  u.pitch = opts.pitch || 1;
+  u.volume = 1;
+  let started = false, failed = false;
+  const done = ()=>{ if(btn) btn.classList.remove("speaking"); };
+  u.onstart = ()=>{ started = true; speakRetried = 0; clearSpeakWarn(); };
+  u.onend = done;
+  u.onerror = (e)=>{
+    failed = true; done();
+    const code = (e && e.error) ? e.error : "unknown";
+    warnSpeak(code === "not-allowed"
+      ? "⚠️ 浏览器拦截了语音播放（自动播放策略 / 沙箱限制）。请到文件夹里双击「离线单文件版.html」用浏览器打开，声音正常。"
+      : "⚠️ 语音播放失败（" + code + "）。可改用浏览器直接打开「离线单文件版.html」再试。");
+  };
+  if(btn) btn.classList.add("speaking");
+  /* Chrome 在 cancel() 之后立刻 speak() 会偶发静默丢弃：延迟一下，且没开始就自动补发一次 */
+  speakTimer = setTimeout(()=>{
+    try{ synth.speak(u); }catch(e){ done(); warnSpeak("⚠️ 语音接口异常：" + e.message); return; }
+    speakWatch = setTimeout(()=>{
+      if(started || failed) return;
+      if(speakRetried < 1){
+        speakRetried++;
+        try{ synth.cancel(); synth.speak(u); }catch(e){}     // 补发一次
+        speakWatch = setTimeout(()=>{
+          if(started || failed) return;
+          done();
+          warnSpeak("⚠️ 浏览器没有播放出声音（当前环境可能禁用了语音）。请到文件夹里双击「离线单文件版.html」用浏览器打开，那边声音正常。");
+        }, 1000);
+      }
+    }, 800);
+  }, 80);
+}
+function autoOn(){ return userActed && $("autoSpeak").checked; }
+/* 朗读「当前正在学的单词」——单词学习板块的按钮/快捷键/口音切换都走这里 */
+function speakActive(){
+  const w = activeWord();
+  if(!w) return;
+  const btn = $("speakTop") || $("speakBtn");
+  speak(w.word, btn);
+}
+
+/* 事件绑定 */
+$("speakBtn").onclick = ()=>speakActive();
+$("speakTop").onclick = ()=>speakActive();
+$("quizSpeak").onclick = ()=>{ if(quizCurrent) speak(quizCurrent.word, $("quizSpeak")); };
+$("accent").onchange = ()=>{ STORE.setItem("vocab-accent", $("accent").value); updateVoiceInfo(); speakActive(); };
+$("gender").onchange = ()=>{ STORE.setItem("vocab-gender", $("gender").value); updateVoiceInfo(); speakActive(); };
+$("rate").onchange = ()=>{ STORE.setItem("vocab-rate", $("rate").value); speakActive(); };
+$("autoSpeak").onchange = ()=>{
+  STORE.setItem("vocab-autospeak", $("autoSpeak").checked ? "1" : "0");
+  if($("autoSpeak").checked) speakActive();
+};
+/* 快捷键 S 朗读当前页面对应的内容 */
+document.addEventListener("keydown", e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  if(/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if(e.key!=="s" && e.key!=="S") return;
+  e.preventDefault();
+  const v = document.querySelector(".tab.active").dataset.view;
+  if(v==="study") speakActive();
+  else if(v==="sent") speakSent();
+  else if(v==="listen") playListen();
+  else if(v==="speak") speakP();
+  else if(v==="quiz" && quizCurrent) speak(quizCurrent.word, $("quizSpeak"));
+});
+
+/* ==================== 统计 ==================== */
+function updateStats(){
+  $("total").textContent = words.length.toLocaleString();
+  $("learned").textContent = mastered.size;
+  $("sentTotal").textContent = sents.length.toLocaleString();
+  $("sentLearned").textContent = sMastered.size;
+  $("progress").style.width = (words.length ? Math.min(100, mastered.size/words.length*100) : 0) + "%";
+}
+
+/* ==================== 单词学习 ==================== */
+function optionsForLists(){
+  let lists=[...new Set(words.map(w=>w.list))].sort((a,b)=>parseInt(a.split(" ").pop())-parseInt(b.split(" ").pop()));
+  for(let id of ["listStudy","listFilter"]) for(let l of lists){let o=document.createElement("option");o.value=l;o.textContent=l;$(id).appendChild(o)}
+  let slists=[...new Set(sents.map(s=>s.list).filter(Boolean))].sort((a,b)=>parseInt(a.split(" ").pop())-parseInt(b.split(" ").pop()));
+  for(let l of slists){let o=document.createElement("option");o.value=l;o.textContent=l;$("listSent").appendChild(o)}
+}
+function filtered(search, list){
+  search=(search||"").trim().toLowerCase();
+  return words.filter(w=>(!list||w.list===list)&&(!search||[w.word,w.phonetic,w.definition,w.memory,w.example].join(" ").toLowerCase().includes(search)));
+}
+function filteredSent(search, list){
+  search=(search||"").trim().toLowerCase();
+  return sents.filter(s=>(!list||s.list===list)&&(!search||[s.en,s.zh,s.word].join(" ").toLowerCase().includes(search)));
+}
+function wPred(){
+  const s=$("wordScope").value;
+  if(s==="unmastered") return w=>!mastered.has(w.word);
+  if(s==="review") return w=>review.has(w.word);
+  return ()=>true;
+}
+function showWord(i){
+  if(!words.length) return;
+  const n=words.length; index=((i%n)+n)%n;
+  let w=words[index];
+  $("counter").textContent=`${w.list} · ${index+1} / ${n}`;
+  $("word").textContent=w.word;
+  $("phonetic").textContent=w.phonetic||"暂无音标";
+  $("definition").textContent=w.definition||"暂无释义";
+  $("memory").textContent=w.memory||"这条词条没有单独的记忆提示。";
+  $("example").textContent=w.example||"暂无例句";
+  $("memoryWrap").classList.toggle("hidden",!w.memory);
+  $("exampleWrap").classList.toggle("hidden",!w.example);
+  $("answer").classList.add("hidden");
+  $("reveal").textContent="显示释义";
+  $("master").textContent=mastered.has(w.word)?"已掌握 ✓":"标记掌握 ✓";
+  STORE.setItem("vocab-pos", String(index));
+  if(autoOn()) speak(w.word, $("speakTop"));
+}
+function activeWord(){ return words[index] }
+/* 按范围找下一个满足条件的下标；找不到就原地不动 */
+function stepWord(dir){
+  const pred=wPred(), n=words.length;
+  if(wMode==="random"){
+    const pool=words.map((w,i)=>({w,i})).filter(o=>pred(o.w));
+    if(!pool.length) return index;
+    return pool[Math.floor(Math.random()*pool.length)].i;
+  }
+  let i=index;
+  for(let k=0;k<n;k++){
+    i=((i+dir)%n+n)%n;
+    if(pred(words[i])) return i;
+  }
+  return index;
+}
+$("reveal").onclick=()=>{$("answer").classList.toggle("hidden");$("reveal").textContent=$("answer").classList.contains("hidden")?"显示释义":"收起释义"};
+$("next").onclick=()=>showWord(stepWord(1));
+$("prev").onclick=()=>showWord(stepWord(-1));
+$("shuffle").onclick=()=>showWord(Math.floor(Math.random()*words.length));
+$("restart").onclick=()=>{ showWord(0); };
+$("master").onclick=()=>{let w=activeWord();if(mastered.has(w.word))mastered.delete(w.word);else{mastered.add(w.word);review.delete(w.word)}save();renderReview();showWord(index)};
+$("unknown").onclick=()=>{review.add(activeWord().word);mastered.delete(activeWord().word);save();renderReview();showWord(stepWord(1))};
+$("searchStudy").oninput=()=>{let arr=filtered($("searchStudy").value,$("listStudy").value);if(arr.length)showWord(words.indexOf(arr[0]))};
+$("listStudy").onchange=()=>{let arr=filtered($("searchStudy").value,$("listStudy").value);if(arr.length)showWord(words.indexOf(arr[0]))};
+$("wordScope").onchange=()=>{ STORE.setItem("vocab-scope",$("wordScope").value); showWord(stepWord(1)) };
+$("wModeSeg").onclick=e=>{ const b=e.target.closest("button[data-wmode]"); if(!b)return;
+  wMode=b.dataset.wmode; STORE.setItem("vocab-wmode",wMode);
+  [...$("wModeSeg").children].forEach(x=>x.classList.toggle("on",x===b)); };
+
+/* ==================== 短句学习 ==================== */
+function sPred(){
+  const s=$("sentScope").value;
+  if(s==="unmastered") return x=>!sMastered.has(x.en);
+  if(s==="review") return x=>sReview.has(x.en);
+  return ()=>true;
+}
+function showSent(i){
+  if(!sents.length) return;
+  const n=sents.length; sentIndex=((i%n)+n)%n;
+  const s=sents[sentIndex];
+  $("sCounter").textContent=`${s.list||"短句"} · ${sentIndex+1} / ${n}`;
+  $("sEn").textContent=s.en;
+  $("sWord").textContent=s.word?`关联单词：${s.word}`:"";
+  $("sZh").textContent=s.zh||"暂无中文翻译";
+  $("sAnswer").classList.add("hidden");
+  $("sReveal").textContent="显示中文";
+  $("sMaster").textContent=sMastered.has(s.en)?"已掌握 ✓":"标记掌握 ✓";
+  STORE.setItem("vocab-sent-pos", String(sentIndex));
+  if(autoOn()) speak(s.en, $("sSpeak"));
+}
+function activeSent(){ return sents[sentIndex] }
+function stepSent(dir){
+  const pred=sPred(), n=sents.length;
+  if(sMode==="random"){
+    const pool=sents.map((s,i)=>({s,i})).filter(o=>pred(o.s));
+    if(!pool.length) return sentIndex;
+    return pool[Math.floor(Math.random()*pool.length)].i;
+  }
+  let i=sentIndex;
+  for(let k=0;k<n;k++){
+    i=((i+dir)%n+n)%n;
+    if(pred(sents[i])) return i;
+  }
+  return sentIndex;
+}
+function speakSent(){ const s=activeSent(); if(s) speak(s.en, $("sSpeak")); }
+$("sSpeak").onclick=()=>speakSent();
+$("sSpeakSlow").onclick=()=>{ const s=activeSent(); if(s) speak(s.en, $("sSpeakSlow"), {rate:0.6}); };
+$("sReveal").onclick=()=>{$("sAnswer").classList.toggle("hidden");$("sReveal").textContent=$("sAnswer").classList.contains("hidden")?"显示中文":"收起中文"};
+$("sNext").onclick=()=>showSent(stepSent(1));
+$("sPrev").onclick=()=>showSent(stepSent(-1));
+$("sentRandom").onclick=()=>showSent(Math.floor(Math.random()*sents.length));
+$("sentRestart").onclick=()=>showSent(0);
+$("sMaster").onclick=()=>{const s=activeSent();if(sMastered.has(s.en))sMastered.delete(s.en);else{sMastered.add(s.en);sReview.delete(s.en)}saveS();renderReview();showSent(sentIndex)};
+$("sUnknown").onclick=()=>{const s=activeSent();sReview.add(s.en);sMastered.delete(s.en);saveS();renderReview();showSent(stepSent(1))};
+$("searchSent").oninput=()=>{let arr=filteredSent($("searchSent").value,$("listSent").value);if(arr.length)showSent(sents.indexOf(arr[0]))};
+$("listSent").onchange=()=>{let arr=filteredSent($("searchSent").value,$("listSent").value);if(arr.length)showSent(sents.indexOf(arr[0]))};
+$("sentScope").onchange=()=>{ STORE.setItem("vocab-sent-scope",$("sentScope").value); showSent(stepSent(1)) };
+$("sModeSeg").onclick=e=>{ const b=e.target.closest("button[data-smode]"); if(!b)return;
+  sMode=b.dataset.smode; STORE.setItem("vocab-smode",sMode);
+  [...$("sModeSeg").children].forEach(x=>x.classList.toggle("on",x===b)); };
+
+/* ==================== 小测验（看词选义） ==================== */
+function newQuiz(){
+  answered=false;$("quizFeedback").textContent="";$("nextQuiz").textContent="下一题";
+  quizCurrent=words[Math.floor(Math.random()*words.length)];
+  $("quizWord").textContent=quizCurrent.word;$("quizPhonetic").textContent=quizCurrent.phonetic;
+  if(autoOn())speak(quizCurrent.word,$("quizSpeak"));
+  let others=[];while(others.length<3){let w=words[Math.floor(Math.random()*words.length)];if(w.word!==quizCurrent.word&&!others.some(x=>x.word===w.word)&&w.definition)others.push(w)}
+  let choices=[quizCurrent,...others].sort(()=>Math.random()-.5);
+  $("quizOptions").innerHTML="";
+  choices.forEach(w=>{let b=document.createElement("button");b.textContent=w.definition||"暂无释义";
+    b.onclick=()=>{if(answered)return;answered=true;
+      if(w.word===quizCurrent.word){score++;$("quizFeedback").textContent="回答正确！";$("quizFeedback").style.color="var(--green)"}
+      else{$("quizFeedback").textContent="再记一下："+quizCurrent.word+" — "+quizCurrent.definition;$("quizFeedback").style.color="var(--amber)"}
+      $("quizScore").textContent="得分："+score;
+      [...$("quizOptions").children].forEach(x=>x.disabled=true)};
+    $("quizOptions").appendChild(b)});
+}
+$("nextQuiz").onclick=newQuiz;
+
+/* ==================== 听力测试 ==================== */
+let lCur=null, lAnswered=false, lRight=0, lTotal=0, lDecoys=[];
+function pickDecoys(cur, pool, keyFn, n){
+  // 优先选首字母相同或同 Word List 的词做干扰项，难度更真实
+  let near=pool.filter(x=>x!==cur && (keyFn(x)||"").toLowerCase().slice(0,2)===(keyFn(cur)||"").toLowerCase().slice(0,2));
+  let far=pool.filter(x=>x!==cur);
+  const out=[];
+  const pushFrom=a=>{ a=a.slice().sort(()=>Math.random()-.5);
+    for(const x of a){ if(out.length>=n) break; if(!out.includes(x)) out.push(x) } };
+  pushFrom(near); pushFrom(far);
+  return out.slice(0,n);
+}
+function newListen(){
+  const kind=$("lKind").value; lAnswered=false;
+  $("lFeedback").textContent="";
+  $("lOptions").className="quiz-options"+(kind==="sent"?" one-col":"");
+  $("lReveal").textContent="? ? ?"; $("lRevealPh").textContent="";
+  $("lOptions").innerHTML="";
+  if(kind==="word"){
+    if(!words.length) return;
+    lCur=words[Math.floor(Math.random()*words.length)];
+    $("lPrompt").textContent="听发音，从下面四个单词里选出你听到的那个。";
+    lDecoys=pickDecoys(lCur,words.filter(w=>w.word!==lCur.word),w=>w.word,3);
+    [lCur,...lDecoys].sort(()=>Math.random()-.5).forEach(w=>{
+      addListenOption(w.word, w.word===lCur.word, ()=>{
+        $("lReveal").textContent=lCur.word; $("lRevealPh").textContent=lCur.phonetic;
+        return {ok:w.word===lCur.word, msg:"正确答案："+lCur.word+" — "+(lCur.definition||"")};
+      });
+    });
+  }else{
+    if(!sents.length) return;
+    lCur=sents[Math.floor(Math.random()*sents.length)];
+    $("lPrompt").textContent="听整句发音，选出正确的中文意思。";
+    lDecoys=pickDecoys(lCur,sents.filter(s=>s.en!==lCur.en&&s.zh),s=>s.zh,3);
+    [lCur,...lDecoys].sort(()=>Math.random()-.5).forEach(s=>{
+      addListenOption(s.zh, s.en===lCur.en, ()=>{
+        $("lReveal").textContent=lCur.en; $("lRevealPh").textContent="";
+        return {ok:s.en===lCur.en, msg:"正确答案："+(lCur.zh||"")};
+      });
+    });
+  }
+  const auto=$("lAuto").checked;
+  if(auto && userActed){ setTimeout(playListen, 350); } else { $("lTip").textContent="点「播放」开始"; }
+}
+function addListenOption(text, isRight, onPick){
+  const b=document.createElement("button");
+  b.textContent=text;
+  b.onclick=()=>{
+    if(lAnswered) return;
+    lAnswered=true; lTotal++;
+    const r=onPick();
+    if(r.ok){ lRight++; $("lFeedback").textContent="✓ 听对了！"+(r.msg?"　"+r.msg:""); $("lFeedback").style.color="var(--green)"; }
+    else { $("lFeedback").textContent="✗ "+r.msg; $("lFeedback").style.color="var(--red)"; }
+    $("lScore").textContent=`得分：${lRight} / ${lTotal}`;
+    [...$("lOptions").children].forEach(x=>x.disabled=true);
+    b.style.borderColor = r.ok ? "var(--green)" : "var(--red)";
+  };
+  $("lOptions").appendChild(b);
+}
+function playListen(forceSlow){
+  if(!lCur) return;
+  const text = $("lKind").value==="word" ? lCur.word : lCur.en;
+  speak(text, $("lPlay"), forceSlow ? {rate:0.6} : null);
+}
+$("lPlay").onclick=()=>playListen(false);
+$("lSlow").onclick=()=>playListen(true);
+$("lNext").onclick=newListen;
+$("lKind").onchange=()=>{ STORE.setItem("vocab-lkind",$("lKind").value); newListen(); };
+
+/* ==================== 口语跟读 ==================== */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog=null, recording=false;
+let pCur=null, pScores=[];
+
+function tokens(s){ return (s||"").toLowerCase().replace(/[^a-z0-9' ]/g," ").split(/\s+/).filter(Boolean) }
+function lev(a,b){
+  const m=a.length,n=b.length; if(!m)return n; if(!n)return m;
+  let prev=Array.from({length:n+1},(_,i)=>i), cur=new Array(n+1);
+  for(let i=1;i<=m;i++){ cur[0]=i;
+    for(let j=1;j<=n;j++) cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    const t=prev; prev=cur; cur=t;
+  }
+  return prev[n];
+}
+/* 最长公共子序列，用于标出哪些词读对了 */
+function lcsMarks(target, heard){
+  const m=target.length,n=heard.length;
+  const dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=m-1;i>=0;i--) for(let j=n-1;j>=0;j--)
+    dp[i][j] = target[i]===heard[j] ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j],dp[i][j+1]);
+  const out=[]; let i=0,j=0;
+  while(i<m && j<n){
+    if(target[i]===heard[j]){ out.push({w:target[i],hit:true}); i++; j++; }
+    else if(dp[i+1][j] >= dp[i][j+1]){ out.push({w:target[i],hit:false}); i++; }
+    else j++;
+  }
+  while(i<m){ out.push({w:target[i],hit:false}); i++; }
+  return out;
+}
+function newP(){
+  const kind=$("pKind").value;
+  const l=$("pList").value;
+  if(kind==="word"){
+    const pool = l ? words.filter(w=>w.list===l) : words;
+    if(!pool.length) return;
+    pCur=pool[Math.floor(Math.random()*pool.length)];
+    $("pTarget").textContent=pCur.word;
+    $("pTargetSub").textContent=(pCur.phonetic||"")+"　"+(pCur.definition||"");
+  }else{
+    const pool = l ? sents.filter(s=>s.list===l) : sents;
+    if(!pool.length) return;
+    pCur=pool[Math.floor(Math.random()*pool.length)];
+    $("pTarget").textContent=pCur.en;
+    $("pTargetSub").textContent=pCur.zh||"";
+  }
+  $("pStatus").textContent=""; $("pHeard").textContent=""; $("pDiff").innerHTML="";
+}
+function speakP(slow){ if(pCur) speak($("pKind").value==="word"?pCur.word:pCur.en, null, slow?{rate:0.6}:null); }
+$("pPlay").onclick=()=>speakP(false);
+$("pPlaySlow").onclick=()=>speakP(true);
+$("pNext").onclick=newP;
+$("pKind").onchange=()=>{ STORE.setItem("vocab-pkind",$("pKind").value); newP(); };
+
+function setupRecog(){
+  if(!SR) return null;
+  const r=new SR();
+  r.lang = currentLang();
+  r.interimResults = true;
+  r.continuous = false;
+  r.maxAlternatives = 1;
+  r.onstart = ()=>{ recording=true; $("pRecord").textContent="⏹ 停止"; $("pRecord").classList.add("mic-on"); $("pStatus").textContent="正在听…请朗读上面的内容"; $("pStatus").style.color="var(--muted)"; };
+  r.onend = ()=>{ recording=false; $("pRecord").textContent="🎤 开始录音"; $("pRecord").classList.remove("mic-on"); };
+  r.onerror = ev=>{
+    recording=false; $("pRecord").textContent="🎤 开始录音"; $("pRecord").classList.remove("mic-on");
+    const m={
+      "not-allowed":"麦克风权限被拒绝。请在浏览器地址栏的权限设置里允许使用麦克风。",
+      "service-not-allowed":"浏览器拒绝了语音识别服务，请检查权限设置。",
+      "no-speech":"没有听到声音，靠近麦克风再试一次。",
+      "audio-capture":"没有检测到麦克风设备。",
+      "network":"语音识别需要联网（Chrome/Edge 会把音频发到云端识别），请检查网络。",
+      "aborted":"录音被中断。"
+    }[ev.error] || ("识别出错："+ev.error);
+    $("pStatus").textContent="⚠️ "+m; $("pStatus").style.color="var(--red)";
+  };
+  r.onresult = ev=>{
+    let interim="", final="";
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      const t=ev.results[i][0].transcript;
+      if(ev.results[i].isFinal) final+=t; else interim+=t;
+    }
+    if(interim){ $("pHeard").innerHTML=""; $("pHeard").append("听到：", interim); }
+    if(final) gradeSpeech(final);
+  };
+  return r;
+}
+function gradeSpeech(heard){
+  const kind=$("pKind").value;
+  const target = kind==="word" ? pCur.word : pCur.en;
+  const tt=tokens(target), hh=tokens(heard);
+  let pct, marks=[];
+  if(kind==="word"){
+    const t=tt[0]||"", h=hh[0]||"";
+    const sim = h ? Math.round((1 - lev(t,h)/Math.max(t.length,h.length))*100) : 0;
+    const exact = t===h;
+    pct = exact ? 100 : sim;
+    marks = tt.map(x=>({w:x,hit:exact||sim>=80}));
+  }else{
+    marks = lcsMarks(tt,hh);
+    const hit = marks.filter(m=>m.hit).length;
+    pct = tt.length ? Math.round(hit/tt.length*100) : 0;
+  }
+  const verdict = pct>=90?"🎉 非常好！":pct>=70?"👍 不错，再顺一点":pct>=40?"还差一点，点「慢速示范」再跟一遍":"建议先听两遍示范再读";
+  $("pStatus").textContent=`${verdict}　相似度 ${pct}%`;
+  $("pStatus").style.color = pct>=70 ? "var(--green)" : pct>=40 ? "var(--amber)" : "var(--red)";
+  $("pHeard").innerHTML="";
+  $("pHeard").append("识别结果：", heard);
+  const box=$("pDiff"); box.innerHTML="";
+  const label=document.createElement("div");
+  label.className="phonetic"; label.textContent="逐词比对（绿=读对，红=漏读或读错）：";
+  box.appendChild(label);
+  marks.forEach(m=>{ const s=document.createElement("span"); s.className="tok "+(m.hit?"hit":"miss"); s.textContent=m.w; box.appendChild(s); });
+  pScores.push(pct);
+  const avg=Math.round(pScores.reduce((a,b)=>a+b,0)/pScores.length);
+  $("pScore").textContent=`平均：${avg}%（${pScores.length} 次）`;
+}
+$("pRecord").onclick=()=>{
+  if(!SR){ $("pNotice").classList.remove("hidden"); return; }
+  if(recording){ recog && recog.stop(); return; }
+  recog = setupRecog();
+  if(!recog) return;
+  recog.lang = currentLang();
+  try{ recog.start(); }catch(e){ $("pStatus").textContent="⚠️ 启动录音失败："+e.message; $("pStatus").style.color="var(--red)"; }
+};
+function initSpeakNotice(){
+  const n=$("pNotice");
+  const tips=[];
+  if(!SR) tips.push("当前浏览器不支持语音识别。请改用 Chrome 或 Edge。");
+  else{
+    if(location.protocol==="file:") tips.push("你现在是直接双击打开的本地文件（file://），浏览器会禁用麦克风。请用本地服务器打开：双击文件夹里的 启动.bat，或执行 python -m http.server 8000 后访问 http://localhost:8000 。");
+    tips.push("语音识别需要联网（浏览器会把录音发到云端转文字），并需要你授权麦克风。");
+    tips.push("如果一直报 network 错误，通常是浏览器用的识别服务在当前网络下不通——Chrome 走 Google 服务，国内常常连不上；换 Microsoft Edge 试试成功率更高。");
+  }
+  if(tips.length){ n.innerHTML=""; tips.forEach(t=>{ const d=document.createElement("div"); d.textContent="• "+t; n.appendChild(d); }); }
+  n.classList.toggle("hidden", !tips.length);
+  if(!SR) $("pRecord").disabled=true;
+}
+
+/* ==================== 默写练习（看中文／提示 → 写英文） ==================== */
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let dCur=null, dIdx=0, dAnswered=false, dMode="seq";
+let dRight=0, dTotal=0, dStreak=0, dBest=parseInt(STORE.getItem("vocab-dict-best")||"0",10)||0;
+let dMissed=loadSet("vocab-dict-missed");
+const dKindNow  = () => $("dKind").value === "sent" ? "sent" : "word";
+const dScopeNow = () => $("dScope").value || "all";
+const dKeyOf = it => dKindNow()==="word" ? it.word : it.en;
+
+function dPool(){
+  const kind=dKindNow(), s=dScopeNow();
+  if(kind==="word"){
+    if(s==="unmastered") return words.filter(w=>!mastered.has(w.word));
+    if(s==="review")     return words.filter(w=>review.has(w.word));
+    if(s==="missed")     return words.filter(w=>dMissed.has(w.word));
+    return words;
+  }
+  if(s==="unmastered") return sents.filter(x=>!sMastered.has(x.en));
+  if(s==="review")     return sents.filter(x=>sReview.has(x.en));
+  if(s==="missed")     return sents.filter(x=>dMissed.has(x.en));
+  return sents;
+}
+/* 归一化：大小写、多余空格、撇号形态、句末标点都不算错 —— 默写考的是拼写本身 */
+function normWordAns(s){
+  return (s||"").toLowerCase().replace(/[’‘`´]/g,"'").replace(/[“”]/g,'"')
+    .replace(/\s+/g," ").trim().replace(/[.,!?;:"']+$/,"").trim();
+}
+/* 首字母提示：p _ _ _ _ _ _ */
+function maskWord(w){
+  return w.split("").map((c,i)=> i===0 ? c : (/[a-z]/i.test(c) ? "_" : c)).join(" ");
+}
+function hintOf(){
+  if(!dCur) return "";
+  if(dKindNow()==="word") return maskWord(dCur.word);
+  return dCur.en.split(/\s+/).map(maskWord).join("    ");
+}
+function dGrow(){
+  const t=$("dInput"); if(!t) return;
+  try{ t.style.height="auto"; t.style.height=Math.min(150, Math.max(50, t.scrollHeight||50))+"px"; }catch(_){}
+}
+function updateDScore(){
+  const pct = dTotal ? Math.round(dRight/dTotal*100) : null;
+  $("dScore").textContent = (pct===null ? "正确率：—" : `正确率：${pct}%（${dRight}/${dTotal}）`)
+    + (dStreak ? `　连对 ${dStreak}` : "") + (dBest ? `　最佳 ${dBest}` : "");
+}
+function renderDict(){
+  const inp=$("dInput"), kind=dKindNow();
+  dAnswered=false;
+  inp.value=""; inp.className="d-input"; inp.rows = kind==="word" ? 1 : 2;
+  $("dResult").textContent=""; $("dResult").style.color="";
+  $("dDiff").innerHTML=""; $("dAnswer").classList.add("hidden"); $("dAnswerText").textContent="";
+  if(!dCur){
+    $("dCounter").textContent="准备开始";
+    $("dPrompt").textContent="当前范围里没有可默写的条目";
+    $("dSub").textContent="换一个「范围」试试，或先去学习板块学几个再回来默写。";
+    $("dHintLine").textContent=""; dGrow(); return;
+  }
+  const pool=dPool();
+  $("dCounter").textContent=`${dCur.list||(kind==="word"?"词库":"短句")} · 第 ${dIdx+1} / ${pool.length} 条`;
+  $("dPrompt").textContent = kind==="word" ? (dCur.definition||"（这条词没有中文释义）")
+                                           : (dCur.zh||"（这条短句没有中文翻译）");
+  $("dSub").textContent = kind==="word"
+    ? (dCur.phonetic ? "音标 "+dCur.phonetic : "")
+    : (dCur.word ? "关联单词："+dCur.word : "");
+  $("dHintLine").textContent = $("dHint").checked ? hintOf() : "";
+  dGrow();
+}
+function pickDict(step){
+  const pool=dPool();
+  if(!pool.length){ dCur=null; dIdx=0; renderDict(); return; }
+  if(dMode==="random" && pool.length>1){
+    let i=dIdx, guard=0;
+    while(i===dIdx && guard++<40) i=Math.floor(Math.random()*pool.length);
+    dIdx=i;
+  }else{
+    dIdx = (((dIdx + (step||0)) % pool.length) + pool.length) % pool.length;
+  }
+  if(dIdx>=pool.length) dIdx=0;
+  dCur=pool[dIdx];
+  STORE.setItem("vocab-dict-pos", String(dIdx));
+  renderDict();
+}
+function advanceDict(){ pickDict(1); }
+function resetDict(){ dIdx=0; pickDict(0); }
+
+function markDInput(cls){ const i=$("dInput"); i.className="d-input"+(cls?" "+cls:""); }
+function showDAnswer(){
+  if(!dCur) return;
+  $("dAnswerText").textContent = dKindNow()==="word"
+    ? dCur.word + (dCur.phonetic ? "  " + dCur.phonetic : "")
+    : dCur.en;
+  $("dAnswer").classList.remove("hidden");
+}
+function dSpeakAnswer(){
+  if(!dCur || !userActed || !$("dSpeak").checked) return;
+  speak(dKindNow()==="word" ? dCur.word : dCur.en, null);
+}
+function dRecordWrong(){
+  if(!dCur) return;
+  dMissed.add(dKeyOf(dCur));
+  saveSet("vocab-dict-missed", dMissed);
+  if(!$("dAutoWrong").checked) return;
+  if(dKindNow()==="word"){ review.add(dCur.word); mastered.delete(dCur.word); save(); }
+  else { sReview.add(dCur.en); sMastered.delete(dCur.en); saveS(); }
+  renderReview();
+}
+/* 默写对了就从错题集里划掉，错题集才是「待消灭」的 */
+function dRecordRight(){
+  if(!dCur) return false;
+  const key=dKeyOf(dCur);
+  if(!dMissed.has(key)) return false;
+  dMissed.delete(key); saveSet("vocab-dict-missed", dMissed);
+  return true;
+}
+function dUp() { dRight++; dStreak++; if(dStreak>dBest){ dBest=dStreak; STORE.setItem("vocab-dict-best", String(dBest)); } }
+function dDown(){ dStreak=0; }
+function drawDiffSent(target, heard){
+  const box=$("dDiff"); box.innerHTML="";
+  const label=document.createElement("div");
+  label.className="phonetic"; label.textContent="逐词比对（绿=写对，红=漏写或拼错）：";
+  box.appendChild(label);
+  lcsMarks(tokens(target), tokens(heard)).forEach(m=>{
+    const s=document.createElement("span");
+    s.className="tok "+(m.hit?"hit":"miss"); s.textContent=m.w;
+    box.appendChild(s);
+  });
+}
+function gradeDictWord(raw){
+  const target=dCur.word, t=normWordAns(target), g=normWordAns(raw);
+  if(t && g && t===g){
+    dUp();
+    const cleared=dRecordRight();
+    markDInput("ok");
+    $("dResult").innerHTML="✅ 完全正确！"+(cleared?"　已从错题集移出。":"");
+    $("dResult").style.color="var(--green)";
+    showDAnswer(); dSpeakAnswer();
+  }else{
+    dDown();
+    const d=lev(g,t), base=Math.max(t.length,g.length);
+    const pct=(g && base) ? Math.round((1-d/base)*100) : 0;
+    const near = !!g && (d <= Math.max(1, Math.round(t.length/4)) || pct>=75);
+    markDInput("bad");
+    $("dResult").innerHTML = near
+      ? `⚠️ 差一点！你写的是「${esc(raw)}」，正确拼写是 <b>${esc(target)}</b>（相似度 ${pct}%）`
+      : `❌ 正确答案：<b>${esc(target)}</b>`;
+    $("dResult").style.color = near ? "var(--amber)" : "var(--red)";
+    dRecordWrong(); showDAnswer();
+  }
+  updateDScore();
+}
+function gradeDictSent(raw){
+  const target=dCur.en, tt=tokens(target), hh=tokens(raw);
+  const marks=lcsMarks(tt,hh);
+  const hit=marks.filter(m=>m.hit).length;
+  const extra=Math.max(0, hh.length-tt.length);
+  const pct = tt.length ? Math.round(hit/tt.length*100) : 100;
+  const ok  = hit===tt.length && hh.length===tt.length;
+  if(ok){
+    dUp();
+    const cleared=dRecordRight();
+    markDInput("ok");
+    $("dResult").innerHTML="✅ 完全正确！"+(cleared?"　已从错题集移出。":"");
+    $("dResult").style.color="var(--green)";
+    dSpeakAnswer();
+  }else{
+    dDown();
+    const miss=tt.length-hit;
+    markDInput("bad");
+    $("dResult").innerHTML = `❌ 相似度 ${pct}% —— 漏写或写错 ${miss} 个词`
+      + (extra ? `，另外多写了 ${extra} 个词` : "") + "。";
+    $("dResult").style.color = pct>=85 ? "var(--amber)" : "var(--red)";
+    dRecordWrong();
+  }
+  showDAnswer();
+  drawDiffSent(target, raw);
+  updateDScore();
+}
+function submitDict(){
+  if(!dCur) return;
+  if(dAnswered){ advanceDict(); return; }        // 答完再按 Enter = 下一题
+  const raw=$("dInput").value.trim();
+  if(!raw){ $("dResult").textContent="先写下你的答案；想不出来可以点「看答案」或「跳过」。"; $("dResult").style.color="var(--muted)"; return; }
+  dAnswered=true; dTotal++;
+  if(dKindNow()==="word") gradeDictWord(raw); else gradeDictSent(raw);
+}
+$("dSubmit").onclick=()=>submitDict();
+$("dSkip").onclick=()=>{ if(dCur) advanceDict(); };
+$("dHintBtn").onclick=()=>{ $("dHintLine").textContent=hintOf(); };
+$("dGiveUp").onclick=()=>{
+  if(!dCur) return;
+  if(!dAnswered){
+    dAnswered=true; dTotal++; dDown();
+    markDInput("bad");
+    $("dResult").textContent="👀 已显示答案，这条记入错题集。";
+    $("dResult").style.color="var(--amber)";
+    dRecordWrong(); showDAnswer(); updateDScore();
+    if(dKindNow()==="sent") drawDiffSent(dCur.en, $("dInput").value);
+  }else showDAnswer();
+};
+$("dInput").addEventListener("keydown", e=>{
+  if(e.key!=="Enter" || e.shiftKey || e.isComposing) return;   // 输入法选词/换行不误触
+  e.preventDefault(); submitDict();
+});
+$("dInput").addEventListener("input", dGrow);
+$("dKind").onchange=()=>{ STORE.setItem("vocab-dict-kind",$("dKind").value); resetDict(); setTimeout(dGrow,0); };
+$("dScope").onchange=()=>{ STORE.setItem("vocab-dict-scope",$("dScope").value); resetDict(); };
+$("dModeSeg").onclick=e=>{ const b=e.target.closest("button[data-dmode]"); if(!b) return;
+  dMode=b.dataset.dmode; STORE.setItem("vocab-dict-mode",dMode);
+  [...$("dModeSeg").children].forEach(x=>x.classList.toggle("on",x===b)); };
+$("dHint").onchange=()=>{ STORE.setItem("vocab-dict-hint",$("dHint").checked?"1":"0");
+  $("dHintLine").textContent=$("dHint").checked?hintOf():""; };
+$("dAutoWrong").onchange=()=>STORE.setItem("vocab-dict-autowrong",$("dAutoWrong").checked?"1":"0");
+$("dSpeak").onchange=()=>STORE.setItem("vocab-dict-speak",$("dSpeak").checked?"1":"0");
+
+/* ==================== 词库检索 ==================== */
+function renderList(){
+  const arr = listKind==="word"
+    ? filtered($("searchList").value,$("listFilter").value)
+    : filteredSent($("searchList").value,$("listFilter").value);
+  $("listTitle").textContent = listKind==="word" ? "词库" : "短句库";
+  $("resultCount").textContent=`${arr.length} 条结果`;
+  $("wordList").innerHTML="";
+  arr.slice(0,visibleCount).forEach(it=>{
+    const d=document.createElement("div"); d.className="item";
+    const left=document.createElement("div");
+    const big=document.createElement("span"); big.className="w";
+    const small=document.createElement("small");
+    const acts=document.createElement("div"); acts.className="item-actions";
+    const bSpk=document.createElement("button"); bSpk.className="speak"; bSpk.title="朗读"; bSpk.textContent="🔊";
+    const bGo=document.createElement("button"); bGo.textContent="学习";
+    if(listKind==="word"){
+      big.textContent=it.word+" "+it.phonetic; small.textContent=it.definition;
+      bSpk.onclick=()=>speak(it.word,bSpk);
+      bGo.onclick=()=>{showWord(words.indexOf(it));document.querySelector('[data-view="study"]').click()};
+    }else{
+      big.textContent=it.en; small.textContent=(it.zh||"")+(it.word?"　·　"+it.word:"");
+      bSpk.onclick=()=>speak(it.en,bSpk);
+      bGo.onclick=()=>{showSent(sents.indexOf(it));document.querySelector('[data-view="sent"]').click()};
+    }
+    left.appendChild(big); left.appendChild(small);
+    acts.appendChild(bSpk); acts.appendChild(bGo);
+    d.appendChild(left); d.appendChild(acts);
+    $("wordList").appendChild(d);
+  });
+  $("more").classList.toggle("hidden",arr.length<=visibleCount);
+}
+$("searchList").oninput=()=>{visibleCount=80;renderList()};
+$("listFilter").onchange=()=>{visibleCount=80;renderList()};
+$("more").onclick=()=>{visibleCount+=80;renderList()};
+$("clearSearch").onclick=()=>{$("searchList").value="";$("listFilter").value="";visibleCount=80;renderList()};
+$("listKindSeg").onclick=e=>{ const b=e.target.closest("button[data-lkind]"); if(!b)return;
+  listKind=b.dataset.lkind; visibleCount=80;
+  [...$("listKindSeg").children].forEach(x=>x.classList.toggle("on",x===b));
+  $("listFilter").value=""; renderList(); };
+
+/* ==================== 待复习 ==================== */
+function renderReview(){
+  const arr=words.filter(w=>review.has(w.word));
+  $("reviewCount").textContent=`${arr.length} 个单词`;
+  $("reviewList").innerHTML="";
+  arr.forEach(w=>{
+    const d=document.createElement("div"); d.className="item";
+    const left=document.createElement("div");
+    const big=document.createElement("span"); big.className="w"; big.textContent=w.word+" "+w.phonetic;
+    const small=document.createElement("small"); small.textContent=w.definition;
+    left.appendChild(big); left.appendChild(small);
+    const acts=document.createElement("div"); acts.className="item-actions";
+    const bSpk=document.createElement("button"); bSpk.className="speak"; bSpk.textContent="🔊";
+    bSpk.onclick=()=>speak(w.word,bSpk);
+    const bGo=document.createElement("button"); bGo.textContent="重新学习";
+    bGo.onclick=()=>{showWord(words.indexOf(w));document.querySelector('[data-view="study"]').click()};
+    acts.appendChild(bSpk); acts.appendChild(bGo);
+    d.appendChild(left); d.appendChild(acts);
+    $("reviewList").appendChild(d);
+  });
+  if(!arr.length) $("reviewList").innerHTML='<p>太棒了！当前没有待复习单词。</p>';
+
+  const sa=sents.filter(s=>sReview.has(s.en));
+  $("sReviewCount").textContent=`${sa.length} 个短句`;
+  $("sReviewList").innerHTML="";
+  sa.forEach(s=>{
+    const d=document.createElement("div"); d.className="item";
+    const left=document.createElement("div");
+    const big=document.createElement("span"); big.className="w"; big.textContent=s.en;
+    const small=document.createElement("small"); small.textContent=s.zh||"";
+    left.appendChild(big); left.appendChild(small);
+    const acts=document.createElement("div"); acts.className="item-actions";
+    const bSpk=document.createElement("button"); bSpk.className="speak"; bSpk.textContent="🔊";
+    bSpk.onclick=()=>speak(s.en,bSpk);
+    const bGo=document.createElement("button"); bGo.textContent="重新学习";
+    bGo.onclick=()=>{showSent(sents.indexOf(s));document.querySelector('[data-view="sent"]').click()};
+    acts.appendChild(bSpk); acts.appendChild(bGo);
+    d.appendChild(left); d.appendChild(acts);
+    $("sReviewList").appendChild(d);
+  });
+  if(!sa.length) $("sReviewList").innerHTML='<p>当前没有待复习短句。</p>';
+}
+
+/* ==================== 标签切换 ==================== */
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));
+  document.querySelectorAll(".view").forEach(x=>x.classList.toggle("hidden",x.id!==b.dataset.view));
+  const v=b.dataset.view;
+  if(v==="review") renderReview();
+  if(v==="list") renderList();
+  if(v==="listen" && !lCur) newListen();
+  if(v==="speak" && !pCur) newP();
+  if(v==="dict" && !dCur) pickDict(0);
+  if(v==="dict") setTimeout(()=>{ try{ $("dInput").focus(); }catch(_){} }, 50);
+});
+
+/* ==================== 恢复设置 & 初始化 ==================== */
+const savedAccent=STORE.getItem("vocab-accent");
+if(savedAccent && Array.from($("accent").options).some(o=>o.value===savedAccent)) $("accent").value=savedAccent;
+const savedGender=STORE.getItem("vocab-gender");
+if(savedGender && Array.from($("gender").options).some(o=>o.value===savedGender)) $("gender").value=savedGender;
+const savedRate=STORE.getItem("vocab-rate");
+if(savedRate && Array.from($("rate").options).some(o=>o.value===savedRate)) $("rate").value=savedRate;
+$("autoSpeak").checked = STORE.getItem("vocab-autospeak") === "1";
+const savedWMode=STORE.getItem("vocab-wmode");
+if(savedWMode){ wMode=savedWMode; [...$("wModeSeg").children].forEach(x=>x.classList.toggle("on",x.dataset.wmode===wMode)); }
+const savedSMode=STORE.getItem("vocab-smode");
+if(savedSMode){ sMode=savedSMode; [...$("sModeSeg").children].forEach(x=>x.classList.toggle("on",x.dataset.smode===sMode)); }
+const savedScope=STORE.getItem("vocab-scope");
+if(savedScope) $("wordScope").value=savedScope;
+const savedSScope=STORE.getItem("vocab-sent-scope");
+if(savedSScope) $("sentScope").value=savedSScope;
+const savedLKind=STORE.getItem("vocab-lkind");
+if(savedLKind) $("lKind").value=savedLKind;
+const savedPKind=STORE.getItem("vocab-pkind");
+if(savedPKind) $("pKind").value=savedPKind;
+const savedDKind=STORE.getItem("vocab-dict-kind");
+if(savedDKind) $("dKind").value=savedDKind;
+const savedDScope=STORE.getItem("vocab-dict-scope");
+if(savedDScope) $("dScope").value=savedDScope;
+const savedDMode=STORE.getItem("vocab-dict-mode");
+if(savedDMode){ dMode=savedDMode; [...$("dModeSeg").children].forEach(x=>x.classList.toggle("on",x.dataset.dmode===dMode)); }
+const savedDPos=parseInt(STORE.getItem("vocab-dict-pos")||"0",10);
+if(Number.isFinite(savedDPos) && savedDPos>0) dIdx=savedDPos;
+$("dHint").checked     = STORE.getItem("vocab-dict-hint")      !== "0";
+$("dAutoWrong").checked= STORE.getItem("vocab-dict-autowrong") !== "0";
+$("dSpeak").checked    = STORE.getItem("vocab-dict-speak")     !== "0";
+updateDScore();
+
+if(synth){
+  updateVoiceInfo();
+  setTimeout(()=>{ if(!enVoices.length) pickVoice(); }, 300);   // 部分浏览器首次 getVoices() 返回空
+}else{
+  ["speakBtn","speakTop","quizSpeak","sSpeak","sSpeakSlow"].forEach(id=>$(id).disabled=true);
+  updateVoiceInfo();
+}
+initSpeakNotice();
+
+/* 取词库：优先用「离线单文件版」内嵌的数据（file:// 下浏览器禁止 fetch 本地文件）；
+   普通版没有内嵌数据，就走 fetch 读同目录的 json —— 所以普通版必须用本地服务器打开。 */
+function loadJson(){
+  return Promise.all([
+    fetch("words.json").then(r=>r.json()).catch(()=>[]),
+    fetch("sentences.json").then(r=>r.json()).catch(()=>[])
+  ]).then(([w,s])=>({w:Array.isArray(w)?w:[], s:Array.isArray(s)?s:[]}));
+}
+const inlineData = (window.__VOCAB_INLINE__ && typeof window.__VOCAB_INLINE__==="object") ? window.__VOCAB_INLINE__ : null;
+Promise.resolve(
+  inlineData ? {w:inlineData.words||[], s:inlineData.sents||[]} : loadJson()
+).then(({w,s})=>{
+  words = Array.isArray(w) ? w : [];
+  sents = Array.isArray(s) ? s : [];
+  if(!words.length){
+    $("word").textContent="词库加载失败";
+    $("phonetic").textContent = location.protocol==="file:"
+      ? "你是直接双击打开的这个文件，浏览器会拦截读取 words.json。请改用同目录的「离线单文件版.html」，或双击 启动.bat 后访问 http://localhost:8000 。"
+      : "请确认 words.json 与 index.html 位于同一文件夹，并通过本地服务器打开。";
+    return;
+  }
+  window.__vocabLoaded = true;   // 之后的脚本错误不再覆盖学习卡片
+  optionsForLists();
+  // 口语「范围」下拉与词库一致
+  [...new Set(words.map(x=>x.list))].sort((a,b)=>parseInt(a.split(" ").pop())-parseInt(b.split(" ").pop()))
+    .forEach(l=>{ const o=document.createElement("option"); o.value=l; o.textContent=l; $("pList").appendChild(o); });
+  updateStats();
+  const pos=parseInt(STORE.getItem("vocab-pos")||"0",10);
+  showWord(Number.isFinite(pos)?pos:0);
+  const spos=parseInt(STORE.getItem("vocab-sent-pos")||"0",10);
+  showSent(Number.isFinite(spos)?spos:0);
+  renderList(); renderReview(); newQuiz(); newListen(); newP(); pickDict(0);
+  if(!sents.length){
+    $("sEn").textContent="短句库加载失败";
+    $("sZh").textContent="请确认 sentences.json 与 index.html 位于同一文件夹。";
+  }
+});
+</script>
+</body></html>
