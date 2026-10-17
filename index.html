@@ -56,6 +56,21 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button.on{background:var(--blue);color:#fff}
 
+/* ---- 跳到单词 / 最近学过 ---- */
+.jump-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:-4px 0 14px;color:var(--muted);font-size:13px}
+.jump-bar label{display:flex;align-items:center;gap:6px}
+.jump-bar input{padding:6px 9px;border:1px solid var(--line);border-radius:8px;background:white;font-size:13px;width:210px}
+.jump-bar button{padding:6px 13px;border:1px solid var(--line);border-radius:8px;background:white;color:var(--ink);font-size:13px;cursor:pointer}
+.jump-bar button:hover{border-color:var(--blue);color:var(--blue);background:#eff4ff}
+.jump-tip{color:var(--red);font-size:12px}
+.recent-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px;color:var(--muted);font-size:13px}
+.recent-list{display:inline-flex;gap:6px;flex-wrap:wrap}
+.recent-list button{border:1px solid var(--line);background:white;color:var(--ink);border-radius:999px;padding:4px 12px;font-size:13px;cursor:pointer}
+.recent-list button:hover{border-color:var(--blue);color:var(--blue);background:#eff4ff}
+.recent-empty{color:var(--muted);font-size:13px}
+.recent-bar #clearRecent{padding:4px 10px;border:1px solid var(--line);border-radius:8px;background:white;color:var(--muted);font-size:12px;cursor:pointer}
+.recent-bar #clearRecent:hover{border-color:var(--red);color:var(--red)}
+
 /* ---- 提示 / 警告 ---- */
 .notice{background:#fffbeb;border:1px solid #fde68a;color:var(--amber);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.6;margin:0 0 14px}
 .notice.bad{background:#fef2f2;border-color:#fecaca;color:var(--red)}
@@ -144,6 +159,19 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
   </label>
   <button id="restart">从头开始</button>
  </div>
+ <div class="jump-bar">
+  <label>跳到单词
+   <input id="jumpWord" list="wordOptions" placeholder="输入英文，如 health" autocomplete="off">
+  </label>
+  <button id="jumpBtn">跳转</button>
+  <span class="jump-tip" id="jumpTip"></span>
+ </div>
+ <div class="recent-bar">
+  <span>最近学过</span>
+  <span class="recent-list" id="recentList"></span>
+  <button id="clearRecent" title="清空最近记录">清空</button>
+ </div>
+ <datalist id="wordOptions"></datalist>
  <article class="word-card">
   <div class="eyebrow" id="counter">准备开始</div>
   <div class="word-line"><div class="word" id="word">Welcome!</div><button class="speak" id="speakTop" title="朗读单词（快捷键 S）">🔊</button></div>
@@ -361,6 +389,11 @@ const loadSet=k=>{try{return new Set(JSON.parse(STORE.getItem(k)||"[]"))}catch(e
 const saveSet=(k,s)=>STORE.setItem(k,JSON.stringify([...s]));
 let mastered=loadSet("vocab-mastered"), review=loadSet("vocab-review");
 let sMastered=loadSet("vocab-sent-mastered"), sReview=loadSet("vocab-sent-review");
+/* 最近学过 / 浏览过的单词，最新的排最前，最多 10 个 */
+let recentWords=(()=>{
+  try{ const a=JSON.parse(STORE.getItem("vocab-recent")||"[]");
+       return Array.isArray(a)?a.filter(x=>typeof x==="string").slice(0,10):[] }catch(e){ return [] }
+})();
 function save(){saveSet("vocab-mastered",mastered);saveSet("vocab-review",review);updateStats()}
 function saveS(){saveSet("vocab-sent-mastered",sMastered);saveSet("vocab-sent-review",sReview);updateStats()}
 
@@ -547,6 +580,56 @@ function wPred(){
   if(s==="review") return w=>review.has(w.word);
   return ()=>true;
 }
+/* ==================== 跳到单词 / 最近学过 ==================== */
+function buildWordOptions(){
+  const dl=$("wordOptions"); if(!dl) return;
+  dl.innerHTML="";
+  words.forEach(w=>{ const o=document.createElement("option"); o.value=w.word; dl.appendChild(o); });
+}
+function renderRecent(){
+  const box=$("recentList"); if(!box) return;
+  box.innerHTML="";
+  if(!recentWords.length){
+    const s=document.createElement("span");
+    s.className="recent-empty"; s.textContent="还没有记录，学过的词会出现在这里";
+    box.appendChild(s); return;
+  }
+  recentWords.forEach(wd=>{
+    const b=document.createElement("button");
+    b.type="button"; b.textContent=wd; b.title="跳到 "+wd;
+    b.onclick=()=>jumpToWord(wd);
+    box.appendChild(b);
+  });
+}
+function pushRecent(wd){
+  if(!wd) return;
+  const i=recentWords.indexOf(wd);
+  if(i>=0) recentWords.splice(i,1);
+  recentWords.unshift(wd);
+  if(recentWords.length>10) recentWords.length=10;      // 只留最近 10 个
+  STORE.setItem("vocab-recent", JSON.stringify(recentWords));
+  renderRecent();
+}
+/* 匹配优先级：完整单词 > 前缀 > 释义里包含 */
+function findWordIndex(q){
+  const s=String(q||"").trim().toLowerCase();
+  if(!s) return -1;
+  let i=words.findIndex(w=>(w.word||"").toLowerCase()===s);
+  if(i>=0) return i;
+  i=words.findIndex(w=>(w.word||"").toLowerCase().startsWith(s));
+  if(i>=0) return i;
+  return words.findIndex(w=>(w.definition||"").toLowerCase().includes(s));
+}
+function jumpToWord(q){
+  const tip=$("jumpTip"), raw=String(q||"").trim();
+  const i=findWordIndex(raw);
+  if(i<0){
+    if(tip) tip.textContent = raw ? `没找到「${raw}」，试试完整拼写或开头几个字母` : "请输入要跳转的单词";
+    return;
+  }
+  if(tip) tip.textContent="";
+  showWord(i);
+}
 function showWord(i){
   if(!words.length) return;
   const n=words.length; index=((i%n)+n)%n;
@@ -563,6 +646,7 @@ function showWord(i){
   $("reveal").textContent="显示释义";
   $("master").textContent=mastered.has(w.word)?"已掌握 ✓":"标记掌握 ✓";
   STORE.setItem("vocab-pos", String(index));
+  pushRecent(w.word);
   if(autoOn()) speak(w.word, $("speakTop"));
 }
 function activeWord(){ return words[index] }
@@ -594,6 +678,12 @@ $("wordScope").onchange=()=>{ STORE.setItem("vocab-scope",$("wordScope").value);
 $("wModeSeg").onclick=e=>{ const b=e.target.closest("button[data-wmode]"); if(!b)return;
   wMode=b.dataset.wmode; STORE.setItem("vocab-wmode",wMode);
   [...$("wModeSeg").children].forEach(x=>x.classList.toggle("on",x===b)); };
+$("jumpBtn").onclick=()=>jumpToWord($("jumpWord").value);
+$("jumpWord").addEventListener("keydown",e=>{
+  if(e.key!=="Enter" || e.isComposing) return;    // 输入法选词时不误触
+  e.preventDefault(); jumpToWord($("jumpWord").value);
+});
+$("clearRecent").onclick=()=>{ recentWords=[]; STORE.setItem("vocab-recent","[]"); renderRecent(); };
 
 /* ==================== 短句学习 ==================== */
 function sPred(){
@@ -1250,6 +1340,8 @@ Promise.resolve(
   }
   window.__vocabLoaded = true;   // 之后的脚本错误不再覆盖学习卡片
   optionsForLists();
+  buildWordOptions();           // 「跳到单词」的自动补全候选
+  renderRecent();               // 「最近学过」历史
   // 口语「范围」下拉与词库一致
   [...new Set(words.map(x=>x.list))].sort((a,b)=>parseInt(a.split(" ").pop())-parseInt(b.split(" ").pop()))
     .forEach(l=>{ const o=document.createElement("option"); o.value=l; o.textContent=l; $("pList").appendChild(o); });
