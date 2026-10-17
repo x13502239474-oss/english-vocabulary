@@ -26,6 +26,23 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
 .detail b{display:block;color:#334155;font-size:13px;margin-bottom:4px}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
 .section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+.gram .g-title{font-size:20px;font-weight:800;margin:6px 0 4px}
+.gram .g-level{display:inline-block;font-size:12px;color:var(--blue);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:8px;vertical-align:middle}
+.gram .g-t{margin:7px 0;line-height:1.65}
+.gram .g-b{font-weight:700;margin:14px 0 4px;color:var(--ink)}
+.gram .g-img{color:var(--muted);font-size:12px;margin:6px 0}
+.gram .g-done{color:var(--green);font-weight:700}
+.gramq-q{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:10px 0}
+.gramq-q .gq-no{color:var(--muted);font-size:12px;margin-right:6px}
+.gramq-q .gq-stem{font-weight:700;margin-bottom:8px;line-height:1.6}
+.gramq-q .gq-opt{display:block;width:100%;text-align:left;margin:5px 0;padding:9px 12px}
+.gramq-q .gq-opt.correct{border-color:var(--green);color:var(--green);font-weight:700}
+.gramq-q .gq-opt.wrong{border-color:var(--red);color:var(--red)}
+.gramq-why{margin-top:8px;font-size:13px;color:var(--muted);line-height:1.6}
+.lq{margin:10px 0;padding-top:8px;border-top:1px dashed var(--line)}
+.lq .lq-title{font-weight:700;margin-bottom:6px}
+.l-speaker{display:inline-block;color:var(--blue);font-weight:700;min-width:22px}
+.target-en.long{font-size:16px;line-height:1.9;font-weight:600;max-height:260px;overflow:auto}
 .list{display:grid;gap:8px}
 .item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:white;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .item .w{font-weight:700}.item small{display:block;color:var(--muted)}.item button{padding:6px 10px}
@@ -183,6 +200,8 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
  <button class="tab" data-view="review">待复习</button>
  <button class="tab" data-view="mastered">已掌握</button>
  <button class="tab" data-view="paper">测试卷</button>
+<button class="tab" data-view="grammar">语法学习</button>
+<button class="tab" data-view="gramq">语法测试</button>
 </div>
 
 <!-- ================= 单词学习 ================= -->
@@ -289,6 +308,8 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
    <select id="lKind">
     <option value="word" selected>听单词 · 选拼写</option>
     <option value="sent">听句子 · 选意思</option>
+    <option value="dialog">听对话 · 答题</option>
+    <option value="passage">听短文 · 答题</option>
    </select>
   </label>
   <label><input type="checkbox" id="lAuto" checked> 每题自动播放</label>
@@ -297,8 +318,10 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
  <div class="listen-box">
   <button class="primary" id="lPlay">🔊 播放</button>
   <button id="lSlow">🐢 慢速</button>
+  <button id="lTransBtn" class="hidden">📄 查看原文</button>
   <span id="lTip" class="phonetic"></span>
  </div>
+ <div id="lTranscript" class="phonetic hidden" style="white-space:pre-wrap;margin:8px 0 0;line-height:1.7"></div>
  <div class="word-line" style="margin-top:10px"><div class="word" id="lReveal" style="font-size:clamp(24px,4vw,34px)">? ? ?</div><span class="phonetic" id="lRevealPh"></span></div>
  <div class="quiz-options" id="lOptions"></div>
  <div id="lFeedback" class="feedback"></div>
@@ -314,6 +337,7 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
    <select id="pKind">
     <option value="word" selected>跟读单词</option>
     <option value="sent">跟读短句</option>
+    <option value="passage">跟读短文</option>
    </select>
   </label>
   <label>范围 <select id="pList"><option value="">全部</option></select></label>
@@ -433,6 +457,41 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
    <b>精通</b>优先长句难句、干扰项同词性同首字母、方框多给 4 个词、短文更长、听力语速更快。作答后在电脑上点「提交评分」自动判分（翻译与写作按相似度给参考分），也可以打印出来做。</p>
  </div>
  <div id="paperBody" class="paper"></div>
+</section>
+
+<section id="grammar" class="view hidden">
+ <div class="panel">
+  <div class="section-title"><h2>语法课程</h2><span id="gramDoneInfo"></span></div>
+  <div class="mode-bar">
+   <span>学段</span>
+   <span class="seg" id="gramLevelSeg">
+    <button data-glevel="" class="on">全部</button>
+    <button data-glevel="初一">初一</button>
+    <button data-glevel="初二">初二</button>
+    <button data-glevel="初三">初三</button>
+   </span>
+   <span>课程</span>
+   <select id="gramSel"></select>
+   <button id="gramPrev">上一课</button>
+   <button id="gramNext">下一课</button>
+   <button class="primary" id="gramDone">标记学完</button>
+  </div>
+  <p class="p-tip">课程取自《零基础学好英语语法》59 课，按课号顺序循序渐进（L56 虚拟语气为高中衔接内容）。读完点「标记学完」记录进度，下一次从「继续学习」接着学。</p>
+  <div id="gramBody" class="gram"></div>
+ </div>
+</section>
+
+<section id="gramq" class="view hidden">
+ <div class="panel">
+  <div class="section-title"><h2>语法测试</h2><span id="gramqScore"></span></div>
+  <div class="mode-bar">
+   <span>范围</span>
+   <select id="gramqScope"><option value="">全部学段</option><option value="初一">初一</option><option value="初二">初二</option><option value="初三">初三</option></select>
+   <button class="primary" id="gramqNew">开始测试（10 题）</button>
+  </div>
+  <p class="p-tip">题目取自《零基础图解英语语法》初中章节的单项填空（共 200 题，随机抽 10 题），每题答完立即显示答案与解析。</p>
+  <div id="gramqBody"></div>
+ </div>
 </section>
 
 <p class="footer">学习记录保存在当前浏览器中。此网页为个人学习辅助工具；词库与短句内容来自你提供的电子书，仅建议个人学习使用。</p>
@@ -872,12 +931,103 @@ function pickDecoys(cur, pool, keyFn, n){
   pushFrom(near); pushFrom(far);
   return out.slice(0,n);
 }
+/* ==================== 听力扩展语料（初中水平，内置在页面里，离线版自动带） ==================== */
+const DIALOGUES = [
+ {title:"认识新同学", turns:[["A","Hi! I'm Anna. Are you a new student here?"],["B","Yes, I am. My name is Li Ming. I just moved to this city last week."],["A","Welcome! Which class are you in?"],["B","I'm in Class 3, Grade 7. What about you?"],["A","I'm in Class 3 too! We're in the same class."],["B","That's great! I was worried because I don't know anyone here."],["A","Don't worry. I can show you around the school after class."],["B","Thank you so much. That's very kind of you."]],
+  qs:[{q:"What grade is Li Ming in?",opts:["A. Grade 6","B. Grade 7","C. Grade 8","D. Grade 9"],ans:"B",why:"对话里 Li Ming 说 I'm in Class 3, Grade 7。"},
+      {q:"What will Anna do after class?",opts:["A. Go home","B. Do her homework","C. Show Li Ming around the school","D. Meet her parents"],ans:"C",why:"Anna 说 I can show you around the school after class。"}]},
+ {title:"在餐馆点餐", turns:[["A","Good evening. A table for two?"],["B","Yes, please. Could we sit by the window?"],["A","Of course. Here is the menu."],["B","Thank you. I'd like some tomato soup and a fish burger."],["A","I'll have the same soup, but I want a chicken burger instead."],["B","And two glasses of orange juice, please."],["A","All right. Your food will be ready in about fifteen minutes."]],
+  qs:[{q:"How many people are going to eat?",opts:["A. One","B. Two","C. Three","D. Four"],ans:"B",why:"开头说 A table for two（两位）。"},
+      {q:"What do they both order?",opts:["A. Tomato soup","B. Fish burger","C. Chicken burger","D. Coffee"],ans:"A",why:"一人点 tomato soup，另一人说 I'll have the same soup。"}]},
+ {title:"问路", turns:[["A","Excuse me, is there a library near here?"],["B","Yes. Go along this street and turn left at the second crossing."],["A","Turn left at the second crossing. Then what?"],["B","You'll see a bank on your right. The library is next to it."],["A","How far is it from here?"],["B","About ten minutes' walk. You can also take the No. 5 bus."],["A","Thank you very much!"]],
+  qs:[{q:"Where is the library?",opts:["A. Next to a bank","B. Behind a school","C. Near a park","D. In a mall"],ans:"A",why:"The library is next to it，it 指前面的 bank。"},
+      {q:"How long does it take to walk there?",opts:["A. Five minutes","B. Ten minutes","C. Fifteen minutes","D. Twenty minutes"],ans:"B",why:"About ten minutes' walk。"}]},
+ {title:"周末计划", turns:[["A","What are you going to do this weekend, Kate?"],["B","Nothing special. I'll just stay at home and read books."],["A","Would you like to go swimming with me on Saturday?"],["B","Swimming? That sounds fun, but I can't swim very well."],["A","Don't worry. My father can teach us. He's a good swimmer."],["B","Great! What time shall we meet?"],["A","Let's meet at nine o'clock at the school gate."]],
+  qs:[{q:"What will they do on Saturday?",opts:["A. Read books","B. Go swimming","C. Play basketball","D. Watch a film"],ans:"B",why:"Would you like to go swimming with me on Saturday?"},
+      {q:"Where will they meet?",opts:["A. At Kate's home","B. At the swimming pool","C. At the school gate","D. At the bus stop"],ans:"C",why:"Let's meet at nine o'clock at the school gate。"}]},
+ {title:"电话邀约野餐", turns:[["A","Hello, this is Tom. May I speak to Mary?"],["B","Hi, Tom. This is Mary speaking."],["A","We're going to have a picnic in the park tomorrow. Can you come?"],["B","I'd love to, but the radio says it will rain tomorrow."],["A","Really? That's a pity. Maybe we can go next week then."],["B","Good idea. Call me before you go next time."],["A","OK, I will. See you at school on Monday."]],
+  qs:[{q:"Why can't Mary go for the picnic?",opts:["A. She is ill","B. It will rain","C. She has lessons","D. She must do housework"],ans:"B",why:"The radio says it will rain tomorrow。"},
+      {q:"When will they see each other again?",opts:["A. On Monday","B. On Saturday","C. Tomorrow","D. Next month"],ans:"A",why:"See you at school on Monday。"}]},
+ {title:"买鞋", turns:[["A","Can I help you, madam?"],["B","Yes. I'm looking for a pair of shoes for my son."],["A","What size does he wear?"],["B","Size 37, I think. He likes white shoes."],["A","How about this pair? It's very popular this year."],["B","It looks nice. How much is it?"],["A","One hundred and twenty yuan. And there's a discount today — only ninety-eight."],["B","OK, I'll take it."]],
+  qs:[{q:"Who will wear the shoes?",opts:["A. The woman herself","B. Her son","C. The shop assistant","D. Her daughter"],ans:"B",why:"I'm looking for a pair of shoes for my son。"},
+      {q:"How much are the shoes today?",opts:["A. 120 yuan","B. 37 yuan","C. 98 yuan","D. 89 yuan"],ans:"C",why:"原价 120，今天打折 only ninety-eight。"}]},
+ {title:"看医生", turns:[["A","Good morning, doctor."],["B","Good morning. What's the matter with you?"],["A","I have a headache and a bad cough."],["B","How long have you been like this?"],["A","Since last night. I didn't sleep well."],["B","Don't worry. You've just got a cold. Take this medicine three times a day."],["A","Should I stay at home?"],["B","Yes, have a good rest and drink more water. You'll be fine in a few days."]],
+  qs:[{q:"What's wrong with the boy?",opts:["A. He has a cold","B. His leg hurts","C. He can't sleep at all","D. He feels hungry"],ans:"A",why:"You've just got a cold。"},
+      {q:"What does the doctor tell him to do?",opts:["A. Do more exercise","B. Take the medicine once a day","C. Drink more water and rest","D. Go to school as usual"],ans:"C",why:"Have a good rest and drink more water。"}]},
+ {title:"考试失利", turns:[["A","You look unhappy, Jack. What happened?"],["B","I didn't pass the math exam again."],["A","I'm sorry to hear that. Did you find out why?"],["B","Yes. I spent too much time playing computer games."],["A","Then you'd better make a study plan and follow it."],["B","You're right. I'll spend more time on math from now on."],["A","And you can ask me for help any time. Math is my favorite subject."],["B","Thanks a lot. That's really nice of you."]],
+  qs:[{q:"Why is Jack unhappy?",opts:["A. He lost his game","B. He failed the math exam","C. He broke his computer","D. He quarreled with a friend"],ans:"B",why:"I didn't pass the math exam again。"},
+      {q:"What will Jack do from now on?",opts:["A. Buy a new computer","B. Give up math","C. Spend more time on math","D. Play fewer computer games only"],ans:"C",why:"I'll spend more time on math from now on。"}]},
+ {title:"打电话问作业", turns:[["A","Hello, could I speak to Helen?"],["B","Speaking. Who's that?"],["A","This is Peter. I called you because I missed today's English class."],["B","Oh, you were away today. What was wrong?"],["A","I had a fever this morning, so my mother took me to the hospital."],["B","I'm sorry to hear that. Are you feeling better now?"],["A","Yes, much better. Could you tell me what homework we have today?"],["B","Sure. We need to copy the new words twice and write a short passage."]],
+  qs:[{q:"Why didn't Peter go to school?",opts:["A. It rained hard","B. He had a fever","C. The bus was late","D. He forgot the time"],ans:"B",why:"I had a fever this morning。"},
+      {q:"What's today's English homework?",opts:["A. Copy the new words twice and write a short passage","B. Read the text three times","C. Write a letter to the teacher","D. Recite a poem"],ans:"A",why:"Copy the new words twice and write a short passage。"}]},
+ {title:"聊爱好", turns:[["A","What do you usually do in your free time, Linda?"],["B","I like collecting stamps. I have collected over two hundred."],["A","Wow, that's a lot! When did you start?"],["B","Five years ago. My uncle gave me my first stamp from Canada."],["A","Where do you get your stamps now?"],["B","Sometimes I buy them, and sometimes my friends give me some as gifts."],["A","That sounds interesting. I want to start collecting too."]],
+  qs:[{q:"How long has Linda collected stamps?",opts:["A. Two years","B. Three years","C. Five years","D. Ten years"],ans:"C",why:"Five years ago 开始集邮。"},
+      {q:"Where was Linda's first stamp from?",opts:["A. The USA","B. Canada","C. The UK","D. Australia"],ans:"B",why:"My uncle gave me my first stamp from Canada。"}]},
+ {title:"篮球比赛", turns:[["A","Did you watch the basketball match yesterday afternoon?"],["B","Yes, I did. Our class team played against Class 2."],["A","The game was really exciting. The score was very close."],["B","But we lost at last, 45 to 46. What a pity!"],["A","Don't be sad. Your team played very well."],["B","Thank you. We'll practice harder and win next time."],["A","I believe you will. Good luck!"]],
+  qs:[{q:"Which class team won the game?",opts:["A. Class 2","B. The man's class","C. Class 4","D. No one"],ans:"A",why:"We lost, 45 to 46，输给了 Class 2。"},
+      {q:"What was the final score?",opts:["A. 46 to 45","B. 45 to 46","C. 46 to 46","D. 45 to 45"],ans:"B",why:"We lost at last, 45 to 46。"}]},
+ {title:"坐公交去博物馆", turns:[["A","Excuse me, does this bus go to the Science Museum?"],["B","No, it doesn't. You need to take the No. 16 bus."],["A","Where can I get it?"],["B","Just walk to the next stop. It's about two hundred metres from here."],["A","How often does the No. 16 bus come?"],["B","Every ten minutes. And the museum opens at nine in the morning."],["A","Great! I still have enough time. Thank you very much."]],
+  qs:[{q:"Which bus should the man take?",opts:["A. No. 6","B. No. 10","C. No. 16","D. No. 60"],ans:"C",why:"You need to take the No. 16 bus。"},
+      {q:"How often does the No. 16 bus come?",opts:["A. Every five minutes","B. Every ten minutes","C. Every fifteen minutes","D. Every hour"],ans:"B",why:"Every ten minutes。"}]}
+];
+const PASSAGES = [
+ {title:"My School Day", text:"Hello, everyone! My name is Kate. I am a student in No. 1 Middle School. I get up at six thirty in the morning. Then I wash my face and have breakfast quickly. I go to school by bike at seven thirty. Classes begin at eight. We have four classes in the morning and two in the afternoon. My favorite subject is science because it is interesting. After school, I often play volleyball with my friends on the playground. I get home at about five thirty. After dinner, I do my homework and go to bed at nine thirty.",
+  qs:[{q:"How does Kate go to school?",opts:["A. By bus","B. By bike","C. On foot","D. By car"],ans:"B",why:"I go to school by bike at seven thirty。"},
+      {q:"What is Kate's favorite subject?",opts:["A. Math","B. English","C. Science","D. Art"],ans:"C",why:"My favorite subject is science。"},
+      {q:"How many classes does Kate have a day?",opts:["A. Four","B. Two","C. Five","D. Six"],ans:"D",why:"上午四节 + 下午两节，共六节。"}]},
+ {title:"My Best Friend", text:"Amy is my best friend. We have known each other since Grade 3. She is tall and has long hair. She is friendly and always ready to help others. Amy does well in English, and she often helps me with my spoken English. We both like music. On Sundays, we sometimes go to the park and sing songs together. Last month, Amy won first prize in the school singing competition. I was really happy for her. I hope we will be friends forever.",
+  qs:[{q:"What does Amy look like?",opts:["A. She is tall with long hair","B. She is short with short hair","C. She wears glasses","D. She has curly hair"],ans:"A",why:"She is tall and has long hair。"},
+      {q:"What did Amy do last month?",opts:["A. She went to the park","B. She won a singing competition","C. She taught me math","D. She made a new friend"],ans:"B",why:"Amy won first prize in the school singing competition。"},
+      {q:"When did they get to know each other?",opts:["A. In Grade 2","B. In Grade 3","C. Last month","D. Last year"],ans:"B",why:"We have known each other since Grade 3。"}]},
+ {title:"A Trip to Beijing", text:"Last summer, my parents and I went to Beijing by train. It took us about five hours to get there. On the first day, we visited the Great Wall. It was amazing and there were lots of visitors. The next day, we went to the Palace Museum and took many photos there. On the last day, we ate Beijing Roast Duck. It was delicious but a little expensive. We stayed in Beijing for three days. Although the trip was short, we enjoyed it a lot. I hope to visit Beijing again next year.",
+  qs:[{q:"How did they go to Beijing?",opts:["A. By plane","B. By train","C. By bus","D. By car"],ans:"B",why:"Went to Beijing by train。"},
+      {q:"What did they do on the second day?",opts:["A. Climbed the Great Wall","B. Ate Beijing Roast Duck","C. Visited the Palace Museum","D. Went shopping"],ans:"C",why:"The next day, we went to the Palace Museum。"},
+      {q:"How long did they stay in Beijing?",opts:["A. Two days","B. Three days","C. Four days","D. Five days"],ans:"B",why:"We stayed in Beijing for three days。"}]},
+ {title:"My Favorite Animal", text:"My favorite animal is the dolphin. Dolphins live in the sea, but they are not fish. They are mammals, so they need to come up to the water surface to breathe. Dolphins are very smart. They can learn things quickly and even play games with people. They like to swim together in groups and help each other when a member is in danger. Sadly, some dolphins are hurt by the plastic waste in the sea. I think everyone should protect the sea so that dolphins can live happily.",
+  qs:[{q:"What are dolphins?",opts:["A. Fish","B. Mammals","C. Birds","D. Reptiles"],ans:"B",why:"They are mammals（哺乳动物）。"},
+      {q:"What can dolphins do?",opts:["A. Fly in the sky","B. Learn things quickly and play with people","C. Live on land","D. Change colors"],ans:"B",why:"They can learn things quickly and even play games with people。"},
+      {q:"Why should we protect the sea?",opts:["A. Because dolphins are hurt by plastic waste","B. Because the sea is too big","C. Because fish are delicious","D. Because dolphins need fresh water"],ans:"A",why:"Some dolphins are hurt by the plastic waste in the sea。"}]},
+ {title:"Last Weekend", text:"I had a busy but happy weekend. On Saturday morning, I cleaned my room and finished my homework. In the afternoon, I helped my mother cook dinner. She taught me how to make dumplings. It was hard at first, but my dumplings looked better and better. On Sunday, my father took me to the countryside to visit my grandparents. We picked apples together in their garden. In the evening, we had a big dinner with them. I was tired, but I felt really happy.",
+  qs:[{q:"What did the writer learn from his mother?",opts:["A. Cleaning the room","B. Making dumplings","C. Picking apples","D. Doing homework"],ans:"B",why:"She taught me how to make dumplings。"},
+      {q:"Where did they go on Sunday?",opts:["A. To the countryside","B. To a restaurant","C. To the museum","D. To school"],ans:"A",why:"My father took me to the countryside to visit my grandparents。"},
+      {q:"How did the writer feel at the end of the weekend?",opts:["A. Bored","B. Angry","C. Tired but happy","D. Sad"],ans:"C",why:"I was tired, but I felt really happy。"}]},
+ {title:"Save Water", text:"Water is very important to all of us. We need water to drink, to cook and to wash things. Plants and animals also need water to live. However, many people waste a lot of water every day. Some leave the tap running when they brush their teeth. Others throw rubbish into rivers and make the water dirty. If we don't save water, we will not have enough clean water in the future. So let's start from small things: turn off the tap after using it, and reuse water when we can.",
+  qs:[{q:"Who needs water?",opts:["A. Only people","B. People, plants and animals","C. Only animals","D. Nobody"],ans:"B",why:"We need water；Plants and animals also need water。"},
+      {q:"What do some people do wrong when brushing teeth?",opts:["A. Brush too long","B. Leave the tap running","C. Use too much toothpaste","D. Use hot water"],ans:"B",why:"Some leave the tap running when they brush their teeth。"},
+      {q:"What does the writer ask us to do?",opts:["A. Drink less water","B. Stop brushing teeth","C. Save water from small things","D. Play with water"],ans:"C",why:"Let's start from small things。"}]},
+ {title:"My Dream Job", text:"Different people have different dreams about their jobs. My dream is to be a doctor. When I was ten, I was ill and stayed in hospital for two weeks. The doctors there were kind and took good care of me. Thanks to them, I got well soon. From then on, I decided to become a doctor like them. Now I study hard at school, especially in science. I know being a doctor is not easy. I need to learn a lot of things. But I will do my best to make my dream come true.",
+  qs:[{q:"What does the writer want to be?",opts:["A. A teacher","B. A doctor","C. A nurse","D. A scientist"],ans:"B",why:"My dream is to be a doctor。"},
+      {q:"Why does the writer have this dream?",opts:["A. Because doctors helped him when he was ill","B. Because doctors are rich","C. Because his parents are doctors","D. Because it is easy to be a doctor"],ans:"A",why:"生病的经历 + Thanks to them, I got well soon。"},
+      {q:"Which subject does the writer study especially hard?",opts:["A. Science","B. Music","C. Art","D. History"],ans:"A",why:"I study hard at school, especially in science。"}]},
+ {title:"The Four Seasons", text:"There are four seasons in a year, and each season has its own beauty. In spring, the weather gets warm and flowers come out. It is the best time to fly kites. Summer is hot, but I can swim in the river and eat ice cream. Autumn is my favorite season. The leaves turn yellow and the farmers are busy harvesting. The weather is cool, so it is good for climbing mountains. Winter is cold, and it often snows in the north. Children love making snowmen and playing with snow. What a wonderful world with four seasons!",
+  qs:[{q:"Which season does the writer like best?",opts:["A. Spring","B. Summer","C. Autumn","D. Winter"],ans:"C",why:"Autumn is my favorite season。"},
+      {q:"What do children love doing in winter?",opts:["A. Flying kites","B. Swimming","C. Climbing mountains","D. Making snowmen"],ans:"D",why:"Children love making snowmen。"},
+      {q:"What is autumn good for?",opts:["A. Swimming","B. Climbing mountains","C. Making snowmen","D. Planting flowers"],ans:"B",why:"The weather is cool, so it is good for climbing mountains。"}]},
+ {title:"A Letter to a Pen Friend", text:"Dear Mike, thank you for your last letter. I'm glad to tell you about my school life. My school is big and beautiful. There are about two thousand students in it. My favorite place is the school library. There are all kinds of books in it, and I often borrow storybooks after class. I also join the English club. We practice speaking English every Friday afternoon. My English is getting better and better. Please write to me soon and tell me about your school in London. Yours, Wang Lin",
+  qs:[{q:"What is Wang Lin's favorite place at school?",opts:["A. The playground","B. The library","C. The classroom","D. The dining hall"],ans:"B",why:"My favorite place is the school library。"},
+      {q:"How often does the English club practice?",opts:["A. Every day","B. Twice a week","C. Every Friday afternoon","D. Once a month"],ans:"C",why:"We practice speaking English every Friday afternoon。"},
+      {q:"Where does Mike live?",opts:["A. In Beijing","B. In London","C. In New York","D. In Sydney"],ans:"B",why:"Tell me about your school in London。"}]},
+ {title:"Helping at the Old People's Home", text:"Last Sunday, our class went to the old people's home to help the old people. We got there by bus at nine in the morning. Some students cleaned the rooms and washed the clothes. Some sang songs and told stories to make them happy. I am good at cooking, so I helped make dumplings with Grandma Wang. She said my dumplings were as delicious as hers! Before we left, we took photos together. The old people hoped we could come again. On the way back, I felt tired but proud, because helping others makes us happy.",
+  qs:[{q:"How did the students go to the old people's home?",opts:["A. On foot","B. By bike","C. By bus","D. By subway"],ans:"C",why:"We got there by bus at nine in the morning。"},
+      {q:"What did the writer do there?",opts:["A. Cleaned the rooms","B. Sang songs","C. Helped make dumplings","D. Washed the clothes"],ans:"C",why:"I helped make dumplings with Grandma Wang。"},
+      {q:"How did the writer feel on the way back?",opts:["A. Tired but proud","B. Sad and tired","C. Bored","D. Angry"],ans:"A",why:"I felt tired but proud。"}]}
+];
+
 function newListen(){
   const kind=$("lKind").value; lAnswered=false;
-  $("lFeedback").textContent="";
-  $("lOptions").className="quiz-options"+(kind==="sent"?" one-col":"");
+  $("lFeedback").textContent=""; $("lFeedback").style.color="";
+  $("lOptions").className="quiz-options"+(kind==="word"?"":" one-col");
   $("lReveal").textContent="? ? ?"; $("lRevealPh").textContent="";
   $("lOptions").innerHTML="";
+  $("lPlay").textContent="🔊 播放";        // 重置播放/暂停按钮
+  $("lTranscript").textContent="";
+  $("lTranscript").classList.add("hidden"); // 原文默认收起
+  $("lTransBtn").classList.add("hidden");
+  $("lTransBtn").textContent="📄 查看原文";
+  const setTranscript = t=>{               // 句子/对话/短文题：备好原文，点了按钮才显示
+    $("lTranscript").textContent=t;
+    if(t){ $("lTransBtn").classList.remove("hidden"); }
+  };
   if(kind==="word"){
     if(!words.length) return;
     lCur=words[Math.floor(Math.random()*words.length)];
@@ -889,10 +1039,11 @@ function newListen(){
         return {ok:w.word===lCur.word, msg:"正确答案："+lCur.word+" — "+(lCur.definition||"")};
       });
     });
-  }else{
+  }else if(kind==="sent"){
     if(!sents.length) return;
     lCur=sents[Math.floor(Math.random()*sents.length)];
     $("lPrompt").textContent="听整句发音，选出正确的中文意思。";
+    setTranscript(lCur.en);                        // 备好英文原文（点「查看原文」才显示）
     lDecoys=pickDecoys(lCur,sents.filter(s=>s.en!==lCur.en&&s.zh),s=>s.zh,3);
     [lCur,...lDecoys].sort(()=>Math.random()-.5).forEach(s=>{
       addListenOption(s.zh, s.en===lCur.en, ()=>{
@@ -900,9 +1051,52 @@ function newListen(){
         return {ok:s.en===lCur.en, msg:"正确答案："+(lCur.zh||"")};
       });
     });
+  }else if(kind==="dialog"){
+    if(!DIALOGUES.length) return;
+    lCur=DIALOGUES[Math.floor(Math.random()*DIALOGUES.length)];
+    $("lPrompt").textContent="听一段两人对话（语料共 "+DIALOGUES.length+" 段，可反复播放），然后回答 "+lCur.qs.length+" 个问题。";
+    setTranscript(lCur.turns.map(t=>"["+t[0]+"] "+t[1]).join("\n"));   // 备好对话原文
+    renderListenQs(lCur.qs, $("lTranscript").textContent);
+  }else{
+    if(!PASSAGES.length) return;
+    lCur=PASSAGES[Math.floor(Math.random()*PASSAGES.length)];
+    $("lPrompt").textContent="听一篇短文《"+lCur.title+"》（语料共 "+PASSAGES.length+" 篇，可反复播放），然后回答 "+lCur.qs.length+" 个问题。";
+    setTranscript("《"+lCur.title+"》"+lCur.text);                     // 备好短文原文
+    renderListenQs(lCur.qs, lCur.title+"  "+lCur.text);
   }
   const auto=$("lAuto").checked;
-  if(auto && userActed){ setTimeout(playListen, 350); } else { $("lTip").textContent="点「播放」开始"; }
+  if(auto && userActed){ setTimeout(playListen, 350); } else { $("lTip").textContent="点「播放」开始（播放中可点「暂停」）"; }
+}
+/* 对话/短文听力：每题一组选项，组内独立判分；全部答完后公布原文 */
+function renderListenQs(qs, transcript){
+  let doneN=0;
+  qs.forEach((q,qn)=>{
+    const wrap=document.createElement("div"); wrap.className="lq";
+    const title=document.createElement("div"); title.className="lq-title";
+    title.textContent="第 "+(qn+1)+" 题："+q.q;
+    wrap.appendChild(title);
+    let done=false;
+    const btns=[];
+    q.opts.slice().sort(()=>Math.random()-.5).forEach(o=>{
+      const b=document.createElement("button"); b.textContent=o; btns.push(b);
+      b.onclick=()=>{
+        if(done) return;
+        done=true; doneN++; lTotal++;
+        const ok=o.charAt(0)===q.ans;
+        if(ok) lRight++;
+        $("lFeedback").textContent=(ok?"✓ 答对了！":"✗ 正确答案："+q.ans+"。")+(q.why?"　"+q.why:"");
+        $("lFeedback").style.color= ok ? "var(--green)" : "var(--red)";
+        $("lScore").textContent="得分："+lRight+" / "+lTotal;
+        btns.forEach(x=>x.disabled=true);
+        b.style.borderColor = ok ? "var(--green)" : "var(--red)";
+        if(doneN===qs.length){   // 全部答完 → 公布原文
+          $("lReveal").textContent=transcript; $("lRevealPh").textContent="（↑ 听力原文，可对照再听一遍）";
+        }
+      };
+      wrap.appendChild(b);
+    });
+    $("lOptions").appendChild(wrap);
+  });
 }
 function addListenOption(text, isRight, onPick){
   const b=document.createElement("button");
@@ -919,13 +1113,105 @@ function addListenOption(text, isRight, onPick){
   };
   $("lOptions").appendChild(b);
 }
+/* 听力专用：让朗读更像真人
+   1) 优先挑名字带 Natural 的在线自然语音（Edge/Chrome 提供的神经语音，比传统 TTS 自然得多）
+   2) 对话给 A/B 配两个不同音色（优先一男一女），音调错开
+   3) 短文按句切分，逐句音调/语速微变化，避免一字一顿的机器人腔 */
+function listenVoices(){
+  const lang=currentLang();
+  const all = synth ? synth.getVoices() : [];
+  const prefix = lang.slice(0,2);
+  const pool = all.filter(v=>v.lang && String(v.lang).replace("_","-").toLowerCase().startsWith(prefix));
+  const nat = pool.filter(v=>/natural|neural/i.test(v.name));
+  const base = voiceFor(lang, accentPref()!=="auto");
+  const v1 = nat[0] || base || pool[0] || null;
+  const rest = pool.filter(v=>v!==v1);
+  const restNat = rest.filter(v=>/natural|neural/i.test(v.name));
+  const g1 = guessGender(v1 && v1.name);
+  let v2 = restNat.find(v=>guessGender(v.name) && guessGender(v.name)!==g1)
+        || rest.find(v=>guessGender(v.name) && guessGender(v.name)!==g1)
+        || restNat[0] || rest[0] || null;
+  return [v1, v2];
+}
+function speakSeq(parts, btn){
+  if(!parts || !parts.length) return;
+  if(!synth){ alert("当前浏览器不支持语音朗读，建议改用 Chrome 或 Edge。"); return; }
+  clearTimeout(speakTimer); clearTimeout(speakWatch);
+  try{ synth.cancel(); }catch(e){}
+  const [v1,v2]=listenVoices();
+  let i=0;
+  const next=()=>{
+    if(i>=parts.length){ if(btn) btn.classList.remove("speaking"); return; }
+    const p=parts[i++];
+    let u;
+    try{ u = new SpeechSynthesisUtterance(p.text); }catch(e){ return; }
+    u.lang=currentLang();
+    const v = p.voice!==undefined ? p.voice : v1;
+    if(v) u.voice=v;
+    u.rate = p.rate || parseFloat($("rate").value) || 0.85;
+    u.pitch = p.pitch || 1;
+    u.volume = 1;
+    u.onstart = ()=>{ speakRetried=0; clearSpeakWarn(); };
+    u.onend = next;
+    u.onerror = next;
+    try{ synth.speak(u); }catch(e){}
+  };
+  if(btn) btn.classList.add("speaking");
+  next();
+}
 function playListen(forceSlow){
   if(!lCur) return;
-  const text = $("lKind").value==="word" ? lCur.word : lCur.en;
-  speak(text, $("lPlay"), forceSlow ? {rate:0.6} : null);
+  const kind=$("lKind").value;
+  const rate = forceSlow ? 0.6 : 0.9;
+  if(kind==="word"){ speak(lCur.word, $("lPlay"), forceSlow ? {rate:0.6} : null); return; }
+  const [va,vb]=listenVoices();
+  let parts;
+  if(kind==="sent"){
+    parts=[{text:lCur.en, voice:va, rate}];
+  }else if(kind==="dialog"){
+    /* 两人对话：A/B 不同音色、音调错开，句间自然衔接 */
+    parts=lCur.turns.map((t,i)=>({
+      text:t[1],
+      voice: i%2 ? vb : va,
+      pitch: i%2 ? 1.06 : 0.94,
+      rate: rate + (i%2 ? 0.02 : 0)
+    }));
+  }else{
+    /* 短文：按句切分，音调小幅起伏，读起来有叙述感 */
+    const sents2 = lCur.text.match(/[^.!?]+[.!?]+["']?/g) || [lCur.text];
+    parts = sents2.map((s,k)=>({
+      text:s.trim(),
+      voice:va,
+      pitch: 1 + (((k*37)%9)-4)*0.012,     // ±0.05 以内的微起伏
+      rate: rate + (((k*29)%7)-3)*0.008
+    }));
+  }
+  speakSeq(parts, $("lPlay"));
 }
-$("lPlay").onclick=()=>playListen(false);
-$("lSlow").onclick=()=>playListen(true);
+/* 播放键：播放中点一下 → 暂停；暂停中点一下 → 继续；空闲时 → 开始播放 */
+$("lPlay").onclick=()=>{
+  if(!lCur) return;
+  if(synth && synth.speaking && !synth.paused){
+    try{ synth.pause(); }catch(e){}
+    $("lPlay").textContent="▶ 继续播放";
+    $("lTip").textContent="已暂停，再点一下继续";
+  }else if(synth && synth.paused){
+    try{ synth.resume(); }catch(e){}
+    $("lPlay").textContent="⏸ 暂停";
+    $("lTip").textContent="继续播放中…";
+  }else{
+    $("lPlay").textContent="⏸ 暂停";
+    playListen(false);
+  }
+};
+$("lSlow").onclick=()=>{ $("lPlay").textContent="⏸ 暂停"; playListen(true); };
+/* 「查看原文」：点了才显示原文，再看一眼收起 */
+$("lTransBtn").onclick=()=>{
+  const box=$("lTranscript"), btn=$("lTransBtn");
+  const show = box.classList.contains("hidden");
+  box.classList.toggle("hidden", !show);
+  btn.textContent = show ? "📄 收起原文" : "📄 查看原文";
+};
 $("lNext").onclick=newListen;
 $("lKind").onchange=()=>{ STORE.setItem("vocab-lkind",$("lKind").value); newListen(); };
 
@@ -959,28 +1245,54 @@ function lcsMarks(target, heard){
   while(i<m){ out.push({w:target[i],hit:false}); i++; }
   return out;
 }
+/* 单词/短句跟读：与单词学习一样按字母顺序推进，位置记住（换模式/范围各自记住） */
+let pPool=[], pPoolKey="", pPos=0;
 function newP(){
   const kind=$("pKind").value;
   const l=$("pList").value;
-  if(kind==="word"){
-    const pool = l ? words.filter(w=>w.list===l) : words;
-    if(!pool.length) return;
-    pCur=pool[Math.floor(Math.random()*pool.length)];
-    $("pTarget").textContent=pCur.word;
-    $("pTargetSub").textContent=(pCur.phonetic||"")+"　"+(pCur.definition||"");
-  }else{
-    const pool = l ? sents.filter(s=>s.list===l) : sents;
-    if(!pool.length) return;
-    pCur=pool[Math.floor(Math.random()*pool.length)];
-    $("pTarget").textContent=pCur.en;
-    $("pTargetSub").textContent=pCur.zh||"";
+  const longMode = (kind==="passage");
+  $("pTarget").classList.toggle("long", longMode);
+  if(kind==="word"||kind==="sent"){
+    const pool = kind==="word"
+      ? (l ? words.filter(w=>w.list===l) : words)
+      : (l ? sents.filter(s=>s.list===l) : sents);   // 词库/短句库本身就是 A→Z（短句按关联词）排好的
+    const key = kind+"|"+l;
+    if(pPoolKey!==key){ pPoolKey=key; pPool=pool; pPos=parseInt(STORE.getItem("vocab-pidx-"+kind)||"0",10)||0; }
+    if(!pPool.length) return;
+    if(pPos>=pPool.length) pPos=0;
+    pCur=pPool[pPos];
+    const posText="第 "+(pPos+1)+" / "+pPool.length+"（按字母顺序）";
+    if(kind==="word"){
+      $("pTarget").textContent=pCur.word;
+      $("pTargetSub").textContent=(pCur.phonetic||"")+"　"+(pCur.definition||"")+"　·　"+posText;
+    }else{
+      $("pTarget").textContent=pCur.en;
+      $("pTargetSub").textContent=(pCur.zh||"")+"　·　"+posText;
+    }
+  }else if(kind==="passage"){
+    pCur=PASSAGES[Math.floor(Math.random()*PASSAGES.length)];
+    $("pTarget").textContent=pCur.text;
+    $("pTargetSub").textContent="《"+pCur.title+"》　朗读整段短文，尽量模仿语音语调（共 "+PASSAGES.length+" 篇）";
   }
   $("pStatus").textContent=""; $("pHeard").textContent=""; $("pDiff").innerHTML="";
 }
-function speakP(slow){ if(pCur) speak($("pKind").value==="word"?pCur.word:pCur.en, null, slow?{rate:0.6}:null); }
+function speakP(slow){
+  if(!pCur) return;
+  const kind=$("pKind").value;
+  const t = kind==="word" ? pCur.word : kind==="passage" ? pCur.text : pCur.en;
+  speak(t, null, slow?{rate:0.6}:null);
+}
 $("pPlay").onclick=()=>speakP(false);
 $("pPlaySlow").onclick=()=>speakP(true);
-$("pNext").onclick=newP;
+$("pNext").onclick=()=>{
+  const kind=$("pKind").value;
+  if((kind==="word"||kind==="sent") && pPool.length){
+    pPos=pPos+1; if(pPos>=pPool.length) pPos=0;
+    STORE.setItem("vocab-pidx-"+kind, String(pPos));
+  }
+  newP();
+};
+$("pList").onchange=newP;
 $("pKind").onchange=()=>{ STORE.setItem("vocab-pkind",$("pKind").value); newP(); };
 
 function setupRecog(){
@@ -1017,7 +1329,9 @@ function setupRecog(){
 }
 function gradeSpeech(heard){
   const kind=$("pKind").value;
-  const target = kind==="word" ? pCur.word : pCur.en;
+  const target = kind==="word" ? pCur.word
+               : kind==="passage" ? pCur.text
+               : pCur.en;
   const tt=tokens(target), hh=tokens(heard);
   let pct, marks=[];
   if(kind==="word"){
@@ -2158,20 +2472,173 @@ initSpeakNotice();
 
 /* 取词库：优先用「离线单文件版」内嵌的数据（file:// 下浏览器禁止 fetch 本地文件）；
    普通版没有内嵌数据，就走 fetch 读同目录的 json —— 所以普通版必须用本地服务器打开。 */
+/* ========== 语法学习 & 语法测试 ========== */
+let grammar = { lessons:[], quiz:[] };
+let gramIdx = 0, gramLevel = "", gramDoneSet = [];
+let gramq = null, gramqIdx = 0, gramqScore = 0;
+function gramDoneList(){ try{ const a = JSON.parse(STORE.getItem("vocab-gram-done")||"[]"); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+function gramSaveDone(){ STORE.setItem("vocab-gram-done", JSON.stringify(gramDoneSet)); }
+function gramVisible(){ return grammar.lessons.map((L,i)=>({L,i})).filter(x=>!gramLevel || x.L.level.indexOf(gramLevel)===0); }
+function gramLessonsFiltered(){ return grammar.lessons.filter(L=>!gramLevel || L.level.indexOf(gramLevel)===0); }
+function renderGramSel(){
+  const sel = $("gramSel"); if(!sel) return;
+  sel.innerHTML = "";
+  grammar.lessons.forEach((L,i)=>{
+    if(gramLevel && L.level.indexOf(gramLevel)!==0) return;
+    const o = document.createElement("option");
+    o.value = String(i);
+    o.textContent = "Lesson " + L.no + "　" + L.title + "（" + L.level + "）";
+    sel.appendChild(o);
+  });
+  sel.value = String(gramIdx);
+}
+function gramUpdateDoneInfo(){
+  const el = $("gramDoneInfo"); if(!el) return;
+  const d = gramDoneSet.length;
+  el.textContent = d ? "已学完 " + d + " / " + grammar.lessons.length + " 课" : "";
+  const btn = $("gramDone");
+  if(btn) btn.textContent = gramDoneSet.includes(grammar.lessons[gramIdx]?.no) ? "取消学完" : "标记学完";
+}
+function showGram(i){
+  if(!grammar.lessons.length) return;
+  gramIdx = Math.max(0, Math.min(i, grammar.lessons.length-1));
+  const L = grammar.lessons[gramIdx];
+  STORE.setItem("vocab-gram-pos", String(gramIdx));
+  const box = $("gramBody"); if(!box) return;
+  box.innerHTML = "";
+  const d = mkEl("div","gram");
+  const title = mkEl("div","g-title","Lesson " + L.no + "　" + L.title);
+  title.appendChild(mkEl("span","g-level", L.level));
+  if(gramDoneSet.includes(L.no)) title.appendChild(mkEl("span","g-done","　✓ 已学完"));
+  d.appendChild(title);
+  L.blocks.forEach(b=>{
+    if(b[0]==="img"){ d.appendChild(mkEl("div","g-img","（课本插图略）")); return; }
+    d.appendChild(mkEl("div", b[0]==="b" ? "g-b" : "g-t", b[1]));
+  });
+  const nav = mkEl("div","actions");
+  if(gramIdx>0){ const p = mkEl("button",null,"← 上一课"); p.onclick=()=>showGram(gramIdx-1); nav.appendChild(p); }
+  if(gramIdx<grammar.lessons.length-1){ const n = mkEl("button","primary","下一课 →"); n.onclick=()=>showGram(gramIdx+1); nav.appendChild(n); }
+  d.appendChild(nav);
+  box.appendChild(d);
+  $("gramSel").value = String(gramIdx);
+  gramUpdateDoneInfo();
+}
+function renderGramListInit(){
+  if(!grammar.lessons.length){
+    const box = $("gramBody"); if(box) box.innerHTML = '<p class="g-t">语法课程数据加载失败：请确认 grammar.json 与 index.html 在同一文件夹。</p>';
+    return;
+  }
+  renderGramSel();
+  const saved = parseInt(STORE.getItem("vocab-gram-pos")||"0",10);
+  showGram(Number.isFinite(saved)&&saved>=0&&saved<grammar.lessons.length ? saved : 0);
+}
+function newGramQuiz(){
+  const scope = $("gramqScope") ? $("gramqScope").value : "";
+  const pool = grammar.quiz.filter(q=>!scope || q.level===scope);
+  if(pool.length<5){ alert("该学段的题目不足（需要至少 5 题）"); return; }
+  const rnd = rngOf((Math.random()*4294967296)>>>0 || 1);
+  const picked = sampleBy(pool, Math.min(10, pool.length), rnd);
+  gramq = picked.map(q=>({ ...q, val:null, ok:null, pickedText:null }));
+  gramqIdx = 0; gramqScore = 0;
+  STORE.setItem("vocab-gramq-scope", scope);
+  renderGramQ();
+}
+function gramqPick(k, optText){
+  const q = gramq[gramqIdx];
+  if(q.ok!==null) return;
+  q.pickedText = optText;
+  q.ok = (optText.charAt(0) === q.ans);
+  if(q.ok) gramqScore++;
+  renderGramQ();
+}
+function gramqNext(){
+  if(gramqIdx < gramq.length-1){ gramqIdx++; renderGramQ(); }
+  else renderGramQ();   // 最后一题：保持成绩卡
+}
+function renderGramQ(){
+  const box = $("gramqBody"); if(!box) return;
+  box.innerHTML = "";
+  if(!gramq || !gramq.length){ $("gramqScore").textContent=""; return; }
+  $("gramqScore").textContent = "得分：" + gramqScore + " / " + gramq.length;
+  const q = gramq[gramqIdx];
+  const card = mkEl("div","gramq-q");
+  card.appendChild(mkEl("span","gq-no","第 " + (gramqIdx+1) + " / " + gramq.length + " 题 · " + q.chTitle + "（" + q.level + "）"));
+  card.appendChild(mkEl("div","gq-stem", q.stem));
+  q.opts.forEach(opt=>{
+    const letter = opt.charAt(0);
+    const b = mkEl("button","gq-opt", opt);
+    b.type = "button";
+    if(q.ok===null){
+      b.onclick = ()=>gramqPick(gramqIdx, opt);
+    }else{
+      b.disabled = true;
+      if(letter===q.ans) b.classList.add("correct");
+      if(letter===q.pickedText.charAt(0) && !q.ok) b.classList.add("wrong");
+    }
+    card.appendChild(b);
+  });
+  if(q.ok!==null){
+    card.appendChild(mkEl("div","gramq-why",
+      (q.ok ? "✓ 答对" : "✗ 答错，正确答案 " + q.ans) + "。" + (q.why || "")));
+    const nav = mkEl("div","actions");
+    if(gramqIdx < gramq.length-1){
+      const n = mkEl("button","primary","下一题 →"); n.onclick = gramqNext; nav.appendChild(n);
+    }else{
+      const pct = Math.round(gramqScore/gramq.length*100);
+      nav.appendChild(mkEl("span","gramq-why", "✅ 测试完成：" + gramqScore + " / " + gramq.length + "（" + pct + " 分）" +
+        (pct>=90 ? "　优秀！" : pct>=70 ? "　不错，错题解析再看一眼。" : "　把解析读一读，再来一轮。")));
+      const again = mkEl("button","primary","再来一轮"); again.onclick = newGramQuiz; nav.appendChild(again);
+    }
+    card.appendChild(nav);
+  }
+  box.appendChild(card);
+}
+/* —— 语法板块事件绑定 —— */
+if($("gramSel"))   $("gramSel").onchange   = ()=>showGram(parseInt($("gramSel").value,10)||0);
+if($("gramPrev"))  $("gramPrev").onclick   = ()=>showGram(gramIdx-1);
+if($("gramNext"))  $("gramNext").onclick   = ()=>showGram(gramIdx+1);
+if($("gramDone"))  $("gramDone").onclick   = ()=>{
+  const L = grammar.lessons[gramIdx]; if(!L) return;
+  const k = gramDoneSet.indexOf(L.no);
+  if(k>=0) gramDoneSet.splice(k,1); else gramDoneSet.push(L.no);
+  gramSaveDone(); gramUpdateDoneInfo(); showGram(gramIdx);
+};
+if($("gramLevelSeg")) $("gramLevelSeg").onclick = e=>{
+  const b = e.target.closest("button[data-glevel]"); if(!b) return;
+  gramLevel = b.dataset.glevel;
+  [...$("gramLevelSeg").children].forEach(x=>x.classList.toggle("on", x===b));
+  STORE.setItem("vocab-gram-level", gramLevel);
+  renderGramSel();
+  const vis = gramLessonsFiltered();
+  showGram(vis.length ? grammar.lessons.indexOf(vis[0]) : 0);
+};
+if($("gramqNew"))   $("gramqNew").onclick  = newGramQuiz;
+if($("gramqScope") && STORE.getItem("vocab-gramq-scope")) $("gramqScope").value = STORE.getItem("vocab-gramq-scope");
+gramDoneSet = gramDoneList();
+
 function loadJson(){
   /* cache:"no-cache" = 每次都与服务器核对版本（命中才用本地副本），
      避免浏览器拿缓存的旧词库，导致看起来顺序没变 */
   return Promise.all([
     fetch("words.json",{cache:"no-cache"}).then(r=>r.json()).catch(()=>[]),
-    fetch("sentences.json",{cache:"no-cache"}).then(r=>r.json()).catch(()=>[])
-  ]).then(([w,s])=>({w:Array.isArray(w)?w:[], s:Array.isArray(s)?s:[]}));
+    fetch("sentences.json",{cache:"no-cache"}).then(r=>r.json()).catch(()=>[]),
+    fetch("grammar.json",{cache:"no-cache"}).then(r=>r.json()).catch(()=>null)
+  ]).then(([w,s,g])=>({w:Array.isArray(w)?w:[], s:Array.isArray(s)?s:[], g:(g&&typeof g==="object")?g:{lessons:[],quiz:[]}}));
 }
 const inlineData = (window.__VOCAB_INLINE__ && typeof window.__VOCAB_INLINE__==="object") ? window.__VOCAB_INLINE__ : null;
 Promise.resolve(
-  inlineData ? {w:inlineData.words||[], s:inlineData.sents||[]} : loadJson()
-).then(({w,s})=>{
+  inlineData ? {w:inlineData.words||[], s:inlineData.sents||[], g:inlineData.gram||{lessons:[],quiz:[]}} : loadJson()
+).then(({w,s,g})=>{
   words = Array.isArray(w) ? w : [];
   sents = Array.isArray(s) ? s : [];
+  grammar = (g && Array.isArray(g.lessons)) ? g : { lessons:[], quiz:[] };
+  const savedGL = STORE.getItem("vocab-gram-level");
+  if(savedGL && $("gramLevelSeg")){
+    gramLevel = savedGL;
+    [...$("gramLevelSeg").children].forEach(x=>x.classList.toggle("on", x.dataset.glevel===savedGL));
+  }
+  gramDoneSet = gramDoneList();
+  renderGramListInit();
   if(!words.length){
     $("word").textContent="词库加载失败";
     $("phonetic").textContent = location.protocol==="file:"
