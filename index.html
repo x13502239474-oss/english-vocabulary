@@ -71,6 +71,70 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
 .recent-bar #clearRecent{padding:4px 10px;border:1px solid var(--line);border-radius:8px;background:white;color:var(--muted);font-size:12px;cursor:pointer}
 .recent-bar #clearRecent:hover{border-color:var(--red);color:var(--red)}
 
+/* ---- 已掌握清单 ---- */
+.stat.link{cursor:pointer;transition:.15s}
+.stat.link:hover{border-color:var(--blue);box-shadow:0 6px 18px #2563eb1f}
+.stat.link .arr{color:var(--blue);font-style:normal;font-weight:700;margin-left:3px}
+.master-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 16px;color:var(--muted);font-size:13px}
+.master-tools input{padding:6px 9px;border:1px solid var(--line);border-radius:8px;background:white;font-size:13px;width:240px}
+.letter-head{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.14em;margin:8px 0 -2px}
+.letter-head::after{content:"";flex:1;height:1px;background:var(--line)}
+.empty-tip{color:var(--muted);font-size:14px;margin:0}
+.master-more{justify-self:start;padding:8px 14px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink);font-size:13px;cursor:pointer}
+.master-more:hover{border-color:var(--blue);color:var(--blue);background:#eff4ff}
+
+/* ---- 测试卷 ---- */
+.paper{background:white;border:1px solid var(--line);border-radius:16px;padding:clamp(16px,3vw,28px);box-shadow:0 4px 14px #0f172a08}
+.p-head{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:16px}
+.p-title{margin:0;font-size:clamp(19px,3vw,24px);text-align:center}
+.p-meta{color:var(--muted);font-size:12px;text-align:center;margin-top:6px}
+.p-name{font-size:13px;color:#334155;margin-top:10px}
+.p-sec{font-size:16px;margin:22px 0 8px;padding-left:8px;border-left:4px solid var(--blue)}
+.p-sub{font-weight:650;font-size:14px;margin:14px 0 6px}
+.p-tip{color:var(--muted);font-size:12.5px;line-height:1.6;margin:0 0 10px}
+.p-item{display:flex;gap:8px;padding:8px 0;border-bottom:1px dashed #eef2f7}
+.p-no{color:var(--muted);font-size:13px;min-width:22px;padding-top:2px}
+.p-body{flex:1;min-width:0}
+.p-stem{font-size:15px;line-height:1.7}
+.p-hint{font-size:12.5px;color:#0f766e;background:#f0fdfa;border:1px dashed #99f6e4;border-radius:8px;padding:4px 9px;display:inline-block;margin-top:6px}
+.p-opts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.p-opt{padding:6px 12px;border:1px solid var(--line);border-radius:9px;background:white;color:var(--ink);font-size:13.5px;cursor:pointer;text-align:left}
+.p-opt:hover{border-color:var(--blue);color:var(--blue)}
+.p-opt.on{border-color:var(--blue);background:#eff4ff;color:var(--blue);font-weight:600}
+.p-opt.right{border-color:var(--green);background:#f0fdf4;color:var(--green);font-weight:600}
+.p-opt.wrong{border-color:var(--red);background:#fef2f2;color:var(--red)}
+.p-listen{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.p-lhint,.p-audio-text{color:var(--muted);font-size:12.5px}
+.p-bank{display:flex;gap:8px;flex-wrap:wrap;padding:10px;border:1px solid var(--line);border-radius:10px;background:#f8fafc;margin:0 0 10px}
+.p-bank-w{padding:3px 10px;background:white;border:1px solid var(--line);border-radius:999px;font-size:13px}
+.p-ansrow{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+.p-lb{color:var(--muted);font-size:12.5px;margin-top:6px}
+.p-input{padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px;width:180px;background:white;font-family:inherit}
+.p-input.wide{width:100%}
+.p-textarea{width:100%;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px;line-height:1.6;resize:vertical;background:white}
+.p-fb{margin-top:6px;font-size:12.5px;display:flex;gap:8px;flex-wrap:wrap}
+.p-fb.ok .p-mark{color:var(--green);font-weight:700}
+.p-fb.no .p-mark{color:var(--red);font-weight:700}
+.p-why{color:var(--muted)}
+.p-passage{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.p-pline{margin:0 0 4px;font-size:13.5px;line-height:1.7}
+.p-score{margin-top:12px;padding:12px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;color:var(--blue)}
+.p-score strong{font-size:26px}
+.p-groups{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.p-grp{font-size:12.5px;background:white;border:1px solid #bfdbfe;border-radius:999px;padding:2px 10px;color:#1d4ed8}
+.p-sample{margin-top:12px;padding:12px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;font-size:13px;color:var(--amber)}
+.p-sample p{margin:6px 0 0;line-height:1.7}
+@media print{
+  header,.stats,.progress,.tabs,.footer,.p-ctrl,.view{display:none!important}
+  #paper{display:block!important}
+  body{background:#fff}
+  .paper{border:0;box-shadow:none;padding:0}
+  .p-play,.speak{display:none!important}
+  .p-item{break-inside:avoid}
+  .p-input,.p-textarea{border:0;border-bottom:1px solid #94a3b8;border-radius:0;width:100%}
+  .p-opt{border:0;padding:2px 12px 2px 0}
+}
+
 /* ---- 提示 / 警告 ---- */
 .notice{background:#fffbeb;border:1px solid #fde68a;color:var(--amber);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.6;margin:0 0 14px}
 .notice.bad{background:#fef2f2;border-color:#fecaca;color:var(--red)}
@@ -103,9 +167,9 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
 <main>
 <div class="stats">
  <div class="stat"><strong id="total">—</strong><span>词库单词</span></div>
- <div class="stat"><strong id="learned">0</strong><span>已掌握单词</span></div>
+ <div class="stat link" id="statLearned" title="点击查看已掌握了哪些单词"><strong id="learned">0</strong><span>已掌握单词<i class="arr">›</i></span></div>
  <div class="stat"><strong id="sentTotal">—</strong><span>短句总数</span></div>
- <div class="stat"><strong id="sentLearned">0</strong><span>已掌握短句</span></div>
+ <div class="stat link" id="statSentLearned" title="点击查看已掌握了哪些短句"><strong id="sentLearned">0</strong><span>已掌握短句<i class="arr">›</i></span></div>
 </div>
 <div class="progress"><div id="progress"></div></div>
 <div class="tabs">
@@ -117,6 +181,8 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
  <button class="tab" data-view="dict">默写练习</button>
  <button class="tab" data-view="list">词库检索</button>
  <button class="tab" data-view="review">待复习</button>
+ <button class="tab" data-view="mastered">已掌握</button>
+ <button class="tab" data-view="paper">测试卷</button>
 </div>
 
 <!-- ================= 单词学习 ================= -->
@@ -332,6 +398,43 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
  <div id="sReviewList" class="list"></div>
 </section>
 
+<!-- ================= 已掌握 ================= -->
+<section id="mastered" class="view hidden">
+ <div class="master-tools">
+  <label>筛选 <input id="masteredSearch" placeholder="输入英文或中文，只看匹配项" autocomplete="off"></label>
+  <span id="masteredTip"></span>
+ </div>
+ <div class="section-title"><h2 id="masteredTitle">已掌握单词</h2><span id="masteredCount"></span></div>
+ <p style="color:var(--muted);margin:-4px 0 12px">按 A→Z 排列。点「取消掌握」可以把它移回待学习。</p>
+ <div id="masteredList" class="list"></div>
+ <div class="section-title" style="margin-top:26px"><h2 id="sMasteredTitle">已掌握短句</h2><span id="sMasteredCount"></span></div>
+ <div id="sMasteredList" class="list"></div>
+</section>
+
+<!-- ================= 测试卷 ================= -->
+<section id="paper" class="view hidden">
+ <div class="panel p-ctrl">
+  <div class="mode-bar">
+   <span>难度</span>
+   <span class="seg" id="paperDiffSeg">
+    <button data-pdiff="basic" class="on">普通</button>
+    <button data-pdiff="adv">进阶</button>
+    <button data-pdiff="master">精通</button>
+   </span>
+   <span>出卷范围</span>
+   <select id="paperScope"><option value="">全部单元</option></select>
+   <button class="primary" id="paperNew">生成新卷</button>
+   <button id="paperSubmit">提交评分</button>
+   <button id="paperPrint">打印试卷</button>
+   <span id="paperBest"></span>
+  </div>
+  <p class="p-tip">试卷由词库与短句库自动组成：听力用浏览器朗读，语言运用取自词库例句，阅读短文由同一单元的句子拼成，写作给词写段。
+   满分 100 分，建议用时 40–50 分钟（随难度变化）。<b>普通</b>只考靠前 1/3 单元、选项差别大、单选给中文提示；<b>进阶</b>覆盖全部单元、干扰项形近、方框多给 2 个词；
+   <b>精通</b>优先长句难句、干扰项同词性同首字母、方框多给 4 个词、短文更长、听力语速更快。作答后在电脑上点「提交评分」自动判分（翻译与写作按相似度给参考分），也可以打印出来做。</p>
+ </div>
+ <div id="paperBody" class="paper"></div>
+</section>
+
 <p class="footer">学习记录保存在当前浏览器中。此网页为个人学习辅助工具；词库与短句内容来自你提供的电子书，仅建议个人学习使用。</p>
 </main>
 <script>
@@ -394,8 +497,8 @@ let recentWords=(()=>{
   try{ const a=JSON.parse(STORE.getItem("vocab-recent")||"[]");
        return Array.isArray(a)?a.filter(x=>typeof x==="string").slice(0,10):[] }catch(e){ return [] }
 })();
-function save(){saveSet("vocab-mastered",mastered);saveSet("vocab-review",review);updateStats()}
-function saveS(){saveSet("vocab-sent-mastered",sMastered);saveSet("vocab-sent-review",sReview);updateStats()}
+function save(){saveSet("vocab-mastered",mastered);saveSet("vocab-review",review);updateStats();refreshMastered()}
+function saveS(){saveSet("vocab-sent-mastered",sMastered);saveSet("vocab-sent-review",sReview);updateStats();refreshMastered()}
 
 /* ==================== 发音模块（Web Speech API，免联网免 Key） ==================== */
 const synth = window.speechSynthesis;
@@ -1262,18 +1365,754 @@ function renderReview(){
   if(!sa.length) $("sReviewList").innerHTML='<p>当前没有待复习短句。</p>';
 }
 
-/* ==================== 标签切换 ==================== */
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));
-  document.querySelectorAll(".view").forEach(x=>x.classList.toggle("hidden",x.id!==b.dataset.view));
-  const v=b.dataset.view;
-  if(v==="review") renderReview();
-  if(v==="list") renderList();
-  if(v==="listen" && !lCur) newListen();
-  if(v==="speak" && !pCur) newP();
-  if(v==="dict" && !dCur) pickDict(0);
-  if(v==="dict") setTimeout(()=>{ try{ $("dInput").focus(); }catch(_){} }, 50);
-});
+/* ==================== 已掌握清单 ==================== */
+/* 把「已掌握」里的具体条目列出来（单词 + 短句）。
+   顺序直接跟着词库数组走（本身已是 A→Z），并插入首字母分组标题，方便快速扫读。
+   条目可能上千，先渲染 MASTER_PAGE 条，点「显示更多」再追加，避免一次建太多节点。 */
+let masteredShown = 200;
+const MASTER_PAGE = 200;
+
+function letterOf(w){
+  const c=(w||"").trim().charAt(0).toUpperCase();
+  return /[A-Z]/.test(c) ? c : "#";
+}
+function hit(q, parts){
+  if(!q) return true;
+  return parts.join(" ").toLowerCase().includes(q);
+}
+/* 一条记录：左侧词条，右侧 朗读 / 重新学习 / 取消掌握 */
+function masteredItem(main, sub, onSpeak, onGo, onUn){
+  const d=document.createElement("div"); d.className="item";
+  const left=document.createElement("div");
+  const big=document.createElement("span"); big.className="w"; big.textContent=main;
+  const small=document.createElement("small"); small.textContent=sub||"";
+  left.appendChild(big); left.appendChild(small);
+  const acts=document.createElement("div"); acts.className="item-actions";
+  const bSpk=document.createElement("button"); bSpk.type="button"; bSpk.className="speak"; bSpk.title="朗读"; bSpk.textContent="🔊";
+  bSpk.onclick=()=>onSpeak(bSpk);
+  const bGo=document.createElement("button"); bGo.type="button"; bGo.className="go"; bGo.textContent="重新学习"; bGo.onclick=onGo;
+  const bUn=document.createElement("button"); bUn.type="button"; bUn.className="unmaster"; bUn.textContent="取消掌握"; bUn.title="移出已掌握"; bUn.onclick=onUn;
+  acts.appendChild(bSpk); acts.appendChild(bGo); acts.appendChild(bUn);
+  d.appendChild(left); d.appendChild(acts);
+  return d;
+}
+function renderMastered(){
+  const box=$("masteredList"), sbox=$("sMasteredList");
+  if(!box || !sbox) return;
+  const q=(($("masteredSearch") && $("masteredSearch").value) || "").trim().toLowerCase();
+
+  /* ---- 单词 ---- */
+  const allW = words.filter(w=>mastered.has(w.word));
+  const wArr = allW.filter(w=>hit(q,[w.word,w.phonetic||"",w.definition||""]));
+  box.innerHTML="";
+  if(!wArr.length){
+    const p=document.createElement("p"); p.className="empty-tip";
+    p.textContent = allW.length
+      ? "没有匹配「"+q+"」的已掌握单词。"
+      : "还没有标记掌握任何单词。在「单词学习」里点「标记掌握 ✓」，这里就会列出来。";
+    box.appendChild(p);
+  }else{
+    let last="";
+    wArr.slice(0,masteredShown).forEach(w=>{
+      const L=letterOf(w.word);
+      if(L!==last){ last=L;
+        const h=document.createElement("div"); h.className="letter-head"; h.textContent=L;
+        box.appendChild(h);
+      }
+      box.appendChild(masteredItem(
+        w.word+(w.phonetic?" "+w.phonetic:""), w.definition,
+        b=>speak(w.word,b),
+        ()=>{ showWord(words.indexOf(w)); showView("study"); },
+        ()=>{ mastered.delete(w.word); save(); renderMastered(); }
+      ));
+    });
+    if(wArr.length>masteredShown){
+      const more=document.createElement("button");
+      more.type="button"; more.className="master-more";
+      more.textContent="显示更多（还有 "+(wArr.length-masteredShown)+" 个）";
+      more.onclick=()=>{ masteredShown+=MASTER_PAGE; renderMastered(); };
+      box.appendChild(more);
+    }
+  }
+  if($("masteredCount")) $("masteredCount").textContent = q ? wArr.length+" / "+allW.length+" 个" : allW.length+" 个单词";
+
+  /* ---- 短句 ---- */
+  const allS = sents.filter(s=>sMastered.has(s.en));
+  const sArr = allS.filter(s=>hit(q,[s.en,s.zh||"",s.word||""]));
+  sbox.innerHTML="";
+  if(!sArr.length){
+    const p=document.createElement("p"); p.className="empty-tip";
+    p.textContent = allS.length
+      ? "没有匹配「"+q+"」的已掌握短句。"
+      : "还没有标记掌握任何短句。在「短句学习」里点「标记掌握 ✓」即可。";
+    sbox.appendChild(p);
+  }else{
+    sArr.forEach(s=>{
+      sbox.appendChild(masteredItem(
+        s.en, (s.zh||"")+(s.word?"　·　"+s.word:""),
+        b=>speak(s.en,b),
+        ()=>{ showSent(sents.indexOf(s)); showView("sent"); },
+        ()=>{ sMastered.delete(s.en); saveS(); renderMastered(); }
+      ));
+    });
+  }
+  if($("sMasteredCount")) $("sMasteredCount").textContent = q ? sArr.length+" / "+allS.length+" 个" : allS.length+" 个短句";
+  if($("masteredTip")) $("masteredTip").textContent = "合计："+mastered.size+" 个单词 · "+sMastered.size+" 个短句";
+}
+/* 只在「已掌握」板块正在显示时才重绘，避免每次标记都白建一遍 DOM */
+function refreshMastered(){
+  const sec=$("mastered");
+  if(!sec || !sec.classList || sec.classList.contains("hidden")) return;
+  renderMastered();
+}
+if($("masteredSearch")) $("masteredSearch").oninput=()=>{ masteredShown=MASTER_PAGE; renderMastered(); };
+
+/* ==================== 英语测试卷（初中级别 · 自动生成） ==================== */
+/* 所有题目都从现成数据里组，不编造内容：
+     一、听力    朗读单词 / 短句（浏览器语音合成），选单词、选中文意思
+     二、语言运用 短句挖空 → 单项选择 + 选词填空（方框给词）
+     三、翻译    英汉对照短句，英译中 / 中译英
+     四、阅读理解 同一单元若干句子拼成短文 + 判断正误 + 词义选择
+     五、书面表达 给 5 个词写一段话，参考范文由这几个词的例句拼成
+   同一个种子生成同一份卷（刷新后还能看到同一份），点「生成新卷」换一份。 */
+let paper = null, paperResult = null;
+
+const PAPER_PT = { listen:2, choice:2, bank:1, trans:3, read:4, write:15 };
+/* 三档难度：题量、分值完全一致（都是 100 分、25 个客观小题 + 1 篇写作），
+   差别在“取材范围、干扰项迷惑度、是否给提示、短文长度、翻译方向、写作要求”：
+     basic  普通：只取靠前 1/3 单元（学过的部分），干扰项随机，单选给中文提示，方框不多给词
+     adv    进阶：全部单元，干扰项同首字母/长度接近，无提示，方框多给 2 个词，译文改中译英为主
+     master 精通：全部单元且优先长句难句，干扰项同词性同首字母，方框多给 4 个词，短文更长，
+                  翻译以中译英为主，写作 6 词 80 词以上 */
+const PAPER_DIFF = {
+  basic: { name:"普通", tag:"基础巩固", mins:40, rate:1.0, unitFrac:1/3,
+           decoy:"random", hint:true, bankExtra:0, transE2C:3, passage:5,
+           tf:4, scan:0, mean:1, writeWords:5, writeMin:40, minSentLen:0 },
+  adv:   { name:"进阶", tag:"能力提升", mins:45, rate:1.0, unitFrac:1,
+           decoy:"near", hint:false, bankExtra:2, transE2C:2, passage:6,
+           tf:4, scan:1, mean:0, writeWords:5, writeMin:60, minSentLen:0 },
+  master:{ name:"精通", tag:"冲刺拔高", mins:50, rate:1.12, unitFrac:1,
+           decoy:"pos", hint:false, bankExtra:4, transE2C:1, passage:7,
+           tf:3, scan:1, mean:1, writeWords:6, writeMin:80, minSentLen:10 }
+};
+const PAPER_DIFF_KEYS = ["basic","adv","master"];
+function diffCfg(k){ return PAPER_DIFF[k] || PAPER_DIFF.basic }
+const TF_OPTS = ["正确（True）","错误（False）"];
+
+function mkEl(tag, cls, text){
+  const e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(text != null) e.textContent = text;
+  return e;
+}
+/* 固定种子的伪随机（mulberry32）：同一个种子 → 同一份试卷 */
+function rngOf(seed){
+  let a = seed >>> 0;
+  return function(){
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function shuffleBy(arr, rnd){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+function sampleBy(arr, n, rnd){ return shuffleBy(arr, rnd).slice(0, n); }
+/* 在句子里定位完整单词：不用正则，避免转义与兼容问题（"art" 不会匹配到 "start"） */
+function wordPosFrom(text, word, from){
+  if(!text || !word) return -1;
+  const t = String(text).toLowerCase(), w = String(word).toLowerCase();
+  let i = t.indexOf(w, from || 0);
+  while(i >= 0){
+    const b = i === 0 ? "" : t[i-1];
+    const a = t[i+w.length] || "";
+    if(!/[a-z]/.test(b) && !/[a-z]/.test(a)) return i;
+    i = t.indexOf(w, i+1);
+  }
+  return -1;
+}
+function wordPos(text, word){ return wordPosFrom(text, word, 0) }
+/* 把句子里的目标词挖成横线，返回题干与答案（答案保留原句里的词形） */
+function blankOut(text, word){
+  const i = wordPos(text, word);
+  if(i < 0) return null;
+  return { stem: text.slice(0,i) + " ______ " + text.slice(i+word.length), word: text.substr(i, word.length) };
+}
+function lcsLen(a, b){
+  const m = a.length, n = b.length;
+  if(!m || !n) return 0;
+  let prev = new Array(n+1).fill(0), cur = new Array(n+1).fill(0);
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++)
+      cur[j] = a[i-1] === b[j-1] ? prev[j-1] + 1 : Math.max(prev[j], cur[j-1]);
+    const t = prev; prev = cur; cur = t;
+  }
+  return prev[n];
+}
+/* 中文相似度：去标点后按字比对（Dice 系数） */
+function cleanZh(s){ return String(s||"").replace(/[\s，。、；：！？""''（）《》〈〉…—·,.!?;:'"()\[\]{}\-]/g, "") }
+function simZh(user, ref){
+  const a = cleanZh(user), b = cleanZh(ref);
+  if(!a || !b) return 0;
+  return 2 * lcsLen(a, b) / (a.length + b.length);
+}
+/* 英文相似度：按词比对，漏写关键词最多只给一半分 */
+function simEn(user, ref, key){
+  const a = tokens(user), b = tokens(ref);
+  if(!a.length || !b.length) return 0;
+  let r = 2 * lcsLen(a, b) / (a.length + b.length);
+  if(key && wordPos(user, key) < 0) r = Math.min(r, 0.5);
+  return r;
+}
+function normAns(s){ return String(s||"").trim().toLowerCase().replace(/\s+/g," ") }
+function listNo(l){ return parseInt(String(l||"").split(" ").pop(), 10) || 0 }
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0"+d.getDate()).slice(-2);
+}
+function paperListOptions(){
+  const box = $("paperScope"); if(!box) return;
+  [...new Set(words.map(w=>w.list).filter(Boolean))]
+    .sort((a,b)=>listNo(a)-listNo(b))
+    .forEach(l=>{ const o=document.createElement("option"); o.value=l; o.textContent=l; box.appendChild(o); });
+}
+/* 干扰项：按难度策略挑
+     random —— 完全随机（普通难度，选项差别大、好排除）
+     near   —— 优先同首字母且长度接近（进阶，看着像真的）
+     pos    —— 优先“同词性 + 同首字母”，其次同词性、同首字母（精通，最难排除） */
+function decoyTiers(correct, policy){
+  const c0 = String((correct && correct.word) || "").charAt(0).toLowerCase();
+  const len = String((correct && correct.word) || "").length;
+  const p0 = posOf(correct && correct.definition);
+  const sameStart = w=>String(w.word).charAt(0).toLowerCase()===c0;
+  const samePos = w=>!!p0 && posOf(w.definition)===p0;
+  const nearLen = w=>Math.abs(String(w.word).length-len)<=2;
+  if(policy==="pos")  return [w=>sameStart(w)&&samePos(w), w=>samePos(w)&&nearLen(w), w=>sameStart(w), w=>samePos(w)];
+  if(policy==="near") return [w=>sameStart(w)&&nearLen(w), w=>sameStart(w), w=>nearLen(w)];
+  return [];
+}
+function wordDecoys(pool, correct, n, rnd, policy){
+  const cand = pool.filter(w=>w.word && w.word!==correct.word && w.definition && w.definition!==correct.definition);
+  if(!cand.length) return [];
+  let out = [];
+  decoyTiers(correct, policy).forEach(t=>{
+    if(out.length >= n) return;
+    const rest = cand.filter(w=>out.indexOf(w) < 0 && t(w));
+    out = out.concat(sampleBy(rest, n - out.length, rnd));
+  });
+  if(out.length < n) out = out.concat(sampleBy(cand.filter(w=>out.indexOf(w) < 0), n - out.length, rnd));
+  return out;
+}
+/* 取释义开头的词性标记（n. / v. / adj. / adv. ...），用于挑同词性的干扰词 */
+function posOf(definition){
+  const m = /^(n|v|vi|vt|adj|adv|prep|conj|pron|num|art|interj|aux)\./.exec(String(definition||"").trim());
+  return m ? m[1] : "";
+}
+/* 换词（阅读判断题的“错误项”用）：难度越高，换进来的词越像原词 */
+function pickOtherWord(pool, word, rnd, policy){
+  const self = pool.find(w=>w.word===word);
+  const pos = posOf(self && self.definition);
+  const c0 = String(word || "").charAt(0).toLowerCase();
+  const cand = pool.filter(w=>w.word && w.word!==word && w.definition);
+  if(!cand.length) return null;
+  if(policy === "random") return cand[Math.floor(rnd()*cand.length)].word;
+  const samePos = pos ? cand.filter(w=>posOf(w.definition)===pos) : [];
+  if(policy === "pos" && pos){
+    const tight = samePos.filter(w=>String(w.word).charAt(0).toLowerCase()===c0);
+    if(tight.length) return tight[Math.floor(rnd()*tight.length)].word;
+  }
+  const arr = samePos.length ? samePos : cand;
+  return arr[Math.floor(rnd()*arr.length)].word;
+}
+
+/* ---------- 出卷 ---------- */
+function buildPaper(list, seed, diff){
+  const cfg = diffCfg(diff);
+  const rnd = rngOf(seed || 1);
+  let W  = words.filter(w=>w.word && w.definition && (!list || w.list===list));
+  let S  = sents.filter(s=>s.en && s.zh && (!list || s.list===list));
+  /* 普通难度：只从靠前 1/3 的单元里取材（相当于“已学过的范围”） */
+  if(!list && cfg.unitFrac < 1){
+    const ls = [...new Set(words.map(w=>w.list).filter(Boolean))].sort((a,b)=>listNo(a)-listNo(b));
+    const keep = new Set(ls.slice(0, Math.max(4, Math.round(ls.length * cfg.unitFrac))));
+    W = W.filter(w=>keep.has(w.list));
+    S = S.filter(s=>keep.has(s.list));
+  }
+  /* S1：句子里出现关联词“原形”的句子 —— 只有这种才能安全挖空、才能当选项 */
+  const S1 = S.filter(s=>{
+    const i = wordPos(s.en, s.word);
+    return i >= 0 && s.en.substr(i, String(s.word).length).toLowerCase() === String(s.word).toLowerCase();
+  });
+  const s1words = new Set(S1.map(s=>s.word));
+  /* S2：关联词在句子里只出现一次 —— 挖空后题干里不会残留答案词（很重要，否则等于给答案） */
+  const S2 = S1.filter(s=>{
+    const i = wordPos(s.en, s.word);
+    return i >= 0 && wordPosFrom(s.en, s.word, i + String(s.word).length) < 0;
+  });
+  const W1 = W.filter(w=>s1words.has(w.word));
+  /* 精通难度：优先生词多、句子长的题（池子不够就自动退回全量，保证一定能出卷） */
+  const hardS = cfg.minSentLen ? S2.filter(s=>tokens(s.en).length >= cfg.minSentLen) : [];
+  const S2H = hardS.length >= 60 ? hardS : S2;
+  const S3  = cfg.minSentLen ? (S2H === S2 ? S : S.filter(s=>tokens(s.en).length >= cfg.minSentLen)) : S;
+  const Sh  = S3.length >= 40 ? S3 : S;
+  /* 翻译用 S1（原句里一定有这个词的原形）：中译英的参考答案必须含该词，
+     否则即使照抄参考答案也会被判“漏写关键词” */
+  const hardS1 = cfg.minSentLen ? S1.filter(s=>tokens(s.en).length >= cfg.minSentLen) : [];
+  const S1H = hardS1.length >= 40 ? hardS1 : S1;
+
+  const usedS = new Set(), usedW = new Set();
+  function dealS(arr, n, uniqWord){
+    const out = [], seen = new Set();
+    for(const s of shuffleBy(arr, rnd)){
+      if(out.length >= n) break;
+      if(usedS.has(s.en)) continue;
+      if(uniqWord && seen.has(s.word)) continue;
+      usedS.add(s.en); if(s.word) seen.add(s.word); out.push(s);
+    }
+    if(out.length < n) for(const s of shuffleBy(arr, rnd)){       // 单元太小就放宽
+      if(out.length >= n) break;
+      if(out.indexOf(s) >= 0) continue;
+      if(uniqWord && seen.has(s.word)) continue;
+      if(s.word) seen.add(s.word);
+      out.push(s);
+    }
+    if(out.length < n) for(const s of shuffleBy(arr, rnd)){       // 实在不够，允许重复
+      if(out.length >= n) break;
+      if(out.indexOf(s) < 0) out.push(s);
+    }
+    return out;
+  }
+  function dealW(arr, n){
+    const out = [];
+    for(const w of shuffleBy(arr, rnd)){
+      if(out.length >= n) break;
+      if(!usedW.has(w.word)){ usedW.add(w.word); out.push(w); }
+    }
+    if(out.length < n) for(const w of shuffleBy(arr, rnd)){
+      if(out.length >= n) break;
+      if(out.indexOf(w) < 0) out.push(w);
+    }
+    return out;
+  }
+
+  const P = {
+    seed: seed || 1, list: list || "", time: todayStr(),
+    diff: PAPER_DIFF[diff] ? diff : "basic",
+    listen: [], usage: [], bank: [], bankWords: [],
+    trans: [], reading: { passage: [], items: [] },
+    writing: { words: [], sample: "" }
+  };
+
+  /* ---- 一、听力：A 听单词选单词（5）---- */
+  dealW(W, 5).forEach(w=>{
+    const opts = shuffleBy([w.word].concat(wordDecoys(W, w, 3, rnd, cfg.decoy).map(x=>x.word)), rnd);
+    P.listen.push({ kind:"word", audio:w.word, options:opts, answer:w.word,
+                    answerText:w.word, answerIdx:opts.indexOf(w.word) });
+  });
+  /* ---- 一、听力：B 听句子选中文意思（5）---- */
+  dealS(Sh, 5).forEach(s=>{
+    const others = [];
+    for(const x of shuffleBy(S, rnd)){
+      if(x.zh !== s.zh && others.indexOf(x.zh) < 0){ others.push(x.zh); if(others.length >= 3) break; }
+    }
+    const opts = shuffleBy([s.zh].concat(others), rnd);
+    P.listen.push({ kind:"sent", audio:s.en, options:opts, answer:s.zh,
+                    answerText:s.zh, answerIdx:opts.indexOf(s.zh) });
+  });
+
+  /* ---- 二、语言运用：A 单项选择（10）---- */
+  dealS(S2H, 10).forEach(s=>{
+    const b = blankOut(s.en, s.word);
+    if(!b) return;
+    const wObj = W.find(w=>w.word===b.word) || { word:b.word, definition:s.zh };
+    const opts = shuffleBy([b.word].concat(wordDecoys(W, wObj, 3, rnd, cfg.decoy).map(x=>x.word)), rnd);
+    P.usage.push({ stem:b.stem, options:opts, answer:b.word, answerText:b.word,
+                   hint: cfg.hint ? (wObj.definition || "") : "",
+                   answerIdx:opts.indexOf(b.word), why:"原句：" + s.en + "（" + (s.zh||"") + "）" });
+  });
+  /* ---- 二、语言运用：B 选词填空（10）---- */
+  P.bank = dealS(S2H, 10, true).map(s=>{
+    const b = blankOut(s.en, s.word);
+    return b ? { stem:b.stem, answer:b.word, answerText:b.word, why:"原句：" + s.en } : null;
+  }).filter(Boolean);
+  P.bankWords = shuffleBy(P.bank.map(q=>q.answer), rnd);
+  /* 高难度在方框里多塞几个干扰词（词数 > 空数，必须先判断词性再填） */
+  if(cfg.bankExtra > 0){
+    const used = new Set(P.bank.map(q=>normAns(q.answer)));
+    const extra = sampleBy(W.filter(w=>!used.has(normAns(w.word))), cfg.bankExtra, rnd).map(w=>w.word);
+    P.bankWords = shuffleBy(P.bankWords.concat(extra), rnd);
+  }
+
+  /* ---- 三、翻译（方向比例随难度变化）---- */
+  dealS(S1H, 5).forEach((s, i)=>{
+    P.trans.push(i < cfg.transE2C
+      ? { dir:"e2c", prompt:s.en, ref:s.zh, answerText:s.zh }
+      : { dir:"c2e", prompt:s.zh, ref:s.en, word:s.word, answerText:s.en });
+  });
+
+  /* ---- 四、阅读理解：同一单元的句子拼成短文 ----
+     注意：这些句子选自同一 Word List（同一单元），但不是原文课文，
+     所以只用于练习句子理解，不当作完整篇章。 */
+  const rlists = [...new Set(S2H.map(s=>s.list).filter(Boolean))]
+    .filter(L=>S2H.filter(s=>s.list===L).length >= 8);
+  const rl = (list && rlists.indexOf(list) >= 0) ? list
+           : (rlists.length ? rlists[Math.floor(rnd()*rlists.length)] : (list || ""));
+  const rs = dealS(S2H.filter(s=>s.list===rl), cfg.passage);
+  P.reading.passage = rs.map(s=>s.en);
+  P.reading.list = rl;
+  const trueN = Math.min(2, rs.length), falseN = Math.max(1, cfg.tf - trueN);
+  rs.slice(0, trueN).forEach(s=>{
+    P.reading.items.push({ kind:"tf", text:s.en, options:TF_OPTS, answerIdx:0,
+      answerText:"正确（True）", why:"原文原句，与短文一致。" });
+  });
+  rs.slice(trueN, trueN + falseN).forEach(s=>{
+    const i = wordPos(s.en, s.word), other = pickOtherWord(W, s.word, rnd, cfg.decoy);
+    if(i < 0 || !other) return;
+    P.reading.items.push({ kind:"tf", options:TF_OPTS, answerIdx:1, answerText:"错误（False）",
+      text: s.en.slice(0,i) + other + s.en.slice(i + String(s.word).length),
+      why: "短文中是「" + s.word + "」，题干换成了「" + other + "」，与短文不符。" });
+  });
+  /* 扫描题（进阶 / 精通）：四个句子里挑出“短文里没有的那一句”，需要回原文逐句核对 */
+  if(cfg.scan){
+    const inPass = new Set(P.reading.passage);
+    const foreign = S2H.filter(s=>!inPass.has(s.en));
+    const pick = foreign.length ? dealS(foreign, 1)[0] : null;
+    if(pick){
+      const opts = shuffleBy(rs.slice(0, 3).map(s=>s.en).concat([pick.en]), rnd);
+      P.reading.items.push({ kind:"scan", text:"根据短文，下列哪一句【没有】出现在短文中？",
+        options:opts, answer:pick.en, answerText:pick.en, answerIdx:opts.indexOf(pick.en),
+        why:"其余三项都是短文中的原句，只有这一句是换进来的。" });
+    }
+  }
+  /* 词义题（普通 / 精通） */
+  if(cfg.mean && rs.length){
+    const src = rs[Math.floor(rnd()*rs.length)];
+    const wObj = W.find(w=>w.word===src.word) || { word:src.word, definition:src.zh || "" };
+    const dec = wordDecoys(W, wObj, 3, rnd, cfg.decoy);
+    const opts = shuffleBy([wObj.definition].concat(dec.map(x=>x.definition)), rnd);
+    P.reading.items.push({ kind:"mean", text:"短文中「" + wObj.word + "」的意思是：", options:opts,
+      answer:wObj.definition, answerText:wObj.definition, answerIdx:opts.indexOf(wObj.definition),
+      why:"该词释义来自词库：" + wObj.word + " " + wObj.definition });
+  }
+
+  /* ---- 五、书面表达：给若干个词写一段话，范文由这几个词的例句拼成 ---- */
+  const wsrc = W1.length >= cfg.writeWords ? W1 : W;
+  P.writing.words = dealW(wsrc, cfg.writeWords).map(w=>w.word);
+  P.writing.min = cfg.writeMin;
+  P.writing.sample = P.writing.words.map(w=>{
+    const s = S1.find(x=>x.word===w) || S.find(x=>x.word===w);
+    return s ? s.en : "";
+  }).filter(Boolean).join(" ");
+
+  return P;
+}
+
+/* ---------- 判分 ---------- */
+function gradePaper(){
+  const res = { groups: [], got: 0, total: 0 };
+  function add(name, per, items, judge){
+    const g = { name, total:0, got:0 };
+    items.forEach(q=>{ const ok = !!judge(q); q.ok = ok; g.total += per; if(ok) g.got += per; });
+    res.total += g.total; res.got += g.got;
+    res.groups.push(g);
+  }
+  add("听力理解", PAPER_PT.listen, paper.listen, q=>q.sel===q.answerIdx);
+  add("单项选择", PAPER_PT.choice, paper.usage, q=>q.sel===q.answerIdx);
+  add("选词填空", PAPER_PT.bank, paper.bank, q=>normAns(q.input && q.input.value) === normAns(q.answer));
+  add("翻译", PAPER_PT.trans, paper.trans, q=>{
+    const u = (q.input && q.input.value) || "";
+    q.sim = q.dir === "e2c" ? simZh(u, q.ref) : simEn(u, q.ref, q.word);
+    return q.sim >= 0.6;                       // 60% 相似度算答对（机器判分，仅供参考）
+  });
+  add("阅读理解", PAPER_PT.read, paper.reading.items, q=>q.sel===q.answerIdx);
+
+  /* 书面表达：机器参考分 = 指定词覆盖 + 词数 */
+  const wr = paper.writing, ans = (wr.input && wr.input.value) || "";
+  wr.used  = wr.words.filter(w=>wordPos(ans, w) >= 0);
+  wr.count = tokens(ans).length;
+  const cov = wr.words.length ? wr.used.length / wr.words.length : 0;
+  const need = wr.min || 50;
+  wr.score = Math.round(PAPER_PT.write * (0.6 * cov + 0.4 * Math.min(1, wr.count / need)));
+  res.groups.push({ name:"书面表达（机器参考分）", total:PAPER_PT.write, got:wr.score });
+  res.total += PAPER_PT.write; res.got += wr.score;
+  return res;
+}
+
+/* ---------- 渲染 ---------- */
+function paperItem(no){
+  const d = mkEl("div","p-item");
+  d.appendChild(mkEl("span","p-no", no + "."));
+  const body = mkEl("div","p-body");
+  d.appendChild(body);
+  return { d, body };
+}
+function choiceRow(options, q){
+  const row = mkEl("div","p-opts");
+  q.btns = [];
+  options.forEach((txt, i)=>{
+    const b = mkEl("button", "p-opt", String.fromCharCode(65+i) + ". " + txt);
+    b.type = "button";
+    if(q.sel === i) b.classList.add("on");
+    if(paperResult){
+      if(i === q.answerIdx) b.classList.add("right");
+      else if(q.sel === i) b.classList.add("wrong");
+    }else{
+      b.onclick = ()=>{ q.sel = i; q.btns.forEach((x,j)=>x.classList.toggle("on", j===i)); };
+    }
+    q.btns.push(b);
+    row.appendChild(b);
+  });
+  return row;
+}
+function inputRow(q, ph, wide){
+  const inp = document.createElement("input");
+  inp.type = "text";
+  inp.className = "p-input" + (wide ? " wide" : "");
+  inp.placeholder = ph || "";
+  inp.value = q.val || "";
+  inp.oninput = ()=>{ q.val = inp.value; };
+  if(paperResult) inp.disabled = true;
+  q.input = inp;
+  return inp;
+}
+function paperFeedback(q){
+  if(!paperResult) return null;
+  const d = mkEl("div", "p-fb " + (q.ok ? "ok" : "no"));
+  d.appendChild(mkEl("span","p-mark", q.ok ? "✓ 答对" : "✗ 答错"));
+  const parts = [];
+  if(!q.ok && q.answerText) parts.push("正确答案：" + q.answerText);
+  if(q.why) parts.push(q.why);
+  if(q.sim != null) parts.push("与你答案的相似度 " + Math.round(q.sim*100) + "%");
+  d.appendChild(mkEl("span","p-why", parts.join("　")));
+  return d;
+}
+function listenRow(q){
+  const row = mkEl("div","p-listen");
+  const b = mkEl("button","speak p-play","🔉");
+  b.type = "button"; b.title = "播放（可重复听）";
+  const cfg = diffCfg(paper && paper.diff);
+  b.onclick = ()=>{ const o = cfg.rate !== 1 ? { rate: cfg.rate } : null; speak(q.audio, b, o); };
+  row.appendChild(b);
+  row.appendChild(mkEl("span","p-lhint", q.kind === "word" ? "听单词，选出你听到的单词" : "听句子，选出正确的中文意思"));
+  if(paperResult) row.appendChild(mkEl("span","p-audio-text","（听力原文：" + q.audio + "）"));
+  return row;
+}
+function paperHeadEl(){
+  const cfg = diffCfg(paper.diff);
+  const d = mkEl("div","p-head");
+  d.appendChild(mkEl("h2","p-title","初中英语综合测试卷"));
+  const meta = mkEl("div","p-meta","难度：" + cfg.name + "（" + cfg.tag + "）" +
+    "　·　出卷范围：" + (paper.list || "全部单元") +
+    "　·　满分 100 分　·　建议用时 " + cfg.mins + " 分钟　·　生成日期 " + paper.time);
+  d.appendChild(meta);
+  d.appendChild(mkEl("div","p-name","姓名：____________　　班级：____________　　得分：____________"));
+  if(paperResult){
+    const s = mkEl("div","p-score");
+    s.appendChild(mkEl("strong", null, paperResult.got + " / " + paperResult.total));
+    s.appendChild(mkEl("span", null, "　" + (paperResult.got>=85 ? "优秀" : paperResult.got>=70 ? "良好" : paperResult.got>=60 ? "及格" : "继续加油")));
+    const g = mkEl("div","p-groups");
+    paperResult.groups.forEach(x=>g.appendChild(mkEl("span","p-grp", x.name + " " + x.got + "/" + x.total)));
+    s.appendChild(g);
+    d.appendChild(s);
+  }
+  return d;
+}
+function renderPaper(){
+  const box = $("paperBody"); if(!box) return;
+  box.innerHTML = "";
+  if(!paper) return;
+  let n = 0;
+  const no = ()=>{ n++; return n; };
+
+  box.appendChild(paperHeadEl());
+
+  /* 一、听力 */
+  box.appendChild(mkEl("h3","p-sec","一、听力理解（共 10 小题，每小题 2 分，满分 20 分）"));
+  box.appendChild(mkEl("p","p-tip","点 🔉 播放，可重复听。A 段听单词，B 段听句子。"));
+  paper.listen.forEach((q, i)=>{
+    if(i === 5) box.appendChild(mkEl("p","p-sub","B. 听句子，选出该句的正确中文意思。"));
+    const it = paperItem(no());
+    it.body.appendChild(listenRow(q));
+    it.body.appendChild(choiceRow(q.options, q));
+    const fb = paperFeedback(q); if(fb) it.body.appendChild(fb);
+    box.appendChild(it.d);
+  });
+
+  /* 二、语言运用 */
+  box.appendChild(mkEl("h3","p-sec","二、语言运用（共 20 小题，满分 30 分）"));
+  box.appendChild(mkEl("p","p-sub","A. 单项选择（10 小题，每小题 2 分）从 A、B、C、D 中选出可以填入空白处的最佳选项。"));
+  paper.usage.forEach(q=>{
+    const it = paperItem(no());
+    it.body.appendChild(mkEl("div","p-stem", q.stem));
+    if(q.hint) it.body.appendChild(mkEl("div","p-hint","提示：这里要填的词意思是「" + q.hint + "」"));
+    it.body.appendChild(choiceRow(q.options, q));
+    const fb = paperFeedback(q); if(fb) it.body.appendChild(fb);
+    box.appendChild(it.d);
+  });
+  const extraN = paper.bankWords.length - paper.bank.length;
+  box.appendChild(mkEl("p","p-sub","B. 选词填空（10 小题，每小题 1 分）用方框内所给单词填空，每词限用一次。"
+    + (extraN > 0 ? "（方框里有 " + extraN + " 个词是用不上的，先判断词性再填。）" : "")));
+  const bank = mkEl("div","p-bank");
+  paper.bankWords.forEach(w=>bank.appendChild(mkEl("span","p-bank-w", w)));
+  box.appendChild(bank);
+  paper.bank.forEach(q=>{
+    const it = paperItem(no());
+    it.body.appendChild(mkEl("div","p-stem", q.stem));
+    const row = mkEl("div","p-ansrow");
+    row.appendChild(mkEl("span","p-lb","答案："));
+    row.appendChild(inputRow(q, "填一个单词", false));
+    it.body.appendChild(row);
+    const fb = paperFeedback(q); if(fb) it.body.appendChild(fb);
+    box.appendChild(it.d);
+  });
+
+  /* 三、翻译 */
+  const e2cN = paper.trans.filter(q=>q.dir === "e2c").length;
+  const c2eN = paper.trans.length - e2cN;
+  const dirTip = (e2cN && c2eN)
+    ? ("第 1" + (e2cN > 1 ? "–" + e2cN : "") + " 题英译中，第 " + (e2cN+1) + "–" + paper.trans.length + " 题中译英。")
+    : (e2cN ? "全部英译中。" : "全部中译英。");
+  box.appendChild(mkEl("h3","p-sec","三、翻译（共 5 小题，每小题 3 分，满分 15 分）"));
+  box.appendChild(mkEl("p","p-tip", dirTip + "提交后按与参考答案的相似度自动判分，仅供参考。"));
+  paper.trans.forEach(q=>{
+    const it = paperItem(no());
+    it.body.appendChild(mkEl("div","p-stem", q.prompt));
+    it.body.appendChild(mkEl("div","p-lb", q.dir === "e2c" ? "你的中文翻译：" : "你的英文翻译："));
+    it.body.appendChild(inputRow(q, q.dir === "e2c" ? "写中文" : "写英文句子", true));
+    const fb = paperFeedback(q); if(fb) it.body.appendChild(fb);
+    box.appendChild(it.d);
+  });
+
+  /* 四、阅读理解 */
+  box.appendChild(mkEl("h3","p-sec","四、阅读理解（共 5 小题，每小题 4 分，满分 20 分）"));
+  const kinds = paper.reading.items.map(q=>q.kind);
+  const readTip = "阅读下面短文（由「" + (paper.reading.list || paper.list || "全部") + "」里的句子组成），"
+    + (kinds.indexOf("tf") >= 0 ? "判断句子是否符合短文内容" : "")
+    + (kinds.indexOf("scan") >= 0 ? "，找出短文里没有出现的那一句" : "")
+    + (kinds.indexOf("mean") >= 0 ? "，并选出文中单词的意思" : "") + "。";
+  box.appendChild(mkEl("p","p-tip", readTip));
+  const art = mkEl("div","p-passage");
+  paper.reading.passage.forEach((t, i)=>art.appendChild(mkEl("p","p-pline", (i+1) + ". " + t)));
+  box.appendChild(art);
+  paper.reading.items.forEach((q, i)=>{
+    const it = paperItem(no());
+    it.body.appendChild(mkEl("div","p-stem", q.text));
+    it.body.appendChild(choiceRow(q.options, q));
+    const fb = paperFeedback(q); if(fb) it.body.appendChild(fb);
+    box.appendChild(it.d);
+  });
+
+  /* 五、书面表达 */
+  const wr = paper.writing;
+  box.appendChild(mkEl("h3","p-sec","五、书面表达（满分 15 分）"));
+  box.appendChild(mkEl("p","p-tip","请用上下面 " + wr.words.length + " 个单词，写一段不少于 " + (wr.min || 50) + " 词的英文短文。"));
+  const wbank = mkEl("div","p-bank");
+  wr.words.forEach(w=>wbank.appendChild(mkEl("span","p-bank-w", w)));
+  box.appendChild(wbank);
+  const ta = document.createElement("textarea");
+  ta.className = "p-textarea"; ta.rows = 7;
+  ta.placeholder = "在这里写作文…";
+  ta.value = wr.val || "";
+  ta.oninput = ()=>{ wr.val = ta.value; };
+  if(paperResult) ta.disabled = true;
+  wr.input = ta;
+  box.appendChild(ta);
+  if(paperResult){
+    const info = mkEl("div","p-fb " + (wr.score >= 9 ? "ok" : "no"));
+    info.appendChild(mkEl("span","p-mark","写作参考分 " + wr.score + " / 15"));
+    const miss = wr.words.filter(w=>wr.used.indexOf(w) < 0);
+    info.appendChild(mkEl("span","p-why","共 " + wr.count + " 词，用上 " + wr.used.length + "/" + wr.words.length +
+      " 个指定单词" + (miss.length ? "（未用：" + miss.join("、") + "）" : "（全部用上）")));
+    box.appendChild(info);
+    const sm = mkEl("div","p-sample");
+    sm.appendChild(mkEl("div","p-lb","参考范文（由这几个词的例句组合，仅供句式参考）"));
+    sm.appendChild(mkEl("p", null, wr.sample || "（暂无可用例句）"));
+    box.appendChild(sm);
+  }
+}
+
+/* ---------- 操作 ---------- */
+let paperDiff = "basic";
+function setPaperDiff(k){
+  if(!PAPER_DIFF[k]) return;
+  paperDiff = k;
+  const seg = $("paperDiffSeg");
+  if(seg) [...seg.children].forEach(x=>x.classList.toggle("on", x.dataset.pdiff === k));
+}
+function newPaper(seed){
+  const list = ($("paperScope") && $("paperScope").value) || "";
+  const sd = seed || (((Date.now() % 2147483647) ^ Math.floor(Math.random() * 2147483647)) >>> 0) || 1;
+  paper = buildPaper(list, sd, paperDiff);
+  paperResult = null;
+  STORE.setItem("vocab-paper-seed", JSON.stringify({ seed: paper.seed, list: paper.list, diff: paper.diff }));
+  renderPaper();
+  renderPaperBest();
+}
+function submitPaper(){
+  if(!paper) return;
+  paperResult = gradePaper();
+  renderPaper();
+  pushPaperScore(paperResult.got, paperResult.total);
+  const box = $("paperBody");
+  if(box && typeof box.scrollIntoView === "function") box.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+function paperHistory(){
+  try{ const a = JSON.parse(STORE.getItem("vocab-paper-scores") || "[]"); return Array.isArray(a) ? a : []; }
+  catch(e){ return []; }
+}
+function pushPaperScore(score, total){
+  const a = paperHistory();
+  a.unshift({ score, total, time: paper.time, list: paper.list || "全部", diff: paper.diff || "basic" });
+  STORE.setItem("vocab-paper-scores", JSON.stringify(a.slice(0, 5)));
+  renderPaperBest();
+}
+function renderPaperBest(){
+  const box = $("paperBest"); if(!box) return;
+  const a = paperHistory();
+  if(!a.length){ box.textContent = ""; return; }
+  const key = (paper && paper.diff) || "basic";
+  const mine = a.filter(x=>(x.diff || "basic") === key);
+  if(!mine.length){ box.textContent = "（共练了 " + a.length + " 份，本难度暂无成绩）"; return; }
+  const best = Math.max.apply(null, mine.map(x=>x.score));
+  box.textContent = "最高分 " + best + " 分（" + diffCfg(key).name + " · 共 " + mine.length + " 份）";
+}
+if($("paperNew"))    $("paperNew").onclick    = ()=>newPaper();
+if($("paperSubmit")) $("paperSubmit").onclick = ()=>submitPaper();
+if($("paperPrint"))  $("paperPrint").onclick  = ()=>{ try{ window.print(); }catch(e){} };
+if($("paperDiffSeg")) $("paperDiffSeg").onclick = e=>{
+  const b = e.target.closest("button[data-pdiff]"); if(!b) return;
+  if(b.dataset.pdiff === paperDiff) return;
+  setPaperDiff(b.dataset.pdiff);
+  newPaper();                       // 换难度直接按新难度重出一份卷
+};
+
+/* ==================== 板块切换 ==================== */
+function showView(id){
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.view===id));
+  document.querySelectorAll(".view").forEach(x=>x.classList.toggle("hidden",x.id!==id));
+  if(id==="review") renderReview();
+  if(id==="mastered"){ masteredShown=MASTER_PAGE; renderMastered(); }
+  if(id==="paper"){ if(paper) renderPaper(); else newPaper(); }
+  if(id==="list") renderList();
+  if(id==="listen" && !lCur) newListen();
+  if(id==="speak" && !pCur) newP();
+  if(id==="dict" && !dCur) pickDict(0);
+  if(id==="dict") setTimeout(()=>{ try{ $("dInput").focus(); }catch(_){} }, 50);
+}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+
+/* 点统计卡直接进「已掌握」：单词卡停在顶部，短句卡滚到短句那一组 */
+function openMastered(kind){
+  showView("mastered");
+  const t = kind==="sent" ? $("sMasteredTitle") : $("masteredTitle");
+  if(t && typeof t.scrollIntoView==="function") t.scrollIntoView({behavior:"smooth",block:"start"});
+}
+if($("statLearned")) $("statLearned").onclick=()=>openMastered("word");
+if($("statSentLearned")) $("statSentLearned").onclick=()=>openMastered("sent");
 
 /* ==================== 恢复设置 & 初始化 ==================== */
 const savedAccent=STORE.getItem("vocab-accent");
@@ -1320,9 +2159,11 @@ initSpeakNotice();
 /* 取词库：优先用「离线单文件版」内嵌的数据（file:// 下浏览器禁止 fetch 本地文件）；
    普通版没有内嵌数据，就走 fetch 读同目录的 json —— 所以普通版必须用本地服务器打开。 */
 function loadJson(){
+  /* cache:"no-cache" = 每次都与服务器核对版本（命中才用本地副本），
+     避免浏览器拿缓存的旧词库，导致看起来顺序没变 */
   return Promise.all([
-    fetch("words.json").then(r=>r.json()).catch(()=>[]),
-    fetch("sentences.json").then(r=>r.json()).catch(()=>[])
+    fetch("words.json",{cache:"no-cache"}).then(r=>r.json()).catch(()=>[]),
+    fetch("sentences.json",{cache:"no-cache"}).then(r=>r.json()).catch(()=>[])
   ]).then(([w,s])=>({w:Array.isArray(w)?w:[], s:Array.isArray(s)?s:[]}));
 }
 const inlineData = (window.__VOCAB_INLINE__ && typeof window.__VOCAB_INLINE__==="object") ? window.__VOCAB_INLINE__ : null;
@@ -1342,6 +2183,16 @@ Promise.resolve(
   optionsForLists();
   buildWordOptions();           // 「跳到单词」的自动补全候选
   renderRecent();               // 「最近学过」历史
+  paperListOptions();           // 「测试卷」的出卷范围
+  renderPaperBest();            // 历史最高分
+  try{                          // 上次生成的那份卷子，刷新后还能看回来（答案不保留）
+    const saved = JSON.parse(STORE.getItem("vocab-paper-seed") || "null");
+    if(saved && saved.seed){
+      setPaperDiff(saved.diff || "basic");
+      if($("paperScope")) $("paperScope").value = saved.list || "";
+      paper = buildPaper(saved.list || "", saved.seed, paperDiff);
+    }
+  }catch(e){}
   // 口语「范围」下拉与词库一致
   [...new Set(words.map(x=>x.list))].sort((a,b)=>parseInt(a.split(" ").pop())-parseInt(b.split(" ").pop()))
     .forEach(l=>{ const o=document.createElement("option"); o.value=l; o.textContent=l; $("pList").appendChild(o); });
@@ -1350,7 +2201,7 @@ Promise.resolve(
   showWord(Number.isFinite(pos)?pos:0);
   const spos=parseInt(STORE.getItem("vocab-sent-pos")||"0",10);
   showSent(Number.isFinite(spos)?spos:0);
-  renderList(); renderReview(); newQuiz(); newListen(); newP(); pickDict(0);
+  renderList(); renderReview(); renderMastered(); newQuiz(); newListen(); newP(); pickDict(0);
   if(!sents.length){
     $("sEn").textContent="短句库加载失败";
     $("sZh").textContent="请确认 sentences.json 与 index.html 位于同一文件夹。";
