@@ -170,6 +170,12 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
 
 /* ---- 默写练习 ---- */
 .d-prompt{font-size:clamp(20px,3.4vw,28px);font-weight:650;line-height:1.45;margin:6px 0}
+/* 单词学习卡片内的默写模式 */
+.word.mask{color:var(--muted);font-family:ui-monospace,Consolas,"Courier New",monospace;letter-spacing:.12em;font-size:clamp(26px,5vw,38px)}
+#wdictBox{margin-top:4px}
+#wdictInput{font-size:17px;font-weight:600;letter-spacing:.02em}
+#wdictInput::placeholder{font-weight:400;letter-spacing:0}
+.wdict-stat{color:var(--muted);font-size:12.5px;min-height:19px;margin-top:6px}
 .d-hint{font-family:ui-monospace,Consolas,"Courier New",monospace;letter-spacing:.14em;color:var(--amber);margin-top:8px;word-break:break-word;min-height:22px}
 .d-input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:white;font:inherit;margin-top:12px;resize:none;overflow:hidden;min-height:50px;line-height:1.5}
 .d-input:focus{outline:2px solid #bfdbfe;border-color:var(--blue)}
@@ -235,6 +241,11 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
    <button data-wmode="seq" class="on">按顺序</button>
    <button data-wmode="random">随机</button>
   </span>
+  <span>呈现</span>
+  <span class="seg" id="wDictSeg">
+   <button data-wdict="0" class="on">学习卡片</button>
+   <button data-wdict="1">✍️ 默写</button>
+  </span>
   <label>范围
    <select id="wordScope">
     <option value="all" selected>全部单词</option>
@@ -262,7 +273,12 @@ main{max-width:1100px;margin:22px auto;padding:0 16px}
   <div class="word-line"><div class="word" id="word">Welcome!</div><button class="speak" id="speakTop" title="朗读单词（快捷键 S）">🔊</button></div>
   <div class="phonetic" id="phonetic">点击“显示释义”开始学习</div>
   <div id="answer" class="hidden"><div class="definition" id="definition"></div><div class="detail" id="memoryWrap"><b>记忆提示</b><span id="memory"></span></div><div class="detail" id="exampleWrap"><b>例句</b><span id="example"></span></div></div>
-  <div class="actions"><button class="primary" id="reveal">显示释义</button><button id="unknown">还不熟</button><button id="master">标记掌握 ✓</button><button id="prev">上一个</button><button id="next">下一个 →</button></div>
+  <div id="wdictBox" class="hidden">
+   <input id="wdictInput" class="d-input" type="text" placeholder="看中文写英文，按 Enter 判分；判完再按 Enter 进入下一个" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+   <div class="feedback" id="wdictResult"></div>
+   <div class="wdict-stat" id="wdictStat"></div>
+  </div>
+  <div class="actions"><button class="primary" id="reveal">显示释义</button><button id="unknown">还不熟</button><button class="primary hidden" id="wdictSubmit">提交（Enter）</button><button class="hidden" id="wdictGiveUp">看答案</button><button id="master">标记掌握 ✓</button><button id="prev">上一个</button><button id="next">下一个 →</button></div>
  </article>
 </section>
 
@@ -545,6 +561,8 @@ function reportErr(msg){
 }
 
 let words=[], sents=[], index=0, sentIndex=0, visibleCount=80, quizCurrent=null, score=0, answered=false;
+/* 单词学习的「卡片内默写」状态（提前声明：showWord / speakActive 都要读） */
+let wDict=false, wDictAnswered=false, wRightN=0, wTotalN=0, wStreakN=0;
 let listKind="word", wMode="seq", sMode="seq";
 const $=id=>document.getElementById(id);
 
@@ -685,6 +703,7 @@ function autoOn(){ return userActed && $("autoSpeak").checked; }
 function speakActive(){
   const w = activeWord();
   if(!w) return;
+  if(wDict && !wDictAnswered) return;   // 默写没作答前朗读等于报答案
   const btn = $("speakTop") || $("speakBtn");
   speak(w.word, btn);
 }
@@ -798,20 +817,33 @@ function showWord(i){
   if(!words.length) return;
   const n=words.length; index=((i%n)+n)%n;
   let w=words[index];
-  $("counter").textContent=`${w.list} · ${index+1} / ${n}`;
-  $("word").textContent=w.word;
+  $("counter").textContent=`${w.list} · ${index+1} / ${n}` + (wDict ? " · 默写" : "");
   $("phonetic").textContent=w.phonetic||"暂无音标";
   $("definition").textContent=w.definition||"暂无释义";
   $("memory").textContent=w.memory||"这条词条没有单独的记忆提示。";
   $("example").textContent=w.example||"暂无例句";
-  $("memoryWrap").classList.toggle("hidden",!w.memory);
-  $("exampleWrap").classList.toggle("hidden",!w.example);
-  $("answer").classList.add("hidden");
   $("reveal").textContent="显示释义";
   $("master").textContent=mastered.has(w.word)?"已掌握 ✓":"标记掌握 ✓";
+  if(wDict){
+    /* 默写模式：题面 = 中文释义 + 音标，英文一个字都不给（不给首字母、不给字母数）；
+       记忆提示/例句里常含答案，答完再放出 */
+    $("word").textContent="✍️ 默写";
+    $("word").classList.add("mask");
+    $("answer").classList.remove("hidden");
+    $("memoryWrap").classList.add("hidden");
+    $("exampleWrap").classList.add("hidden");
+  }else{
+    $("word").textContent=w.word;
+    $("word").classList.remove("mask");
+    $("memoryWrap").classList.toggle("hidden",!w.memory);
+    $("exampleWrap").classList.toggle("hidden",!w.example);
+    $("answer").classList.add("hidden");
+  }
+  applyWDictUI();
+  resetWDict();
   STORE.setItem("vocab-pos", String(index));
   pushRecent(w.word);
-  if(autoOn()) speak(w.word, $("speakTop"));
+  if(autoOn() && !wDict) speak(w.word, $("speakTop"));
 }
 function activeWord(){ return words[index] }
 /* 按范围找下一个满足条件的下标；找不到就原地不动 */
@@ -833,7 +865,7 @@ $("reveal").onclick=()=>{$("answer").classList.toggle("hidden");$("reveal").text
 $("next").onclick=()=>showWord(stepWord(1));
 $("prev").onclick=()=>showWord(stepWord(-1));
 $("shuffle").onclick=()=>showWord(Math.floor(Math.random()*words.length));
-$("restart").onclick=()=>{ showWord(0); };
+$("restart").onclick=()=>{ showWord(0); wRightN=0; wTotalN=0; wStreakN=0; updateWDictStat(); };
 $("master").onclick=()=>{let w=activeWord();if(mastered.has(w.word))mastered.delete(w.word);else{mastered.add(w.word);review.delete(w.word)}save();renderReview();showWord(index)};
 $("unknown").onclick=()=>{review.add(activeWord().word);mastered.delete(activeWord().word);save();renderReview();showWord(stepWord(1))};
 $("searchStudy").oninput=()=>{let arr=filtered($("searchStudy").value,$("listStudy").value);if(arr.length)showWord(words.indexOf(arr[0]))};
@@ -1596,6 +1628,121 @@ $("dHint").onchange=()=>{ STORE.setItem("vocab-dict-hint",$("dHint").checked?"1"
   $("dHintLine").textContent=$("dHint").checked?hintOf():""; };
 $("dAutoWrong").onchange=()=>STORE.setItem("vocab-dict-autowrong",$("dAutoWrong").checked?"1":"0");
 $("dSpeak").onchange=()=>STORE.setItem("vocab-dict-speak",$("dSpeak").checked?"1":"0");
+
+/* ==================== 单词学习 · 卡片内默写 ====================
+   与「默写练习」板块的区别：不换页面，学到一个词就地写一遍，
+   判分复用同一套归一化与错题集，错题同样进「待复习」。
+   默写期间不给任何提示：不露首字母、不露字母数、作答前不朗读。 */
+wDict = STORE.getItem("vocab-wdict")==="1";
+
+function applyWDictUI(){
+  const on=!!wDict, show=on&&!!activeWord();
+  $("wdictBox").classList.toggle("hidden", !show);
+  $("reveal").classList.toggle("hidden", on);
+  $("unknown").classList.toggle("hidden", on);
+  $("wdictSubmit").classList.toggle("hidden", !show);
+  $("wdictGiveUp").classList.toggle("hidden", !show);
+  const seg=$("wDictSeg");
+  if(seg) [...seg.children].forEach(b=>b.classList.toggle("on", (b.dataset.wdict==="1")===on));
+}
+function updateWDictStat(){
+  const el=$("wdictStat"); if(!el) return;
+  el.textContent = wTotalN
+    ? `本组默写 ${wRightN}/${wTotalN} 正确（${Math.round(wRightN/wTotalN*100)}%）` + (wStreakN?`　连对 ${wStreakN}`:"")
+    : "";
+}
+function resetWDict(){
+  wDictAnswered=false;
+  const inp=$("wdictInput");
+  if(inp){ inp.value=""; inp.className="d-input"; }
+  const r=$("wdictResult");
+  if(r){ r.textContent=""; r.style.color=""; }
+  const btn=$("wdictSubmit");
+  if(btn) btn.textContent="提交（Enter）";
+  /* 作答前禁用朗读按钮：听一遍等于给了提示 */
+  const spk=$("speakTop");
+  if(spk) spk.disabled = !!(wDict && activeWord());
+  updateWDictStat();
+  if(wDict && activeWord() && inp && typeof inp.focus==="function"){ try{ inp.focus(); }catch(_){} }
+}
+function wdictRevealAnswer(){
+  const w=activeWord(); if(!w) return;
+  $("word").textContent=w.word;
+  $("word").classList.remove("mask");
+  $("memoryWrap").classList.toggle("hidden",!w.memory);
+  $("exampleWrap").classList.toggle("hidden",!w.example);
+  const spk=$("speakTop");
+  if(spk) spk.disabled=false;                 // 答完可以听发音
+}
+function wdictWrongNote(){
+  const w=activeWord(); if(!w) return;
+  dMissed.add(w.word);
+  saveSet("vocab-dict-missed", dMissed);
+  review.add(w.word); mastered.delete(w.word);
+  save(); renderReview();
+}
+function wdictRightNote(){
+  const w=activeWord(); if(!w) return false;
+  if(!dMissed.delete(w.word)) return false;
+  saveSet("vocab-dict-missed", dMissed);
+  return true;
+}
+function submitWDict(){
+  const w=activeWord(); if(!w || !wDict) return;
+  if(wDictAnswered){ showWord(stepWord(1)); return; }   // 判完再按 Enter = 下一个
+  const inp=$("wdictInput"), res=$("wdictResult");
+  const raw=String(inp.value||"").trim();
+  if(!raw){ res.textContent="先写下你的答案；想不出来可以点「看答案」。"; res.style.color="var(--muted)"; return; }
+  wDictAnswered=true; wTotalN++;
+  const t=normWordAns(w.word), g=normWordAns(raw);
+  const wasMissed=dMissed.has(w.word);
+  if(t && g && t===g){
+    wRightN++; wStreakN++;
+    wdictRightNote();
+    inp.className="d-input ok";
+    res.textContent="✅ 完全正确！" + (wasMissed?"　已从默写错题集移出。":"");
+    res.style.color="var(--green)";
+    if(autoOn()) speak(w.word, $("speakTop"));
+  }else{
+    wStreakN=0;
+    const d=lev(g,t), base=Math.max(t.length,g.length);
+    const pct=(g && base)?Math.round((1-d/base)*100):0;
+    const near=!!g && (d<=Math.max(1,Math.round(t.length/4)) || pct>=75);
+    inp.className="d-input bad";
+    res.innerHTML = near
+      ? `⚠️ 差一点！你写的是「${esc(raw)}」，正确拼写是 <b>${esc(w.word)}</b>（相似度 ${pct}%）`
+      : `❌ 正确答案：<b>${esc(w.word)}</b>`;
+    res.style.color = near?"var(--amber)":"var(--red)";
+    wdictWrongNote();
+  }
+  wdictRevealAnswer();
+  updateWDictStat();
+  $("wdictSubmit").textContent="下一个 →（Enter）";
+}
+$("wDictSeg").onclick=e=>{
+  const b=e.target.closest("button[data-wdict]"); if(!b) return;
+  wDict = b.dataset.wdict==="1";
+  STORE.setItem("vocab-wdict", wDict?"1":"0");
+  wRightN=0; wTotalN=0; wStreakN=0;
+  showWord(index);
+};
+$("wdictSubmit").onclick=()=>submitWDict();
+$("wdictGiveUp").onclick=()=>{
+  const w=activeWord(); if(!w || !wDict) return;
+  if(wDictAnswered){ wdictRevealAnswer(); return; }
+  wDictAnswered=true; wTotalN++; wStreakN=0;
+  $("wdictInput").className="d-input bad";
+  const res=$("wdictResult");
+  res.textContent="👀 已显示答案，这条已加入待复习与默写错题集。";
+  res.style.color="var(--amber)";
+  wdictWrongNote(); wdictRevealAnswer();
+  updateWDictStat();
+  $("wdictSubmit").textContent="下一个 →（Enter）";
+};
+$("wdictInput").addEventListener("keydown", e=>{
+  if(e.key!=="Enter" || e.shiftKey || e.isComposing) return;   // 输入法选词不误触
+  e.preventDefault(); submitWDict();
+});
 
 /* ==================== 词库检索 ==================== */
 function renderList(){
