@@ -367,6 +367,30 @@ button.primary:active:not(:disabled){background:var(--green);border-color:var(--
 #wdictInput::placeholder{font-weight:400;letter-spacing:0}
 .wdict-stat{color:var(--muted);font-size:12.5px;min-height:19px;margin-top:8px}
 
+/* ---- 输入框一键清空 ---- */
+/* 手机上按退格删一个 12 个字母的单词要按十几次，还要小心别按错删到别的，
+   给个 × 一点清空。显隐交给 :placeholder-shown 判断，不用 JS 去同步状态。 */
+.in-wrap{position:relative;margin-top:14px}
+.in-wrap .d-input{margin-top:0;padding-right:42px}
+.in-wrap .in-clear{
+  position:absolute;right:7px;top:50%;transform:translateY(-50%);
+  width:30px;height:30px;padding:0;border:0;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);background:transparent;cursor:pointer;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+.in-wrap .in-clear svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+/* 多行输入框（默写）会随内容长高，按钮贴顶不居中，否则会飘到中间去 */
+.in-wrap.ta .in-clear{top:9px;transform:none}
+.in-wrap :is(input,textarea):placeholder-shown + .in-clear{display:none}
+/* 空的时候按钮不在，右侧那 42px 还给文字，否则占位提示会被截掉一截 */
+.in-wrap :is(input,textarea):placeholder-shown{padding-right:14px}
+@media(hover:hover){ .in-wrap .in-clear:hover{background:var(--surface-sunk);color:var(--ink)} }
+/* 按下态：选择器要压过全局 button:active，否则 transform 被改成 translateY(.5px)，
+   按钮会往下跳半个身位 */
+.in-wrap .in-clear:active{background:rgba(53,160,140,.16);color:var(--accent-soft);transform:translateY(-50%)}
+.in-wrap.ta .in-clear:active{transform:translateY(.5px)}
+
 /* ---- 语法 ---- */
 .gram .g-title{font-family:var(--serif);font-size:21px;font-weight:600;margin:8px 0 4px;letter-spacing:-.01em}
 .gram .g-level{
@@ -665,7 +689,7 @@ body.kb .word{font-size:clamp(34px,9vw,48px)}
   <div class="phonetic" id="phonetic">点击“显示释义”开始学习</div>
   <div id="answer" class="hidden"><div class="definition" id="definition"></div><div class="detail" id="memoryWrap"><b>记忆提示</b><span id="memory"></span></div><div class="detail" id="exampleWrap"><div class="detail-head"><b>例句</b><button class="speak mini" id="exSpeak" title="朗读例句（只读英文部分）" aria-label="朗读例句"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg></button></div><span id="example"></span></div></div>
   <div id="wdictBox" class="hidden">
-   <input id="wdictInput" class="d-input" type="text" lang="en" placeholder="看中文写英文，按 Enter 判分；判完再按 Enter 进入下一个" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+   <div class="in-wrap"><input id="wdictInput" class="d-input" type="text" lang="en" placeholder="看中文写英文，按 Enter 判分；判完再按 Enter 进入下一个" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><button type="button" class="in-clear" id="wdictClear" tabindex="-1" aria-label="清空输入内容" title="清空全部"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
    <div class="feedback" id="wdictResult"></div>
    <div class="wdict-stat" id="wdictStat"></div>
   </div>
@@ -794,7 +818,7 @@ body.kb .word{font-size:clamp(34px,9vw,48px)}
  <div class="d-prompt" id="dPrompt">—</div>
  <div class="phonetic" id="dSub"></div>
  <div class="d-hint" id="dHintLine"></div>
- <textarea id="dInput" class="d-input" rows="1" lang="en" placeholder="在这里输入英文，按 Enter 提交（答完再按 Enter 进入下一题）" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+ <div class="in-wrap ta"><textarea id="dInput" class="d-input" rows="1" lang="en" placeholder="在这里输入英文，按 Enter 提交（答完再按 Enter 进入下一题）" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea><button type="button" class="in-clear" id="dClear" tabindex="-1" aria-label="清空输入内容" title="清空全部"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
  <div class="actions">
   <button class="primary" id="dSubmit">提交（Enter）</button>
   <button id="dHintBtn">给点提示</button>
@@ -2501,7 +2525,12 @@ function hintOf(){
 }
 function dGrow(){
   const t=$("dInput"); if(!t) return;
-  try{ t.style.height="auto"; t.style.height=Math.min(150, Math.max(50, t.scrollHeight||50))+"px"; }catch(_){}
+  try{
+    /* 空内容时不要量 scrollHeight：Chrome 会把占位提示的两行也算进去，
+       量出来比实际高一截，于是「删干净了框反而变高」。交给 CSS 的 rows/min-height。 */
+    if(!t.value){ t.style.height=""; return; }
+    t.style.height="auto"; t.style.height=Math.min(150, Math.max(50, t.scrollHeight||50))+"px";
+  }catch(_){}
 }
 function updateDScore(){
   const pct = dTotal ? Math.round(dRight/dTotal*100) : null;
@@ -2798,6 +2827,27 @@ $("wdictInput").addEventListener("keydown", e=>{
   if(e.key!=="Enter" || e.shiftKey || e.isComposing) return;   // 输入法选词不误触
   e.preventDefault(); submitWDict();
 });
+
+/* ==================== 输入框一键清空 ==================== */
+/* pointerdown/mousedown 里 preventDefault：不让按钮抢走焦点。
+   否则手机上一按 × 键盘就收起来，清完还得再点一次输入框才能接着打。 */
+function bindClear(btnId, inpId){
+  const btn=$(btnId), inp=$(inpId);
+  if(!btn || !inp) return;
+  const keepFocus = e=>{ e.preventDefault(); };
+  btn.addEventListener("pointerdown", keepFocus);
+  btn.addEventListener("mousedown", keepFocus);
+  btn.addEventListener("click", e=>{
+    e.preventDefault();
+    if(!inp.value) return;
+    inp.value = "";
+    /* 派发 input 事件：默写框靠它触发 dGrow 收缩高度，也让别处监听同步到空值 */
+    inp.dispatchEvent(new Event("input", { bubbles:true }));
+    try{ inp.focus(); }catch(_){}
+  });
+}
+bindClear("wdictClear", "wdictInput");
+bindClear("dClear", "dInput");
 
 /* ==================== 词库检索 ==================== */
 function renderList(){
