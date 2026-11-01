@@ -435,6 +435,33 @@ button.primary:hover:not(:disabled){background:transparent;color:var(--accent-so
 @keyframes view-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .view:not(.hidden){animation:view-in .34s var(--ease) both}
 
+/* ---- 答对反馈：一次短促的「落定」，一圈扩散 + 轻微回弹 + 一枚上浮的对勾 ----
+   不做彩带礼花，保持和版面一致的克制。全部时长 ≤1s，不挡住下一步操作。 */
+@keyframes ok-pop{
+  0%{transform:scale(1)}
+  38%{transform:scale(1.03)}
+  100%{transform:scale(1)}
+}
+@keyframes ok-halo{
+  0%{box-shadow:0 0 0 0 rgba(53,160,140,.42)}
+  100%{box-shadow:0 0 0 15px rgba(53,160,140,0)}
+}
+@keyframes ok-tick{
+  0%{opacity:0;transform:translate(-50%,8px) scale(.4)}
+  22%{opacity:1;transform:translate(-50%,-10px) scale(1)}
+  64%{opacity:1;transform:translate(-50%,-15px) scale(1)}
+  100%{opacity:0;transform:translate(-50%,-30px) scale(1)}
+}
+.ok-flash{position:relative;animation:ok-pop .38s var(--ease),ok-halo .64s ease-out}
+.ok-flash::after{
+  content:"✓";position:absolute;left:50%;top:-6px;
+  font-family:var(--sans);font-size:15px;font-weight:700;line-height:1;
+  color:var(--accent-soft);pointer-events:none;
+  animation:ok-tick .92s var(--ease) forwards;
+}
+/* 反馈文字也跟着「顶」一下，避免只有色块在动、文字是死的 */
+.ok-flash-txt{animation:view-in .3s var(--ease) both}
+
 @media(max-width:620px){
   main{padding:20px 16px 56px}
   .stats{display:grid;grid-template-columns:1fr 1fr;gap:9px 18px}
@@ -524,6 +551,7 @@ button.primary:hover:not(:disabled){background:transparent;color:var(--accent-so
      <span class="seg" id="wDictSeg"><button data-wdict="0" class="on">学习卡片</button><button data-wdict="1">默写</button></span>
      <label>范围<select id="wordScope"><option value="all" selected>全部单词</option><option value="unmastered">只看未掌握</option><option value="review">只看待复习</option></select></label>
      <button id="restart">从头开始</button>
+     <label><input type="checkbox" id="okFx" checked> 答对音效</label>
     </div>
     <div class="row">
      <label>跳到单词<input id="jumpWord" list="wordOptions" placeholder="输入英文，如 health" autocomplete="off"></label>
@@ -832,6 +860,54 @@ let wDict=false, wDictAnswered=false, wRightN=0, wTotalN=0, wStreakN=0;
 let listKind="word", wMode="seq", sMode="seq";
 const $=id=>document.getElementById(id);
 
+/* ==================== 答对反馈：音效 + 动画 ====================
+   音效用 Web Audio 现场合成，不引外部文件——本页要能单文件离线打开，
+   也要能在 GitHub Pages 上跑，任何外链音频都会两边各挂一次。
+   两个音 A5 → E6，三角波，短促干净，总长约 0.26s，峰值 0.11 不刺耳。 */
+let _ac=null;
+function audioCtx(){
+  if(_ac) return _ac;
+  const C=window.AudioContext||window.webkitAudioContext;
+  if(!C) return null;
+  try{ _ac=new C(); }catch(e){ return null; }
+  return _ac;
+}
+const okFxOn=()=>STORE.getItem("vocab-okfx")!=="0";        // 默认开
+function playOkSound(){
+  if(!okFxOn()) return;
+  const ac=audioCtx(); if(!ac) return;
+  if(ac.state==="suspended"){ try{ ac.resume(); }catch(e){} }
+  const t0=ac.currentTime+0.01;
+  [[880,0,.09],[1318.51,.075,.17]].forEach(([f,dt,dur])=>{
+    const o=ac.createOscillator(), g=ac.createGain();
+    o.type="triangle"; o.frequency.setValueAtTime(f,t0+dt);
+    g.gain.setValueAtTime(.0001,t0+dt);
+    g.gain.exponentialRampToValueAtTime(.11,t0+dt+.012);
+    g.gain.exponentialRampToValueAtTime(.0001,t0+dt+dur);
+    o.connect(g).connect(ac.destination);
+    o.start(t0+dt); o.stop(t0+dt+dur+.03);
+  });
+}
+/* 给元素加一次答对动画。连点时先摘类再强制重排，否则动画不会重播。 */
+function flashOk(el){
+  if(!el) return;
+  el.classList.remove("ok-flash");
+  void el.offsetWidth;
+  el.classList.add("ok-flash");
+  clearTimeout(el.__okTimer);
+  el.__okTimer=setTimeout(()=>el.classList.remove("ok-flash"),1000);
+}
+/* txtEl 传了就让反馈文字也顶一下；和 el 同一个元素时跳过，否则两个 animation 会打架 */
+function okFeedback(el, txtEl){
+  playOkSound();
+  flashOk(el);
+  if(txtEl && txtEl!==el){
+    txtEl.classList.remove("ok-flash-txt");
+    void txtEl.offsetWidth;
+    txtEl.classList.add("ok-flash-txt");
+  }
+}
+
 /* ==================== 本地存储 ==================== */
 const loadSet=k=>{try{return new Set(JSON.parse(STORE.getItem(k)||"[]"))}catch(e){return new Set()}};
 const saveSet=(k,s)=>STORE.setItem(k,JSON.stringify([...s]));
@@ -1074,6 +1150,16 @@ $("autoSpeak").onchange = ()=>{
   STORE.setItem("vocab-autospeak", $("autoSpeak").checked ? "1" : "0");
   if($("autoSpeak").checked) speakActive();
 };
+/* 答对音效开关：默认开，勾上时立刻放一声试听 */
+{ const c=$("okFx");
+  if(c){
+    c.checked = okFxOn();
+    c.onchange = ()=>{
+      STORE.setItem("vocab-okfx", c.checked ? "1" : "0");
+      if(c.checked) playOkSound();
+    };
+  }
+}
 /* 快捷键 S 朗读当前页面对应的内容 */
 document.addEventListener("keydown", e=>{
   if(e.ctrlKey||e.metaKey||e.altKey) return;
@@ -1300,7 +1386,7 @@ function newQuiz(){
   $("quizOptions").innerHTML="";
   choices.forEach(w=>{let b=document.createElement("button");b.textContent=w.definition||"暂无释义";
     b.onclick=()=>{if(answered)return;answered=true;
-      if(w.word===quizCurrent.word){score++;$("quizFeedback").textContent="回答正确！";$("quizFeedback").style.color="var(--green)"}
+      if(w.word===quizCurrent.word){score++;$("quizFeedback").textContent="回答正确！";$("quizFeedback").style.color="var(--green)";okFeedback(b,$("quizFeedback"))}
       else{$("quizFeedback").textContent="再记一下："+quizCurrent.word+" — "+quizCurrent.definition;$("quizFeedback").style.color="var(--amber)"}
       $("quizScore").textContent="得分："+score;
       [...$("quizOptions").children].forEach(x=>{
@@ -1482,6 +1568,7 @@ function renderListenQs(qs, transcript){
         $("lScore").textContent="得分："+lRight+" / "+lTotal;
         btns.forEach(x=>x.disabled=true);
         b.style.borderColor = ok ? "var(--green)" : "var(--red)";
+        if(ok) okFeedback(b,$("lFeedback"));
         if(doneN===qs.length){   // 全部答完 → 公布原文
           $("lReveal").textContent=transcript; $("lRevealPh").textContent="（↑ 听力原文，可对照再听一遍）";
         }
@@ -1503,6 +1590,7 @@ function addListenOption(text, isRight, onPick){
     $("lScore").textContent=`得分：${lRight} / ${lTotal}`;
     [...$("lOptions").children].forEach(x=>x.disabled=true);
     b.style.borderColor = r.ok ? "var(--green)" : "var(--red)";
+    if(r.ok) okFeedback(b,$("lFeedback"));
   };
   $("lOptions").appendChild(b);
 }
@@ -1940,6 +2028,7 @@ function gradeDictWord(raw){
     markDInput("ok");
     $("dResult").innerHTML="完全正确！"+(cleared?"　已从错题集移出。":"");
     $("dResult").style.color="var(--green)";
+    okFeedback($("dResult"));
     showDAnswer(); dSpeakAnswer();
   }else{
     dDown();
@@ -1968,6 +2057,7 @@ function gradeDictSent(raw){
     markDInput("ok");
     $("dResult").innerHTML="完全正确！"+(cleared?"　已从错题集移出。":"");
     $("dResult").style.color="var(--green)";
+    okFeedback($("dResult"));
     dSpeakAnswer();
   }else{
     dDown();
@@ -2092,6 +2182,7 @@ function submitWDict(){
     inp.className="d-input ok";
     res.textContent="完全正确！" + (wasMissed?"　已从默写错题集移出。":"");
     res.style.color="var(--green)";
+    okFeedback(res);
     if(autoOn()) speak(w.word, $("speakTop"));
   }else{
     wStreakN=0;
@@ -2910,6 +3001,11 @@ function submitPaper(){
   paperResult = gradePaper();
   renderPaper();
   pushPaperScore(paperResult.got, paperResult.total);
+  /* 整卷是一次性判完的，逐题放音会变成噪音；只有满分才响一次 */
+  if(paperResult.total && paperResult.got === paperResult.total){
+    const pb=$("paperBody");
+    okFeedback(pb ? pb.querySelector(".p-score") : null);
+  }
   const box = $("paperBody");
   if(box && typeof box.scrollIntoView === "function") box.scrollIntoView({ behavior:"smooth", block:"start" });
 }
@@ -3089,6 +3185,11 @@ function gramqPick(k, optText){
   q.ok = (optText.charAt(0) === q.ans);
   if(q.ok) gramqScore++;
   renderGramQ();
+  /* 选项是整块重绘的，所以动画得等渲染完再挂到新的 .correct 节点上 */
+  if(q.ok){
+    const box=$("gramqBody");
+    okFeedback(box ? box.querySelector(".gq-opt.correct") : null);
+  }
 }
 function gramqNext(){
   if(gramqIdx < gramq.length-1){ gramqIdx++; renderGramQ(); }
