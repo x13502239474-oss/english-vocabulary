@@ -462,6 +462,24 @@ button.primary:hover:not(:disabled){background:transparent;color:var(--accent-so
 /* 反馈文字也跟着「顶」一下，避免只有色块在动、文字是死的 */
 .ok-flash-txt{animation:view-in .3s var(--ease) both}
 
+/* ---- 答错：短促左右一抖 + 一圈红晕，比答对克制，只是「不对」不是「爆炸」 ---- */
+@keyframes bad-shake{
+  0%,100%{transform:translateX(0)}
+  18%{transform:translateX(-4px)}
+  38%{transform:translateX(4px)}
+  58%{transform:translateX(-3px)}
+  78%{transform:translateX(2px)}
+}
+@keyframes bad-halo{
+  0%{box-shadow:0 0 0 0 rgba(162,53,42,.34)}
+  100%{box-shadow:0 0 0 11px rgba(162,53,42,0)}
+}
+.bad-flash{position:relative;animation:bad-shake .34s ease-in-out,bad-halo .5s ease-out}
+.bad-flash-txt{animation:bad-shake .34s ease-in-out}
+
+/* 彩带画布：盖在最上层但不吃点击，粒子放完自动清空 */
+.confetti-layer{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999}
+
 @media(max-width:620px){
   main{padding:20px 16px 56px}
   .stats{display:grid;grid-template-columns:1fr 1fr;gap:9px 18px}
@@ -551,7 +569,8 @@ button.primary:hover:not(:disabled){background:transparent;color:var(--accent-so
      <span class="seg" id="wDictSeg"><button data-wdict="0" class="on">学习卡片</button><button data-wdict="1">默写</button></span>
      <label>范围<select id="wordScope"><option value="all" selected>全部单词</option><option value="unmastered">只看未掌握</option><option value="review">只看待复习</option></select></label>
      <button id="restart">从头开始</button>
-     <label><input type="checkbox" id="okFx" checked> 答对音效</label>
+     <label><input type="checkbox" id="okFx" checked> 答题音效</label>
+     <label><input type="checkbox" id="cfx" checked> 彩带礼花</label>
     </div>
     <div class="row">
      <label>跳到单词<input id="jumpWord" list="wordOptions" placeholder="输入英文，如 health" autocomplete="off"></label>
@@ -860,10 +879,9 @@ let wDict=false, wDictAnswered=false, wRightN=0, wTotalN=0, wStreakN=0;
 let listKind="word", wMode="seq", sMode="seq";
 const $=id=>document.getElementById(id);
 
-/* ==================== 答对反馈：音效 + 动画 ====================
-   音效用 Web Audio 现场合成，不引外部文件——本页要能单文件离线打开，
-   也要能在 GitHub Pages 上跑，任何外链音频都会两边各挂一次。
-   两个音 A5 → E6，三角波，短促干净，总长约 0.26s，峰值 0.11 不刺耳。 */
+/* ==================== 答题反馈：音效 + 动画 + 彩带礼花 ====================
+   音效全部用 Web Audio 现场合成，不引外部文件——本页要能单文件离线打开，
+   也要能在 GitHub Pages 上跑，任何外链音频都会两边各挂一次。 */
 let _ac=null;
 function audioCtx(){
   if(_ac) return _ac;
@@ -872,40 +890,155 @@ function audioCtx(){
   try{ _ac=new C(); }catch(e){ return null; }
   return _ac;
 }
-const okFxOn=()=>STORE.getItem("vocab-okfx")!=="0";        // 默认开
+const fxOn=()=>STORE.getItem("vocab-okfx")!=="0";            // 答题音效，默认开
+const cfxOn=()=>STORE.getItem("vocab-confetti")!=="0";       // 彩带礼花，默认开
+const reduceMotion=()=>{ try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };
+
+/* 单音：起音 14ms 到峰值，再指数落回，避免爆音 */
+function _tone(ac,t0,f,dt,dur,peak,type){
+  const o=ac.createOscillator(), g=ac.createGain();
+  o.type=type||"triangle";
+  o.frequency.setValueAtTime(f,t0+dt);
+  g.gain.setValueAtTime(.0001,t0+dt);
+  g.gain.exponentialRampToValueAtTime(peak,t0+dt+.014);
+  g.gain.exponentialRampToValueAtTime(.0001,t0+dt+dur);
+  o.connect(g).connect(ac.destination);
+  o.start(t0+dt); o.stop(t0+dt+dur+.04);
+}
+/* 答对：C6-E6-G6-C7 上行琶音 + 一小撮高频「亮片」噪声，总长约 0.78s。
+   比上一版（A5-E6 两个音）整体抬高一个八度、加长尾音，才有「振奋」的劲儿。 */
 function playOkSound(){
-  if(!okFxOn()) return;
+  if(!fxOn()) return;
   const ac=audioCtx(); if(!ac) return;
   if(ac.state==="suspended"){ try{ ac.resume(); }catch(e){} }
   const t0=ac.currentTime+0.01;
-  [[880,0,.09],[1318.51,.075,.17]].forEach(([f,dt,dur])=>{
-    const o=ac.createOscillator(), g=ac.createGain();
-    o.type="triangle"; o.frequency.setValueAtTime(f,t0+dt);
+  [[1046.50,0,.16,.20],[1318.51,.075,.16,.20],[1568.00,.15,.18,.21],[2093.00,.225,.55,.23]]
+    .forEach(([f,dt,dur,peak])=>_tone(ac,t0,f,dt,dur,peak,"triangle"));
+  /* 高频亮片：短噪声过高通，给「礼花炸开」那一下空气感 */
+  try{
+    const len=Math.floor(ac.sampleRate*.28);
+    const buf=ac.createBuffer(1,len,ac.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2);
+    const src=ac.createBufferSource(); src.buffer=buf;
+    const hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=5200;
+    const g=ac.createGain(); g.gain.value=.10;
+    src.connect(hp).connect(g).connect(ac.destination);
+    src.start(t0+.20);
+  }catch(e){}
+}
+/* 答错：两声下行的「嗡嗡」，锯齿波过低通，闷而不刺耳。
+   单声太短会像误触，两声才明确是「不对」。 */
+function playBadSound(){
+  if(!fxOn()) return;
+  const ac=audioCtx(); if(!ac) return;
+  if(ac.state==="suspended"){ try{ ac.resume(); }catch(e){} }
+  const t0=ac.currentTime+0.01;
+  [[233.08,174.61,0],[196.00,146.83,.155]].forEach(([f1,f2,dt])=>{
+    const o=ac.createOscillator(), g=ac.createGain(), lp=ac.createBiquadFilter();
+    o.type="sawtooth";
+    o.frequency.setValueAtTime(f1,t0+dt);
+    o.frequency.exponentialRampToValueAtTime(f2,t0+dt+.14);
+    lp.type="lowpass";
+    lp.frequency.setValueAtTime(1200,t0+dt);
+    lp.frequency.exponentialRampToValueAtTime(600,t0+dt+.14);
     g.gain.setValueAtTime(.0001,t0+dt);
-    g.gain.exponentialRampToValueAtTime(.11,t0+dt+.012);
-    g.gain.exponentialRampToValueAtTime(.0001,t0+dt+dur);
-    o.connect(g).connect(ac.destination);
-    o.start(t0+dt); o.stop(t0+dt+dur+.03);
+    g.gain.exponentialRampToValueAtTime(.19,t0+dt+.012);
+    g.gain.exponentialRampToValueAtTime(.0001,t0+dt+.19);
+    o.connect(lp).connect(g).connect(ac.destination);
+    o.start(t0+dt); o.stop(t0+dt+.23);
   });
 }
-/* 给元素加一次答对动画。连点时先摘类再强制重排，否则动画不会重播。 */
-function flashOk(el){
-  if(!el) return;
-  el.classList.remove("ok-flash");
-  void el.offsetWidth;
-  el.classList.add("ok-flash");
-  clearTimeout(el.__okTimer);
-  el.__okTimer=setTimeout(()=>el.classList.remove("ok-flash"),1000);
+
+/* ---- 彩带礼花：一张覆盖全屏的 canvas，放完自动停、粒子清空 ----
+   用 canvas 而不是几十个 DOM 节点，是因为 70 片彩带 + 旋转 + 重力，
+   DOM 方案在手机上会掉帧。 */
+let _cfC=null,_cfX=null,_cfP=[],_cfRaf=0,_cfLast=0;
+const CF_COLORS=["#35a08c","#1c7d6b","#6a4a72","#c98a2e","#3f7fa8","#b0574a","#e8c15a"];
+function cfxCanvas(){
+  if(_cfC) return _cfC;
+  const c=document.createElement("canvas");
+  c.className="confetti-layer";
+  document.body.appendChild(c);
+  _cfC=c; _cfX=c.getContext("2d");
+  return c;
 }
-/* txtEl 传了就让反馈文字也顶一下；和 el 同一个元素时跳过，否则两个 animation 会打架 */
-function okFeedback(el, txtEl){
-  playOkSound();
-  flashOk(el);
-  if(txtEl && txtEl!==el){
-    txtEl.classList.remove("ok-flash-txt");
-    void txtEl.offsetWidth;
-    txtEl.classList.add("ok-flash-txt");
+function burstConfetti(el,n){
+  if(!cfxOn()||reduceMotion()) return;
+  const c=cfxCanvas();
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const W=window.innerWidth, H=window.innerHeight;
+  if(c.width!==Math.round(W*dpr)||c.height!==Math.round(H*dpr)){
+    c.width=Math.round(W*dpr); c.height=Math.round(H*dpr);
   }
+  c.style.width=W+"px"; c.style.height=H+"px";
+  _cfX.setTransform(dpr,0,0,dpr,0,0);
+  /* 从被点中的那个元素炸开；没有元素就从视口中上部 */
+  const r=(el&&el.getBoundingClientRect)?el.getBoundingClientRect():null;
+  const cx=r?r.left+r.width/2:W/2;
+  const cy=r?r.top+r.height/2:H*.42;
+  n=n||120;
+  for(let i=0;i<n;i++){
+    const a=(-Math.PI/2)+(Math.random()-.5)*2.3;      // 向上扇形，比之前更开
+    const sp=460+Math.random()*640;
+    _cfP.push({
+      x:cx+(Math.random()-.5)*28, y:cy+(Math.random()-.5)*16,
+      vx:Math.cos(a)*sp, vy:Math.sin(a)*sp,
+      w:6+Math.random()*8, h:10+Math.random()*12,
+      rot:Math.random()*Math.PI*2, vr:(Math.random()-.5)*14,
+      col:CF_COLORS[(Math.random()*CF_COLORS.length)|0],
+      life:1.1+Math.random()*.9, age:0,
+      shape:Math.random()<.28?"dot":"strip"
+    });
+  }
+  if(!_cfRaf){ _cfLast=performance.now(); _cfRaf=requestAnimationFrame(cfStep); }
+}
+function cfStep(now){
+  const dt=Math.min((now-_cfLast)/1000,.05); _cfLast=now;
+  const x=_cfX, W=window.innerWidth, H=window.innerHeight;
+  x.clearRect(0,0,W,H);
+  for(let i=_cfP.length-1;i>=0;i--){
+    const p=_cfP[i];
+    p.age+=dt;
+    if(p.age>=p.life){ _cfP.splice(i,1); continue; }
+    p.vy+=1350*dt; p.vx*=(1-1.1*dt);
+    p.x+=p.vx*dt; p.y+=p.vy*dt; p.rot+=p.vr*dt;
+    x.save();
+    x.globalAlpha=Math.min(1,(1-p.age/p.life)*2.2);
+    x.translate(p.x,p.y); x.rotate(p.rot);
+    x.fillStyle=p.col;
+    if(p.shape==="dot"){ x.beginPath(); x.arc(0,0,p.w*.45,0,Math.PI*2); x.fill(); }
+    else x.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+    x.restore();
+  }
+  if(_cfP.length) _cfRaf=requestAnimationFrame(cfStep);
+  else{ _cfRaf=0; x.clearRect(0,0,W,H); }
+}
+
+/* 加一次动画类。连点重播要先摘类再强制重排，否则类没变化浏览器不重启动画。 */
+function flashCls(el,cls,ms){
+  if(!el) return;
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
+  const k="__t_"+cls;
+  clearTimeout(el[k]);
+  el[k]=setTimeout(()=>el.classList.remove(cls),ms);
+}
+function flashOk(el){ flashCls(el,"ok-flash",1000); }
+function flashBad(el){ flashCls(el,"bad-flash",640); }
+
+/* txtEl 传了就让反馈文字也动一下；和 el 同一个元素时跳过，否则两个 animation 会打架 */
+function okFeedback(el,txtEl){
+  playOkSound();
+  burstConfetti(el,120);
+  flashOk(el);
+  if(txtEl && txtEl!==el) flashCls(txtEl,"ok-flash-txt",600);
+}
+function badFeedback(el,txtEl){
+  playBadSound();
+  flashBad(el);
+  if(txtEl && txtEl!==el) flashCls(txtEl,"bad-flash-txt",600);
 }
 
 /* ==================== 本地存储 ==================== */
@@ -1150,13 +1283,22 @@ $("autoSpeak").onchange = ()=>{
   STORE.setItem("vocab-autospeak", $("autoSpeak").checked ? "1" : "0");
   if($("autoSpeak").checked) speakActive();
 };
-/* 答对音效开关：默认开，勾上时立刻放一声试听 */
+/* 答题音效 / 彩带礼花两个开关，都默认开；勾上音效立刻试听一声 */
 { const c=$("okFx");
   if(c){
-    c.checked = okFxOn();
+    c.checked = fxOn();
     c.onchange = ()=>{
       STORE.setItem("vocab-okfx", c.checked ? "1" : "0");
       if(c.checked) playOkSound();
+    };
+  }
+}
+{ const c=$("cfx");
+  if(c){
+    c.checked = cfxOn();
+    c.onchange = ()=>{
+      STORE.setItem("vocab-confetti", c.checked ? "1" : "0");
+      if(c.checked) burstConfetti(null,56);
     };
   }
 }
@@ -1387,7 +1529,7 @@ function newQuiz(){
   choices.forEach(w=>{let b=document.createElement("button");b.textContent=w.definition||"暂无释义";
     b.onclick=()=>{if(answered)return;answered=true;
       if(w.word===quizCurrent.word){score++;$("quizFeedback").textContent="回答正确！";$("quizFeedback").style.color="var(--green)";okFeedback(b,$("quizFeedback"))}
-      else{$("quizFeedback").textContent="再记一下："+quizCurrent.word+" — "+quizCurrent.definition;$("quizFeedback").style.color="var(--amber)"}
+      else{$("quizFeedback").textContent="再记一下："+quizCurrent.word+" — "+quizCurrent.definition;$("quizFeedback").style.color="var(--amber)";badFeedback(b,$("quizFeedback"))}
       $("quizScore").textContent="得分："+score;
       [...$("quizOptions").children].forEach(x=>{
         x.disabled=true;
@@ -1568,7 +1710,7 @@ function renderListenQs(qs, transcript){
         $("lScore").textContent="得分："+lRight+" / "+lTotal;
         btns.forEach(x=>x.disabled=true);
         b.style.borderColor = ok ? "var(--green)" : "var(--red)";
-        if(ok) okFeedback(b,$("lFeedback"));
+        if(ok) okFeedback(b,$("lFeedback")); else badFeedback(b,$("lFeedback"));
         if(doneN===qs.length){   // 全部答完 → 公布原文
           $("lReveal").textContent=transcript; $("lRevealPh").textContent="（↑ 听力原文，可对照再听一遍）";
         }
@@ -1590,7 +1732,7 @@ function addListenOption(text, isRight, onPick){
     $("lScore").textContent=`得分：${lRight} / ${lTotal}`;
     [...$("lOptions").children].forEach(x=>x.disabled=true);
     b.style.borderColor = r.ok ? "var(--green)" : "var(--red)";
-    if(r.ok) okFeedback(b,$("lFeedback"));
+    if(r.ok) okFeedback(b,$("lFeedback")); else badFeedback(b,$("lFeedback"));
   };
   $("lOptions").appendChild(b);
 }
@@ -2040,6 +2182,7 @@ function gradeDictWord(raw){
       ? `⚠️ 差一点！你写的是「${esc(raw)}」，正确拼写是 <b>${esc(target)}</b>（相似度 ${pct}%）`
       : `正确答案：<b>${esc(target)}</b>`;
     $("dResult").style.color = near ? "var(--amber)" : "var(--red)";
+    badFeedback($("dResult"));
     dRecordWrong(); showDAnswer();
   }
   updateDScore();
@@ -2066,6 +2209,7 @@ function gradeDictSent(raw){
     $("dResult").innerHTML = `相似度 ${pct}%，漏写或写错 ${miss} 个词`
       + (extra ? `，另外多写了 ${extra} 个词` : "") + "。";
     $("dResult").style.color = pct>=85 ? "var(--amber)" : "var(--red)";
+    badFeedback($("dResult"));
     dRecordWrong();
   }
   showDAnswer();
@@ -2194,6 +2338,7 @@ function submitWDict(){
       ? `⚠️ 差一点！你写的是「${esc(raw)}」，正确拼写是 <b>${esc(w.word)}</b>（相似度 ${pct}%）`
       : `正确答案：<b>${esc(w.word)}</b>`;
     res.style.color = near?"var(--amber)":"var(--red)";
+    badFeedback(res);
     wdictWrongNote();
   }
   wdictRevealAnswer();
@@ -3185,11 +3330,10 @@ function gramqPick(k, optText){
   q.ok = (optText.charAt(0) === q.ans);
   if(q.ok) gramqScore++;
   renderGramQ();
-  /* 选项是整块重绘的，所以动画得等渲染完再挂到新的 .correct 节点上 */
-  if(q.ok){
-    const box=$("gramqBody");
-    okFeedback(box ? box.querySelector(".gq-opt.correct") : null);
-  }
+  /* 选项是整块重绘的，所以动画得等渲染完再挂到新的 .correct / .wrong 节点上 */
+  const box=$("gramqBody");
+  if(q.ok) okFeedback(box ? box.querySelector(".gq-opt.correct") : null);
+  else badFeedback(box ? box.querySelector(".gq-opt.wrong") : null);
 }
 function gramqNext(){
   if(gramqIdx < gramq.length-1){ gramqIdx++; renderGramQ(); }
