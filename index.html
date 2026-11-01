@@ -203,6 +203,9 @@ button.primary:active:not(:disabled){background:var(--green);border-color:var(--
   white-space:pre-wrap;max-width:70ch;line-height:1.78;font-size:14.5px;
 }
 .detail b{display:block;font-weight:600;font-size:12.5px;color:var(--muted);margin-bottom:4px;letter-spacing:.02em}
+/* 例句标题行：标签 + 小喇叭按钮并排 */
+.detail-head{display:flex;align-items:center;gap:3px;margin-bottom:4px}
+.detail-head b{margin-bottom:0}
 #memoryWrap b{color:var(--plum)}
 #exampleWrap b{color:var(--accent)}
 .actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:34px;align-items:center}
@@ -289,8 +292,12 @@ button.primary:active:not(:disabled){background:var(--green);border-color:var(--
   transition:border-color .18s var(--ease),color .18s var(--ease),background-color .18s var(--ease);
 }
 .speak:hover:not(:disabled){color:var(--accent);background:var(--surface-sunk)}
+.speak:active:not(:disabled){background:rgba(53,160,140,.16);transform:translateY(.5px)}
 .speak.speaking{color:var(--accent);border-color:var(--accent)}
 .speak svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+/* 例句行里的迷你喇叭：塞在 12.5px 的标签旁边，不撑高行距 */
+.speak.mini{padding:6px;border-radius:5px;margin-left:-4px;color:var(--accent-soft)}
+.speak.mini svg{width:16px;height:16px}
 
 /* ---- 列表 ---- */
 .list{display:grid;gap:0}
@@ -640,6 +647,7 @@ body.kb .word{font-size:clamp(34px,9vw,48px)}
      <button id="restart">从头开始</button>
      <label><input type="checkbox" id="okFx" checked> 答题音效</label>
      <label><input type="checkbox" id="cfx" checked> 彩带礼花</label>
+     <label><input type="checkbox" id="okSpeak" checked> 答对后读音</label>
     </div>
     <div class="row">
      <label>跳到单词<input id="jumpWord" list="wordOptions" placeholder="输入英文，如 health" autocomplete="off"></label>
@@ -655,7 +663,7 @@ body.kb .word{font-size:clamp(34px,9vw,48px)}
   <div class="eyebrow" id="counter">准备开始</div>
   <div class="word-line"><div class="word" id="word">Welcome!</div><button class="speak" id="speakTop" title="朗读单词（快捷键 S）" aria-label="朗读"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg></button></div>
   <div class="phonetic" id="phonetic">点击“显示释义”开始学习</div>
-  <div id="answer" class="hidden"><div class="definition" id="definition"></div><div class="detail" id="memoryWrap"><b>记忆提示</b><span id="memory"></span></div><div class="detail" id="exampleWrap"><b>例句</b><span id="example"></span></div></div>
+  <div id="answer" class="hidden"><div class="definition" id="definition"></div><div class="detail" id="memoryWrap"><b>记忆提示</b><span id="memory"></span></div><div class="detail" id="exampleWrap"><div class="detail-head"><b>例句</b><button class="speak mini" id="exSpeak" title="朗读例句（只读英文部分）" aria-label="朗读例句"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg></button></div><span id="example"></span></div></div>
   <div id="wdictBox" class="hidden">
    <input id="wdictInput" class="d-input" type="text" lang="en" placeholder="看中文写英文，按 Enter 判分；判完再按 Enter 进入下一个" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
    <div class="feedback" id="wdictResult"></div>
@@ -951,14 +959,67 @@ const $=id=>document.getElementById(id);
 /* ==================== 答题反馈：音效 + 动画 + 彩带礼花 ====================
    音效全部用 Web Audio 现场合成，不引外部文件——本页要能单文件离线打开，
    也要能在 GitHub Pages 上跑，任何外链音频都会两边各挂一次。 */
-let _ac=null;
-function audioCtx(){
-  if(_ac) return _ac;
+/* AudioContext 必须全局只建一个，但手机系统会在这些时刻把它挂起（state 变
+   suspended / interrupted，iOS 还会给 "interrupted"）：切后台、锁屏、来电、
+   以及最要命的——被别的音频抢走音频焦点（TTS 朗读、<audio> 播放）。
+   Chrome 回到前台后不一定自己 resume，于是后面所有音符都排进一个冻住的时钟，
+   表现为「动画还在，声音没了」。所以每次发声前都要确认 state==="running"，
+   实在救不活就重建一个。 */
+let _ac=null, _acMaster=null;
+function _newAc(){
   const C=window.AudioContext||window.webkitAudioContext;
   if(!C) return null;
-  try{ _ac=new C(); }catch(e){ return null; }
+  try{
+    const ac=new C();
+    const m=ac.createGain();
+    m.gain.value=1;
+    m.connect(ac.destination);      // 所有音源都汇到这个总线上
+    _ac=ac; _acMaster=m;
+    return ac;
+  }catch(e){ return null; }
+}
+function audioCtx(){
+  if(!_ac) return _newAc();
+  if(_ac.state==="closed") return _newAc();
   return _ac;
 }
+/* 统一发声入口：running 就同步排（零延迟）；挂起就先 resume，好了再排。
+   resume() 偶尔既不 resolve 也不 reject，所以加一个 260ms 的兜底定时器。 */
+function withAc(fn){
+  const ac=audioCtx(); if(!ac) return;
+  if(ac.state==="running"){ try{ fn(ac); }catch(e){} return; }
+  let done=false;
+  const run=()=>{ if(done) return; done=true; try{ fn(ac); }catch(e){} };
+  try{
+    const p=ac.resume();
+    if(p && p.then) p.then(()=>{ if(ac.state==="running") run(); }).catch(()=>{});
+  }catch(e){}
+  setTimeout(()=>{
+    if(done) return;
+    if(ac.state==="running"){ run(); return; }
+    /* 救不活：关掉重建，宁可这一声晚 260ms，也不能从此永久哑掉 */
+    done=true;
+    try{ ac.close(); }catch(e){}
+    if(_ac===ac){ _ac=null; _acMaster=null; }
+    const ac2=_newAc(); if(!ac2) return;
+    try{ ac2.resume(); }catch(e){}
+    try{ fn(ac2); }catch(e){}
+  },260);
+}
+/* 任何一次用户手势都把上下文叫醒（手机上这是唯一可靠的 resume 时机） */
+["pointerdown","keydown","touchstart"].forEach(ev=>{
+  document.addEventListener(ev,()=>{
+    const ac=_ac;
+    if(ac && ac.state!=="running"){
+      try{ const p=ac.resume(); if(p&&p.catch) p.catch(()=>{}); }catch(e){}
+    }
+  },{passive:true,capture:true});
+});
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState!=="visible") return;
+  const ac=_ac; if(!ac || ac.state==="running") return;
+  try{ const p=ac.resume(); if(p&&p.catch) p.catch(()=>{}); }catch(e){}
+});
 const fxOn=()=>STORE.getItem("vocab-okfx")!=="0";            // 答题音效，默认开
 const cfxOn=()=>STORE.getItem("vocab-confetti")!=="0";       // 彩带礼花，默认开
 const reduceMotion=()=>{ try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };
@@ -971,7 +1032,7 @@ function _tone(ac,t0,f,dt,dur,peak,type){
   g.gain.setValueAtTime(.0001,t0+dt);
   g.gain.exponentialRampToValueAtTime(peak,t0+dt+.014);
   g.gain.exponentialRampToValueAtTime(.0001,t0+dt+dur);
-  o.connect(g).connect(ac.destination);
+  o.connect(g).connect(_acMaster||ac.destination);
   o.start(t0+dt); o.stop(t0+dt+dur+.04);
 }
 /* 高频「亮片」噪声：一段白噪声过高通，给礼花炸开那一下空气感 */
@@ -984,7 +1045,7 @@ function _sparkle(ac,t0,dt,dur,gain,hpFreq){
     const src=ac.createBufferSource(); src.buffer=buf;
     const hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=hpFreq||5200;
     const g=ac.createGain(); g.gain.value=gain||.10;
-    src.connect(hp).connect(g).connect(ac.destination);
+    src.connect(hp).connect(g).connect(_acMaster||ac.destination);
     src.start(t0+dt);
   }catch(e){}
 }
@@ -992,33 +1053,33 @@ function _sparkle(ac,t0,dt,dur,gain,hpFreq){
    比上一版（A5-E6 两个音）整体抬高一个八度、加长尾音，才有「振奋」的劲儿。 */
 function playOkSound(){
   if(!fxOn()) return;
-  const ac=audioCtx(); if(!ac) return;
-  if(ac.state==="suspended"){ try{ ac.resume(); }catch(e){} }
-  const t0=ac.currentTime+0.01;
-  [[1046.50,0,.16,.20],[1318.51,.075,.16,.20],[1568.00,.15,.18,.21],[2093.00,.225,.55,.23]]
-    .forEach(([f,dt,dur,peak])=>_tone(ac,t0,f,dt,dur,peak,"triangle"));
-  _sparkle(ac,t0,.20,.28,.10,5200);
+  withAc(ac=>{
+    const t0=ac.currentTime+0.01;
+    [[1046.50,0,.16,.20],[1318.51,.075,.16,.20],[1568.00,.15,.18,.21],[2093.00,.225,.55,.23]]
+      .forEach(([f,dt,dur,peak])=>_tone(ac,t0,f,dt,dur,peak,"triangle"));
+    _sparkle(ac,t0,.20,.28,.10,5200);
+  });
 }
 /* 答错：两声下行的「嗡嗡」，锯齿波过低通，闷而不刺耳。
    单声太短会像误触，两声才明确是「不对」。 */
 function playBadSound(){
   if(!fxOn()) return;
-  const ac=audioCtx(); if(!ac) return;
-  if(ac.state==="suspended"){ try{ ac.resume(); }catch(e){} }
-  const t0=ac.currentTime+0.01;
-  [[233.08,174.61,0],[196.00,146.83,.155]].forEach(([f1,f2,dt])=>{
-    const o=ac.createOscillator(), g=ac.createGain(), lp=ac.createBiquadFilter();
-    o.type="sawtooth";
-    o.frequency.setValueAtTime(f1,t0+dt);
-    o.frequency.exponentialRampToValueAtTime(f2,t0+dt+.14);
-    lp.type="lowpass";
-    lp.frequency.setValueAtTime(1200,t0+dt);
-    lp.frequency.exponentialRampToValueAtTime(600,t0+dt+.14);
-    g.gain.setValueAtTime(.0001,t0+dt);
-    g.gain.exponentialRampToValueAtTime(.19,t0+dt+.012);
-    g.gain.exponentialRampToValueAtTime(.0001,t0+dt+.19);
-    o.connect(lp).connect(g).connect(ac.destination);
-    o.start(t0+dt); o.stop(t0+dt+.23);
+  withAc(ac=>{
+    const t0=ac.currentTime+0.01;
+    [[233.08,174.61,0],[196.00,146.83,.155]].forEach(([f1,f2,dt])=>{
+      const o=ac.createOscillator(), g=ac.createGain(), lp=ac.createBiquadFilter();
+      o.type="sawtooth";
+      o.frequency.setValueAtTime(f1,t0+dt);
+      o.frequency.exponentialRampToValueAtTime(f2,t0+dt+.14);
+      lp.type="lowpass";
+      lp.frequency.setValueAtTime(1200,t0+dt);
+      lp.frequency.exponentialRampToValueAtTime(600,t0+dt+.14);
+      g.gain.setValueAtTime(.0001,t0+dt);
+      g.gain.exponentialRampToValueAtTime(.19,t0+dt+.012);
+      g.gain.exponentialRampToValueAtTime(.0001,t0+dt+.19);
+      o.connect(lp).connect(g).connect(_acMaster||ac.destination);
+      o.start(t0+dt); o.stop(t0+dt+.23);
+    });
   });
 }
 
@@ -1151,23 +1212,23 @@ function renderStreak(pop){
 /* 礼炮音：比普通答对再高一级——五声/七声上行 + 收尾和弦 + 低频垫底 + 两轮亮片 */
 function playFanfare(level){
   if(!fxOn()) return;
-  const ac=audioCtx(); if(!ac) return;
-  if(ac.state==="suspended"){ try{ ac.resume(); }catch(e){} }
-  const t0=ac.currentTime+0.01;
-  const seq = level>=2
-    ? [[523.25,0,.14,.42],[659.25,.07,.14,.43],[783.99,.14,.14,.44],[1046.50,.21,.14,.45],
-       [1318.51,.28,.16,.46],[1568.00,.35,.18,.47],[2093.00,.42,.55,.48]]
-    : [[523.25,0,.14,.36],[659.25,.08,.14,.37],[783.99,.16,.14,.38],
-       [1046.50,.24,.16,.39],[1568.00,.32,.50,.40]];
-  seq.forEach(([f,dt,dur,peak])=>_tone(ac,t0,f,dt,dur,peak,"triangle"));
-  /* 收尾大三和弦，让结尾「站得住」而不是断在半空 */
-  [1046.50,1318.51,1568.00].forEach(f=>_tone(ac,t0,f,.42,.62,level>=2?.15:.12,"triangle"));
-  if(level>=2){
-    _tone(ac,t0,130.81,0,.72,.24,"sine");     // 二级才加低频垫底，厚而不糊
-    _tone(ac,t0,196.00,0,.72,.15,"sine");
-  }
-  _sparkle(ac,t0,.18,.30,level>=2?.20:.15,5200);
-  if(level>=2) _sparkle(ac,t0,.46,.40,.17,6400);
+  withAc(ac=>{
+    const t0=ac.currentTime+0.01;
+    const seq = level>=2
+      ? [[523.25,0,.14,.42],[659.25,.07,.14,.43],[783.99,.14,.14,.44],[1046.50,.21,.14,.45],
+         [1318.51,.28,.16,.46],[1568.00,.35,.18,.47],[2093.00,.42,.55,.48]]
+      : [[523.25,0,.14,.36],[659.25,.08,.14,.37],[783.99,.16,.14,.38],
+         [1046.50,.24,.16,.39],[1568.00,.32,.50,.40]];
+    seq.forEach(([f,dt,dur,peak])=>_tone(ac,t0,f,dt,dur,peak,"triangle"));
+    /* 收尾大三和弦，让结尾「站得住」而不是断在半空 */
+    [1046.50,1318.51,1568.00].forEach(f=>_tone(ac,t0,f,.42,.62,level>=2?.15:.12,"triangle"));
+    if(level>=2){
+      _tone(ac,t0,130.81,0,.72,.24,"sine");     // 二级才加低频垫底，厚而不糊
+      _tone(ac,t0,196.00,0,.72,.15,"sine");
+    }
+    _sparkle(ac,t0,.18,.30,level>=2?.20:.15,5200);
+    if(level>=2) _sparkle(ac,t0,.46,.40,.17,6400);
+  });
 }
 
 function flashScreen(level){
@@ -1198,7 +1259,8 @@ function streakReward(level){
   showStreakToast(okStreak,level);
 }
 
-/* txtEl 传了就让反馈文字也动一下；和 el 同一个元素时跳过，否则两个 animation 会打架 */
+/* txtEl 传了就让反馈文字也动一下；和 el 同一个元素时跳过，否则两个 animation 会打架。
+   返回礼炮等级（0 普通 / 1 连对5 / 2 连对10），调用方据此决定读音往后推多久 */
 function okFeedback(el,txtEl){
   okStreak++; saveStreak(); renderStreak(true);
   /* 命中里程碑时只放礼炮，不和普通答对音效叠在一起糊成一团 */
@@ -1207,6 +1269,7 @@ function okFeedback(el,txtEl){
   else  { playOkSound();    burstConfetti(el,120); }
   flashOk(el);
   if(txtEl && txtEl!==el) flashCls(txtEl,"ok-flash-txt",600);
+  return lv;
 }
 function badFeedback(el,txtEl){
   playBadSound();
@@ -1550,6 +1613,26 @@ function speak(text, btn, opts){
   speakTimer = setTimeout(startNow, 80);
 }
 function autoOn(){ return userActed && $("autoSpeak").checked; }
+/* 答对后读音：默认开。和 autoOn() 分开是因为 autoOn 还管「切换时自动朗读」，
+   那个默认关（翻页就念太吵），但答对后念一遍是刚需，不能被它连坐。 */
+const okSpeakOn = ()=> STORE.getItem("vocab-ok-speak") !== "0";
+/* 答对的那一下先让「叮」的琶音走完（约 0.57s）再读音，
+   两路声音叠在一起会糊，手机上还会互相抢音频焦点 */
+let _speakLaterT = 0;
+function speakLater(text, btn, delay){
+  if(!text) return;
+  clearTimeout(_speakLaterT);
+  _speakLaterT = setTimeout(()=>{ speak(text, btn); }, delay==null ? 430 : delay);
+}
+/* 例句字段是「英文.中文。」拼在一起的，朗读只取前半段英文。
+   碰到中文（含全角标点）就截断；整条都是中文则返回空串，按钮自动隐藏。 */
+const CJK_RE = /[\u3000-\u303f\u3400-\u4dbf\u4e00-\u9fff\uff00-\uffef]/;
+function enPart(s){
+  const t = String(s||"").replace(/[\u201c\u201d"]/g,"").trim();
+  const i = t.search(CJK_RE);
+  if(i === 0) return "";
+  return (i > 0 ? t.slice(0,i) : t).trim();
+}
 /* 朗读「当前正在学的单词」——单词学习板块的按钮/快捷键/口音切换都走这里 */
 function speakActive(){
   const w = activeWord();
@@ -1587,6 +1670,14 @@ $("autoSpeak").onchange = ()=>{
       STORE.setItem("vocab-confetti", c.checked ? "1" : "0");
       if(c.checked) burstConfetti(null,56);
     };
+  }
+}
+/* 答对后读音：默认开，独立于「切换时自动朗读」——后者默认关，
+   用户常常没开就以为「答对了怎么不读音」 */
+{ const c=$("okSpeak");
+  if(c){
+    c.checked = okSpeakOn();
+    c.onchange = ()=>{ STORE.setItem("vocab-ok-speak", c.checked ? "1" : "0"); };
   }
 }
 /* 快捷键 S 朗读当前页面对应的内容 */
@@ -1692,6 +1783,9 @@ function showWord(i){
   $("definition").textContent=w.definition||"暂无释义";
   $("memory").textContent=w.memory||"这条词条没有单独的记忆提示。";
   $("example").textContent=w.example||"暂无例句";
+  /* 例句只有中文（或为空）时，喇叭按钮没意义，直接藏掉 */
+  { const eb=$("exSpeak");
+    if(eb){ eb.classList.toggle("hidden", !enPart(w.example)); eb.classList.remove("speaking"); } }
   $("reveal").textContent="显示释义";
   $("master").textContent=mastered.has(w.word)?"已掌握":"标记掌握";
   if(wDict){
@@ -1732,6 +1826,11 @@ function stepWord(dir){
   return index;
 }
 $("reveal").onclick=()=>{$("answer").classList.toggle("hidden");$("reveal").textContent=$("answer").classList.contains("hidden")?"显示释义":"收起释义"};
+$("exSpeak").onclick=()=>{
+  const w=activeWord(); if(!w) return;
+  const ex=enPart(w.example);
+  if(ex) speak(ex,$("exSpeak"));
+};
 $("next").onclick=()=>showWord(stepWord(1));
 $("prev").onclick=()=>showWord(stepWord(-1));
 $("shuffle").onclick=()=>showWord(Math.floor(Math.random()*words.length));
@@ -2417,7 +2516,7 @@ function showDAnswer(){
 }
 function dSpeakAnswer(){
   if(!dCur || !userActed || !$("dSpeak").checked) return;
-  speak(dKindNow()==="word" ? dCur.word : dCur.en, null);
+  speakLater(dKindNow()==="word" ? dCur.word : dCur.en, null);
 }
 function dRecordWrong(){
   if(!dCur) return;
@@ -2613,8 +2712,9 @@ function submitWDict(){
     inp.className="d-input ok";
     res.textContent="完全正确！" + (wasMissed?"　已从默写错题集移出。":"");
     res.style.color="var(--green)";
-    okFeedback(res);
-    if(autoOn()) speak(w.word, $("speakTop"));
+    const lv=okFeedback(res);
+    /* 礼炮比普通「叮」长一倍，读音再往后让一点，不然被盖住 */
+    if(okSpeakOn()) speakLater(w.word, $("speakTop"), lv?880:430);
   }else{
     wStreakN=0;
     const d=lev(g,t), base=Math.max(t.length,g.length);
