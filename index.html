@@ -632,7 +632,6 @@ body.kb .word{font-size:clamp(34px,9vw,48px)}
    <div class="settings-body">
     <div class="row">
      <button class="speak" id="speakBtn" title="朗读（快捷键 S）" aria-label="朗读"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg><span>朗读</span></button>
-     <label>口音<select id="accent"><option value="auto" selected>自动</option><option value="en-US">美音 en-US</option><option value="en-GB">英音 en-GB</option></select></label>
      <label>声音<select id="gender"><option value="female" selected>女声</option><option value="male">男声</option><option value="any">不限</option></select></label>
      <label>语速<select id="rate"><option value="0.6">慢速</option><option value="0.85" selected>正常</option><option value="1">较快</option></select></label>
      <label><input type="checkbox" id="autoSpeak"> 切换时自动朗读</label>
@@ -1451,16 +1450,15 @@ document.addEventListener("pointerdown", unlockAudio, true);
 document.addEventListener("keydown", unlockAudio, true);
 
 /* 发音音频地址：
-     单词 → 有道词典发音（真人录音，可区分英/美音）
+     单词 → 有道词典发音（真人录音；type=2 是美音，1 是英音，这里固定用美音）
      句子 / 段落 → 百度语音合成（长文本稳定）
    两个源交叉兜底；页面已设 no-referrer，避免被防盗链拦截。 */
 function ttsUrl(text, alt){
   const t = (text || "").trim();
   const isWord = t && !/\s/.test(t);
-  const us = norm(currentLang()) !== "en-gb";
   if(isWord) return alt
     ? "https://fanyi.baidu.com/gettts?lan=en&text=" + encodeURIComponent(t) + "&spd=3&source=web"
-    : "https://dict.youdao.com/dictvoice?type=" + (us ? 2 : 1) + "&audio=" + encodeURIComponent(t);
+    : "https://dict.youdao.com/dictvoice?type=2&audio=" + encodeURIComponent(t);
   return alt
     ? "https://dict.youdao.com/dictvoice?audio=" + encodeURIComponent(t) + "&le=en"
     : "https://fanyi.baidu.com/gettts?lan=en&text=" + encodeURIComponent(t) + "&spd=3&source=web";
@@ -1516,27 +1514,21 @@ function guessGender(name){
   return "";                       // 未知
 }
 function genderPref(){ return $("gender") ? $("gender").value : "female"; }
-function accentPref(){ return $("accent") ? $("accent").value : "auto"; }
 
 function pickVoice(){
   if(!synth) return;
   enVoices = synth.getVoices().filter(v => /^en([-_]|$)/i.test(v.lang));
   updateVoiceInfo();
 }
-function currentLang(){
-  const a = accentPref();
-  if(a !== "auto") return a;
-  const sys = norm(navigator.language);
-  return /^en([-_]|$)/.test(sys) ? sys : "en-US";
-}
+/* 只保留美音。之前有「自动 / 美音 / 英音」三档，英音选项已去掉——
+   注意不能退回「按 navigator.language 猜」：英文系统上会猜成 en-GB，
+   等于英音又偷偷回来了。 */
+function currentLang(){ return "en-US"; }
 /* 挑语音：先按口音精确匹配；再按性别过滤；同条件下优先离线语音 */
-function voiceFor(lang, strict){
+function voiceFor(lang){
   const want = norm(lang);
   let cand = enVoices.filter(v => norm(v.lang) === want);
-  if(!cand.length){
-    if(strict) return null;
-    cand = enVoices.slice();
-  }
+  if(!cand.length) cand = enVoices.slice();   // 没装美音语音才退到任意英文语音
   if(!cand.length) return null;
   const g = genderPref();
   if(g !== "any"){
@@ -1547,11 +1539,11 @@ function voiceFor(lang, strict){
 }
 function updateVoiceInfo(){
   const info = $("voiceInfo"); if(!info) return;
-  if(IS_IOS){ info.textContent = "iOS 使用在线发音（" + (norm(currentLang()) === "en-gb" ? "英音" : "美音") + "），需联网。"; return; }
+  if(IS_IOS){ info.textContent = "iOS 使用在线美音发音，需联网。"; return; }
   if(!synth){ info.textContent = "当前浏览器不支持语音朗读，建议改用 Chrome 或 Edge。"; return; }
   const lang = currentLang();
-  const v = voiceFor(lang, accentPref() !== "auto");
-  if(!v){ info.textContent = `未安装 ${lang} 语音，已请浏览器按该口音兜底（可能退回默认语音）。`; return; }
+  const v = voiceFor(lang);
+  if(!v){ info.textContent = `未安装 ${lang} 语音，已请浏览器按美音兜底（可能退回默认语音）。`; return; }
   const g = guessGender(v.name);
   info.textContent = `当前语音：${v.name}（${v.lang}${g === "female" ? " · 女声" : g === "male" ? " · 男声" : ""}）`;
 }
@@ -1579,7 +1571,7 @@ function speak(text, btn, opts){
   const lang = currentLang();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = lang;                        // 注意：一旦设置 voice，lang 会被该语音的口音覆盖
-  const v = voiceFor(lang, accentPref() !== "auto");
+  const v = voiceFor(lang);
   if(v) u.voice = v;
   u.rate = opts.rate || parseFloat($("rate").value) || 0.85;
   u.pitch = opts.pitch || 1;
@@ -1646,7 +1638,6 @@ function speakActive(){
 $("speakBtn").onclick = ()=>speakActive();
 $("speakTop").onclick = ()=>speakActive();
 $("quizSpeak").onclick = ()=>{ if(quizCurrent) speak(quizCurrent.word, $("quizSpeak")); };
-$("accent").onchange = ()=>{ STORE.setItem("vocab-accent", $("accent").value); updateVoiceInfo(); speakActive(); };
 $("gender").onchange = ()=>{ STORE.setItem("vocab-gender", $("gender").value); updateVoiceInfo(); speakActive(); };
 $("rate").onchange = ()=>{ STORE.setItem("vocab-rate", $("rate").value); speakActive(); };
 $("autoSpeak").onchange = ()=>{
@@ -2129,10 +2120,13 @@ function addListenOption(text, isRight, onPick){
 function listenVoices(){
   const lang=currentLang();
   const all = synth ? synth.getVoices() : [];
-  const prefix = lang.slice(0,2);
-  const pool = all.filter(v=>v.lang && String(v.lang).replace("_","-").toLowerCase().startsWith(prefix));
+  const tag = v => String(v.lang||"").replace("_","-").toLowerCase();
+  /* 听力朗读同样只认美音：设备装了 en-US 就只用 en-US（对话要两个音色，
+     所以不能只取 voiceFor 挑出来的那一个）；一个都没有才退到全部英文语音 */
+  const usPool = all.filter(v=>tag(v).startsWith("en-us"));
+  const pool = usPool.length ? usPool : all.filter(v=>tag(v).startsWith("en"));
   const nat = pool.filter(v=>/natural|neural/i.test(v.name));
-  const base = voiceFor(lang, accentPref()!=="auto");
+  const base = voiceFor(lang);
   const v1 = nat[0] || base || pool[0] || null;
   const rest = pool.filter(v=>v!==v1);
   const restNat = rest.filter(v=>/natural|neural/i.test(v.name));
@@ -3602,8 +3596,9 @@ if($("statLearned")) $("statLearned").onclick=()=>openMastered("word");
 if($("statSentLearned")) $("statSentLearned").onclick=()=>openMastered("sent");
 
 /* ==================== 恢复设置 & 初始化 ==================== */
-const savedAccent=STORE.getItem("vocab-accent");
-if(savedAccent && Array.from($("accent").options).some(o=>o.value===savedAccent)) $("accent").value=savedAccent;
+/* 口音选项已删除（只留美音），顺手清掉老版本留下的 vocab-accent，
+   否则下次改回多口音时会被一个过期的 en-GB 悄悄带偏 */
+STORE.removeItem("vocab-accent");
 const savedGender=STORE.getItem("vocab-gender");
 if(savedGender && Array.from($("gender").options).some(o=>o.value===savedGender)) $("gender").value=savedGender;
 const savedRate=STORE.getItem("vocab-rate");
