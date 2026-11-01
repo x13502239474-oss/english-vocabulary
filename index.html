@@ -96,6 +96,11 @@ main{max-width:900px;margin:0 auto;padding:30px 24px 72px}
 #learned,#sentLearned{color:var(--green)}
 .stat.link{cursor:pointer}
 .stat.link:hover strong{color:var(--accent)}
+/* 连击数：0 时保持灰，答对才点亮成薄荷色；加一下弹动表示「又对了」 */
+#streakNum{display:inline-block;color:var(--muted)}
+#statStreak.on #streakNum{color:var(--accent-soft)}
+@keyframes streak-pop{0%{transform:scale(1)}42%{transform:scale(1.24)}100%{transform:scale(1)}}
+#streakNum.pop{animation:streak-pop .34s var(--ease)}
 
 .progress{height:1px;background:var(--line);overflow:hidden;margin:0 0 30px}
 .progress div{height:100%;background:var(--green);width:0;transition:width .3s var(--ease)}
@@ -520,7 +525,6 @@ button.primary:hover:not(:disabled){background:transparent;color:var(--accent-so
 @media(max-width:620px){
   main{padding:20px 16px 56px}
   .stats{display:grid;grid-template-columns:1fr 1fr;gap:9px 18px}
-  #statTime{grid-column:1/-1}
   .stat strong{font-size:14px}
   .controls{padding-bottom:8px;margin-bottom:24px}
   .quiz-options{grid-template-columns:minmax(0,1fr)}
@@ -564,6 +568,7 @@ button.primary:hover:not(:disabled){background:transparent;color:var(--accent-so
  <div class="stat"><strong id="sentTotal">—</strong><span>短句总数</span></div>
  <div class="stat link" id="statSentLearned" title="点击查看已掌握了哪些短句"><strong id="sentLearned">0</strong><span>已掌握短句</span></div>
  <div class="stat link" id="statTime" title="点击展开最近 7 天"><strong id="todayTime">0 秒</strong><span>今日学习</span></div>
+ <div class="stat" id="statStreak" title="今天连续答对的题数，答错清零"><strong id="streakNum">0</strong><span>当前连击</span></div>
 </div>
 <div class="progress"><div id="progress"></div></div>
 <div class="time-strip hidden" id="timeStrip"></div>
@@ -1111,6 +1116,13 @@ const saveStreak=()=>{
   STORE.setItem("vocab-streak", String(okStreak));
   STORE.setItem("vocab-streak-day", dayKey());
 };
+function renderStreak(pop){
+  const n=$("streakNum"), w=$("statStreak");
+  if(!n) return;
+  n.textContent=okStreak;
+  if(w) w.classList.toggle("on", okStreak>0);
+  if(pop && okStreak>0) flashCls(n,"pop",360);
+}
 
 /* 礼炮音：比普通答对再高一级——五声/七声上行 + 收尾和弦 + 低频垫底 + 两轮亮片 */
 function playFanfare(level){
@@ -1164,7 +1176,7 @@ function streakReward(level){
 
 /* txtEl 传了就让反馈文字也动一下；和 el 同一个元素时跳过，否则两个 animation 会打架 */
 function okFeedback(el,txtEl){
-  okStreak++; saveStreak();
+  okStreak++; saveStreak(); renderStreak(true);
   /* 命中里程碑时只放礼炮，不和普通答对音效叠在一起糊成一团 */
   const lv = (okStreak===5) ? 1 : (okStreak>=10 && okStreak%10===0) ? 2 : 0;
   if(lv){ streakReward(lv); burstConfetti(el,60); }
@@ -1176,7 +1188,7 @@ function badFeedback(el,txtEl){
   playBadSound();
   flashBad(el);
   if(txtEl && txtEl!==el) flashCls(txtEl,"bad-flash-txt",600);
-  if(okStreak){ okStreak=0; saveStreak(); }
+  if(okStreak){ okStreak=0; saveStreak(); renderStreak(false); }
 }
 
 /* ==================== 每日学习时长 ====================
@@ -1237,6 +1249,7 @@ function renderTimeStrip(){
 _todaySec=Math.round(timeMap()[dayKey()]||0);
 _dayNow=dayKey();
 renderTimeNum();
+renderStreak(false);
 /* 有操作就刷新「活跃」时间戳；滚动/触摸/按键都算 */
 ["pointerdown","keydown","wheel","touchstart","scroll"].forEach(ev=>
   document.addEventListener(ev,()=>{ _lastAct=Date.now(); },{passive:true}));
