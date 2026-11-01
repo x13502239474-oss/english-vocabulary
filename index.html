@@ -68,6 +68,8 @@ body{
 ::selection{background:rgba(53,160,140,.18);color:var(--ink)}
 [data-theme="dark"] ::selection{background:rgba(127,216,180,.26)}
 :root{scrollbar-color:var(--line-2) transparent;scrollbar-width:thin}
+/* 手指按下的一瞬间就有反馈（比 :active 更早），用主题色而不是浏览器默认灰 */
+html{-webkit-tap-highlight-color:rgba(53,160,140,.18)}
 ::-webkit-scrollbar{width:11px;height:11px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:99px;border:3px solid transparent;background-clip:content-box}
@@ -121,6 +123,7 @@ main{max-width:900px;margin:0 auto;padding:30px 24px 72px}
 }
 .tab:last-child{margin-right:0}
 .tab:hover{color:var(--ink)}
+.tab:active{color:var(--accent-soft)}
 .tab.active{color:var(--accent-soft);font-weight:600}
 .tab.active::after{
   content:"";position:absolute;left:0;right:0;bottom:2px;height:2px;
@@ -132,11 +135,17 @@ button{
   padding:9px 14px;cursor:pointer;color:var(--ink);
   transition:border-color .18s var(--ease),color .18s var(--ease),background-color .18s var(--ease),transform .12s var(--ease);
 }
-button:hover:not(:disabled){background:var(--surface-sunk)}
-button:active:not(:disabled){transform:translateY(.5px)}
 button:disabled{opacity:.4;cursor:not-allowed}
 button.primary{border-color:var(--accent-soft);background:var(--accent-soft);color:#fff;font-weight:600}
-button.primary:hover:not(:disabled){background:transparent;color:var(--accent-soft)}
+/* 悬停只在真能 hover 的设备上给，触摸屏上 hover 会「粘住」不散 */
+@media(hover:hover){
+  button:hover:not(:disabled){background:var(--surface-sunk)}
+  button.primary:hover:not(:disabled){background:transparent;color:var(--accent-soft)}
+}
+/* 触摸屏没有 hover，按下必须给底色，否则「标记掌握」这类文字按钮会以为没点到。
+   放在 hover 之后：同优先级下后写的生效，按下态才盖得住悬停态。 */
+button:active:not(:disabled){background:rgba(53,160,140,.16);transform:translateY(.5px)}
+button.primary:active:not(:disabled){background:var(--green);border-color:var(--green);color:#fff}
 
 .controls{
   display:flex;align-items:center;gap:6px;flex-wrap:wrap;
@@ -245,6 +254,7 @@ button.primary:hover:not(:disabled){background:transparent;color:var(--accent-so
 .seg button{border:0;border-radius:0;padding:7px 15px;background:transparent;color:var(--muted);font-size:13px}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button:hover:not(.on){color:var(--ink);border-color:var(--line)}
+.seg button:active:not(.on){background:rgba(53,160,140,.16);color:var(--ink)}
 .seg button.on{background:var(--accent-soft);color:#fff;font-weight:600}
 
 /* ---- 朗读设置：默认收起，展开时占满一行 ---- */
@@ -523,10 +533,15 @@ button.primary:hover:not(:disabled){background:transparent;color:var(--accent-so
 .ts-lab{font-size:10.5px;color:var(--muted);opacity:.82;white-space:nowrap}
 
 @media(max-width:620px){
-  main{padding:20px 16px 56px}
+  main{padding:10px 16px 56px}
   .stats{display:grid;grid-template-columns:1fr 1fr;gap:9px 18px}
   .stat strong{font-size:14px}
-  .controls{padding-bottom:8px;margin-bottom:24px}
+  .controls{padding-bottom:8px;margin-bottom:16px}
+  /* 手机上把词头往上提，别让键盘一弹就顶到看不见 */
+  .word-card{padding-top:16px}
+  .progress{margin-bottom:16px}
+  .tabs{margin-bottom:18px}
+  .stats{padding-bottom:10px}
   .quiz-options{grid-template-columns:minmax(0,1fr)}
   .item{padding:12px 2px}
   /* 手机端操作行：主按钮独占一行（点得到），其余四个挤进一行，不再留「下一个」孤儿 */
@@ -557,6 +572,15 @@ button.primary:hover:not(:disabled){background:transparent;color:var(--accent-so
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{transition:none!important;animation:none!important}
 }
+
+/* ---- 键盘弹出态：视口被压掉一大截时，把非必要信息收起来给输入区让位 ----
+   body.kb 由 JS 的 visualViewport 监听挂上，且只在触摸设备上生效。
+   注意不能收 .controls——搜索框就在里面，收了会把正在输入的框一起藏掉。 */
+body.kb .stats,body.kb .progress,body.kb .eyebrow,body.kb .tabs{display:none!important}
+body.kb main{padding-top:6px}
+body.kb .controls{margin-bottom:10px;padding-bottom:6px}
+body.kb .word-card{padding-top:8px}
+body.kb .word{font-size:clamp(34px,9vw,48px)}
 
 </style>
 </head>
@@ -633,7 +657,7 @@ button.primary:hover:not(:disabled){background:transparent;color:var(--accent-so
   <div class="phonetic" id="phonetic">点击“显示释义”开始学习</div>
   <div id="answer" class="hidden"><div class="definition" id="definition"></div><div class="detail" id="memoryWrap"><b>记忆提示</b><span id="memory"></span></div><div class="detail" id="exampleWrap"><b>例句</b><span id="example"></span></div></div>
   <div id="wdictBox" class="hidden">
-   <input id="wdictInput" class="d-input" type="text" placeholder="看中文写英文，按 Enter 判分；判完再按 Enter 进入下一个" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+   <input id="wdictInput" class="d-input" type="text" lang="en" placeholder="看中文写英文，按 Enter 判分；判完再按 Enter 进入下一个" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
    <div class="feedback" id="wdictResult"></div>
    <div class="wdict-stat" id="wdictStat"></div>
   </div>
@@ -762,7 +786,7 @@ button.primary:hover:not(:disabled){background:transparent;color:var(--accent-so
  <div class="d-prompt" id="dPrompt">—</div>
  <div class="phonetic" id="dSub"></div>
  <div class="d-hint" id="dHintLine"></div>
- <textarea id="dInput" class="d-input" rows="1" placeholder="在这里输入英文，按 Enter 提交（答完再按 Enter 进入下一题）" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+ <textarea id="dInput" class="d-input" rows="1" lang="en" placeholder="在这里输入英文，按 Enter 提交（答完再按 Enter 进入下一题）" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
  <div class="actions">
   <button class="primary" id="dSubmit">提交（Enter）</button>
   <button id="dHintBtn">给点提示</button>
@@ -1272,6 +1296,37 @@ window.addEventListener("pagehide",()=>flushTime());
     if(!strip.classList.contains("hidden")) renderTimeStrip();
   };
 }
+
+/* ==================== 手机键盘适配 ====================
+   键盘弹出时可视高度会骤降（iOS 看 visualViewport，安卓 innerHeight 也会缩），
+   据此给 body 挂 .kb 收起统计区；再把正在输入的框滚到可视区中间。
+   只对触摸设备生效——桌面把窗口拖矮不该触发。 */
+(function(){
+  const vv=window.visualViewport;
+  if(!vv) return;
+  if(!(window.matchMedia && matchMedia("(pointer:coarse)").matches)) return;
+  let baseH=0;
+  const focused=()=>/^(INPUT|TEXTAREA)$/.test(((document.activeElement||{}).tagName)||"");
+  function sync(){
+    if(!focused()) baseH=Math.max(baseH,vv.height);   // 没有输入时才更新基准高度
+    const kb=baseH>0 && (baseH-vv.height)>150;
+    document.body.classList.toggle("kb",kb);
+  }
+  vv.addEventListener("resize",sync);
+  vv.addEventListener("scroll",sync);
+  window.addEventListener("orientationchange",()=>{ baseH=0; setTimeout(sync,300); });
+  sync();
+  document.addEventListener("focusin",e=>{
+    const t=e.target;
+    if(!t || !/^(INPUT|TEXTAREA)$/.test(t.tagName)) return;
+    setTimeout(()=>{                                   // 等键盘动画走完再滚
+      try{ t.scrollIntoView({block:"center",behavior:"smooth"}); }
+      catch(err){ try{ t.scrollIntoView(); }catch(e2){} }
+    },280);
+    setTimeout(sync,320);
+  });
+  document.addEventListener("focusout",()=>setTimeout(sync,120));
+})();
 
 /* ==================== 本地存储 ==================== */
 const loadSet=k=>{try{return new Set(JSON.parse(STORE.getItem(k)||"[]"))}catch(e){return new Set()}};
@@ -3194,6 +3249,12 @@ function inputRow(q, ph, wide){
   inp.type = "text";
   inp.className = "p-input" + (wide ? " wide" : "");
   inp.placeholder = ph || "";
+  /* lang=en + 关闭自动纠正：部分输入法会据此给英文键盘，但不能强切（浏览器没有这个能力） */
+  inp.lang = "en";
+  inp.autocomplete = "off";
+  inp.setAttribute("autocorrect","off");
+  inp.setAttribute("autocapitalize","off");
+  inp.setAttribute("spellcheck","false");
   inp.value = q.val || "";
   inp.oninput = ()=>{ q.val = inp.value; };
   if(paperResult) inp.disabled = true;
