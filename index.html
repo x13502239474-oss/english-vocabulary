@@ -647,6 +647,7 @@ body.kb .word{font-size:clamp(34px,9vw,48px)}
      <label><input type="checkbox" id="okFx" checked> 答题音效</label>
      <label><input type="checkbox" id="cfx" checked> 彩带礼花</label>
      <label><input type="checkbox" id="okSpeak" checked> 答对后读音</label>
+     <label><input type="checkbox" id="naturalVoice" checked> 整句用在线语音</label>
     </div>
     <div class="row">
      <label>跳到单词<input id="jumpWord" list="wordOptions" placeholder="输入英文，如 health" autocomplete="off"></label>
@@ -1474,12 +1475,17 @@ function playAudio(text, btn, opts){
     if(btn) btn.classList.remove("speaking");
     if(opts.onend) opts.onend();
   };
+  /* 两个源都挂了：有 onfail 就交给调用方（比如退回本机语音），没有才弹警告 */
+  const fail = ()=>{
+    finish();
+    if(opts.onfail){ opts.onfail(); return; }
+    if(btn) warnSpeak("⚠️ 发音音频加载失败，请检查网络后重试。");
+  };
   const load = ()=>{
     a.onended = finish;
     a.onerror = ()=>{
       if(!alt){ alt = true; load(); return; }        // 主源失效 → 换备用源再试一次
-      finish();
-      if(btn) warnSpeak("⚠️ 发音音频加载失败，请检查网络后重试。");
+      fail();
     };
     a.src = ttsUrl(text, alt);
     a.playbackRate = Math.max(0.6, Math.min(1.6, opts.rate || 1));
@@ -1487,6 +1493,7 @@ function playAudio(text, btn, opts){
     const pr = a.play();
     if(pr && pr.catch) pr.catch(err=>{
       if(err && err.name === "AbortError") return;   // 被下一次播放打断，正常
+      if(opts.onfail){ fail(); return; }
       finish();
       if(btn) warnSpeak("⚠️ 浏览器拦截了音频播放（" + ((err && err.name) || "error") + "），请在屏幕上点一下再试。");
     });
@@ -1514,6 +1521,17 @@ function guessGender(name){
   return "";                       // 未知
 }
 function genderPref(){ return $("gender") ? $("gender").value : "female"; }
+/* 例句/整句默认走在线神经语音。系统自带的朗读引擎（Windows 的 Zira、很多安卓
+   机的默认 TTS）念单词还行，念整句就是一股「逐字播报」的机械味，语调和停顿都
+   是平的。在线源是神经网络合成的，连读、重音、句尾降调都在。
+   设置里可以关掉，关掉就完全走本机引擎。
+   ⚠️ 这两个必须声明在 updateVoiceInfo 之前：初始化时 pickVoice() 会调
+   updateVoiceInfo()，而后者要用 naturalOn()。放后面的话，某些浏览器
+   getVoices() 同步就返回结果，会直接撞 TDZ 报错、整个脚本挂掉。 */
+const naturalOn = ()=> STORE.getItem("vocab-natural") !== "0";
+/* 带空格的才算整句；再卡一个长度上限，超长段落（口语跟读的长文）交给本机引擎，
+   免得在线接口截断或直接报错，白等一个来回 */
+const isSentence = t => { const s=String(t||"").trim(); return /\s/.test(s) && s.length<=400; };
 
 function pickVoice(){
   if(!synth) return;
@@ -1535,7 +1553,11 @@ function voiceFor(lang){
     const gv = cand.filter(v => guessGender(v.name) === g);
     if(gv.length) cand = gv;
   }
-  return cand.find(v => v.localService) || cand[0];
+  /* 优先神经/自然音色（Edge 的 Aria/Guy Online 这类），再退到离线语音。
+     老逻辑反过来——优先 localService，等于主动挑了最机械的那个。 */
+  return cand.find(v => /natural|neural/i.test(v.name))
+      || cand.find(v => v.localService)
+      || cand[0];
 }
 function updateVoiceInfo(){
   const info = $("voiceInfo"); if(!info) return;
@@ -1545,7 +1567,8 @@ function updateVoiceInfo(){
   const v = voiceFor(lang);
   if(!v){ info.textContent = `未安装 ${lang} 语音，已请浏览器按美音兜底（可能退回默认语音）。`; return; }
   const g = guessGender(v.name);
-  info.textContent = `当前语音：${v.name}（${v.lang}${g === "female" ? " · 女声" : g === "male" ? " · 男声" : ""}）`;
+  info.textContent = `当前语音：${v.name}（${v.lang}${g === "female" ? " · 女声" : g === "male" ? " · 男声" : ""}）`
+    + (naturalOn() ? "；整句改用在线语音" : "");
 }
 if(synth){ pickVoice(); synth.onvoiceschanged = pickVoice; }
 
@@ -1561,11 +1584,26 @@ function clearSpeakWarn(){
   const info = $("voiceInfo"); if(info) info.style.color = "";
   updateVoiceInfo();
 }
+/* 例句/整句优先在线神经语音；设置里可关（见 naturalOn） */
 function speak(text, btn, opts){
   opts = opts || {};
   if(!text) return;
   /* iOS / iPadOS 或浏览器无 TTS：直接走音频通道，绕开失效的系统语音引擎 */
   if(IS_IOS || !synth){ playAudio(text, btn, opts); return; }
+  /* 整句优先在线；在线两个源都挂了（断网/被拦）再退回本机引擎，不会哑掉 */
+  if(naturalOn() && isSentence(text) && !opts.forceTTS){
+    const o2 = Object.assign({}, opts);
+    delete o2.onend;                     // 失败时 playAudio 已经调过一次，别重复触发
+    o2.onfail = ()=> ttsSpeak(text, btn, opts);
+    playAudio(text, btn, o2);
+    return;
+  }
+  ttsSpeak(text, btn, opts);
+}
+/* 本机语音引擎（Web Speech）——单词、以及在线语音不可用时的兜底 */
+function ttsSpeak(text, btn, opts){
+  opts = opts || {};
+  if(!text) return;
   clearTimeout(speakTimer); clearTimeout(speakWatch);
   try{ synth.cancel(); }catch(e){}
   const lang = currentLang();
@@ -1669,6 +1707,16 @@ $("autoSpeak").onchange = ()=>{
   if(c){
     c.checked = okSpeakOn();
     c.onchange = ()=>{ STORE.setItem("vocab-ok-speak", c.checked ? "1" : "0"); };
+  }
+}
+/* 整句用在线语音：默认开。关掉就完全走本机引擎（离线可用，但语调平） */
+{ const c=$("naturalVoice");
+  if(c){
+    c.checked = naturalOn();
+    c.onchange = ()=>{
+      STORE.setItem("vocab-natural", c.checked ? "1" : "0");
+      updateVoiceInfo();
+    };
   }
 }
 /* 快捷键 S 朗读当前页面对应的内容 */
