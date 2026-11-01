@@ -480,9 +480,47 @@ button.primary:hover:not(:disabled){background:transparent;color:var(--accent-so
 /* 彩带画布：盖在最上层但不吃点击，粒子放完自动清空 */
 .confetti-layer{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999}
 
+/* ---- 连击：全屏金光一闪 + 中上方浮出一块提示 ---- */
+.streak-flash{position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 50% 42%,rgba(232,193,90,.46),rgba(232,193,90,0) 62%)}
+.streak-flash.go{animation:sflash .9s ease-out}
+.streak-flash.go.lv2{animation:sflash 1.15s ease-out}
+@keyframes sflash{0%{opacity:0}10%{opacity:1}100%{opacity:0}}
+
+.streak-toast{
+  position:fixed;left:50%;top:34%;transform:translate(-50%,-50%);
+  z-index:10001;pointer-events:none;text-align:center;opacity:0;
+  padding:16px 28px;border-radius:14px;
+  background:var(--surface);border:1px solid var(--line);
+  box-shadow:0 14px 44px rgba(18,18,22,.16);
+}
+.streak-toast.show{animation:stoast 2.4s var(--ease) both}
+.streak-toast b{display:block;font-family:var(--serif);font-size:26px;font-weight:700;
+  letter-spacing:-.02em;line-height:1.2;color:var(--accent-soft)}
+.streak-toast span{display:block;margin-top:5px;font-size:12.5px;color:var(--muted);letter-spacing:.02em}
+.streak-toast.lv2 b{font-size:32px;color:var(--plum)}
+@keyframes stoast{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.72)}
+  14%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}
+  24%{transform:translate(-50%,-50%) scale(1)}
+  78%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  100%{opacity:0;transform:translate(-50%,-54%) scale(1.02)}
+}
+
+/* ---- 每日学习时长：点顶部「今日学习」展开最近 7 天 ---- */
+.time-strip{display:flex;gap:12px;align-items:flex-end;height:98px;margin:-8px 0 26px}
+.ts-day{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  gap:4px;min-width:0}
+.ts-bar{width:100%;max-width:32px;border-radius:3px 3px 1px 1px;
+  background:var(--line-2);transition:height .35s var(--ease)}
+.ts-bar.today{background:var(--accent)}
+.ts-val{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;height:13px;line-height:13px}
+.ts-lab{font-size:10.5px;color:var(--muted);opacity:.82;white-space:nowrap}
+
 @media(max-width:620px){
   main{padding:20px 16px 56px}
   .stats{display:grid;grid-template-columns:1fr 1fr;gap:9px 18px}
+  #statTime{grid-column:1/-1}
   .stat strong{font-size:14px}
   .controls{padding-bottom:8px;margin-bottom:24px}
   .quiz-options{grid-template-columns:minmax(0,1fr)}
@@ -525,8 +563,10 @@ button.primary:hover:not(:disabled){background:transparent;color:var(--accent-so
  <div class="stat link" id="statLearned" title="点击查看已掌握了哪些单词"><strong id="learned">0</strong><span>已掌握单词</span></div>
  <div class="stat"><strong id="sentTotal">—</strong><span>短句总数</span></div>
  <div class="stat link" id="statSentLearned" title="点击查看已掌握了哪些短句"><strong id="sentLearned">0</strong><span>已掌握短句</span></div>
+ <div class="stat link" id="statTime" title="点击展开最近 7 天"><strong id="todayTime">0 秒</strong><span>今日学习</span></div>
 </div>
 <div class="progress"><div id="progress"></div></div>
+<div class="time-strip hidden" id="timeStrip"></div>
 <nav class="tabs" aria-label="功能导航">
  <div class="tab-row">
   <button class="tab active" data-view="study">单词学习</button>
@@ -905,7 +945,21 @@ function _tone(ac,t0,f,dt,dur,peak,type){
   o.connect(g).connect(ac.destination);
   o.start(t0+dt); o.stop(t0+dt+dur+.04);
 }
-/* 答对：C6-E6-G6-C7 上行琶音 + 一小撮高频「亮片」噪声，总长约 0.78s。
+/* 高频「亮片」噪声：一段白噪声过高通，给礼花炸开那一下空气感 */
+function _sparkle(ac,t0,dt,dur,gain,hpFreq){
+  try{
+    const len=Math.max(1,Math.floor(ac.sampleRate*dur));
+    const buf=ac.createBuffer(1,len,ac.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2);
+    const src=ac.createBufferSource(); src.buffer=buf;
+    const hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=hpFreq||5200;
+    const g=ac.createGain(); g.gain.value=gain||.10;
+    src.connect(hp).connect(g).connect(ac.destination);
+    src.start(t0+dt);
+  }catch(e){}
+}
+/* 答对：C6-E6-G6-C7 上行琶音 + 一小撮高频「亮片」噪声，总长约 0.57s。
    比上一版（A5-E6 两个音）整体抬高一个八度、加长尾音，才有「振奋」的劲儿。 */
 function playOkSound(){
   if(!fxOn()) return;
@@ -914,18 +968,7 @@ function playOkSound(){
   const t0=ac.currentTime+0.01;
   [[1046.50,0,.16,.20],[1318.51,.075,.16,.20],[1568.00,.15,.18,.21],[2093.00,.225,.55,.23]]
     .forEach(([f,dt,dur,peak])=>_tone(ac,t0,f,dt,dur,peak,"triangle"));
-  /* 高频亮片：短噪声过高通，给「礼花炸开」那一下空气感 */
-  try{
-    const len=Math.floor(ac.sampleRate*.28);
-    const buf=ac.createBuffer(1,len,ac.sampleRate);
-    const d=buf.getChannelData(0);
-    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2);
-    const src=ac.createBufferSource(); src.buffer=buf;
-    const hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=5200;
-    const g=ac.createGain(); g.gain.value=.10;
-    src.connect(hp).connect(g).connect(ac.destination);
-    src.start(t0+.20);
-  }catch(e){}
+  _sparkle(ac,t0,.20,.28,.10,5200);
 }
 /* 答错：两声下行的「嗡嗡」，锯齿波过低通，闷而不刺耳。
    单声太短会像误触，两声才明确是「不对」。 */
@@ -963,8 +1006,7 @@ function cfxCanvas(){
   _cfC=c; _cfX=c.getContext("2d");
   return c;
 }
-function burstConfetti(el,n){
-  if(!cfxOn()||reduceMotion()) return;
+function cfxPrepare(){
   const c=cfxCanvas();
   const dpr=Math.min(window.devicePixelRatio||1,2);
   const W=window.innerWidth, H=window.innerHeight;
@@ -973,14 +1015,16 @@ function burstConfetti(el,n){
   }
   c.style.width=W+"px"; c.style.height=H+"px";
   _cfX.setTransform(dpr,0,0,dpr,0,0);
-  /* 从被点中的那个元素炸开；没有元素就从视口中上部 */
-  const r=(el&&el.getBoundingClientRect)?el.getBoundingClientRect():null;
-  const cx=r?r.left+r.width/2:W/2;
-  const cy=r?r.top+r.height/2:H*.42;
-  n=n||120;
+}
+/* 在 (cx,cy) 撒一把。ang = 扇形中心方向，spread = 张角（弧度） */
+function spawnConfetti(cx,cy,n,ang,spread,spMin,spMax){
+  ang    = (ang==null)    ? -Math.PI/2 : ang;
+  spread = (spread==null) ? 2.3        : spread;
+  spMin  = spMin||460; spMax = spMax||1100;
+  n      = n||120;
   for(let i=0;i<n;i++){
-    const a=(-Math.PI/2)+(Math.random()-.5)*2.3;      // 向上扇形，比之前更开
-    const sp=460+Math.random()*640;
+    const a=ang+(Math.random()-.5)*spread;
+    const sp=spMin+Math.random()*(spMax-spMin);
     _cfP.push({
       x:cx+(Math.random()-.5)*28, y:cy+(Math.random()-.5)*16,
       vx:Math.cos(a)*sp, vy:Math.sin(a)*sp,
@@ -991,7 +1035,33 @@ function burstConfetti(el,n){
       shape:Math.random()<.28?"dot":"strip"
     });
   }
+  /* 连击礼炮会一次撒好几把，快速连续触发时把最老的粒子挤掉，别让画布堆到卡顿 */
+  if(_cfP.length>900) _cfP.splice(0,_cfP.length-900);
   if(!_cfRaf){ _cfLast=performance.now(); _cfRaf=requestAnimationFrame(cfStep); }
+}
+function burstConfetti(el,n){
+  if(!cfxOn()||reduceMotion()) return;
+  cfxPrepare();
+  const W=window.innerWidth, H=window.innerHeight;
+  /* 从被点中的那个元素炸开；没有元素就从视口中上部 */
+  const r=(el&&el.getBoundingClientRect)?el.getBoundingClientRect():null;
+  spawnConfetti(r?r.left+r.width/2:W/2, r?r.top+r.height/2:H*.42, n||120);
+}
+/* 连击礼炮：左右两个角各射一发 + 中间再来一把，比单点爆炸热闹得多 */
+function burstVolley(level){
+  if(!cfxOn()||reduceMotion()) return;
+  cfxPrepare();
+  const W=window.innerWidth, H=window.innerHeight;
+  spawnConfetti(W*.5, H*.46, level>=2?150:110, -Math.PI/2, 2.6);
+  spawnConfetti(W*.06, H*.96, level>=2?110:80,  -Math.PI/2+.62, .7);
+  spawnConfetti(W*.94, H*.96, level>=2?110:80,  -Math.PI/2-.62, .7);
+  if(level>=2){
+    setTimeout(()=>{
+      if(!cfxOn()||reduceMotion()) return;
+      cfxPrepare();
+      spawnConfetti(window.innerWidth*.5, window.innerHeight*.5, 150, -Math.PI/2, 2.6);
+    },260);
+  }
 }
 function cfStep(now){
   const dt=Math.min((now-_cfLast)/1000,.05); _cfLast=now;
@@ -1028,10 +1098,77 @@ function flashCls(el,cls,ms){
 function flashOk(el){ flashCls(el,"ok-flash",1000); }
 function flashBad(el){ flashCls(el,"bad-flash",640); }
 
+/* ==================== 连击：连续答对 5 / 10（之后每 10）升一级 ====================
+   记在 localStorage 里，刷新页面不清零；答错一次立刻归零。 */
+/* 连击记在 localStorage 里，刷新页面不清零，答错一次归零；
+   但只认「当天」的连击——隔天再答不该接着昨天的算。 */
+let okStreak=(()=>{
+  if(STORE.getItem("vocab-streak-day")!==dayKey()) return 0;
+  const n=parseInt(STORE.getItem("vocab-streak")||"0",10);
+  return isFinite(n)&&n>0?n:0;
+})();
+const saveStreak=()=>{
+  STORE.setItem("vocab-streak", String(okStreak));
+  STORE.setItem("vocab-streak-day", dayKey());
+};
+
+/* 礼炮音：比普通答对再高一级——五声/七声上行 + 收尾和弦 + 低频垫底 + 两轮亮片 */
+function playFanfare(level){
+  if(!fxOn()) return;
+  const ac=audioCtx(); if(!ac) return;
+  if(ac.state==="suspended"){ try{ ac.resume(); }catch(e){} }
+  const t0=ac.currentTime+0.01;
+  const seq = level>=2
+    ? [[523.25,0,.14,.42],[659.25,.07,.14,.43],[783.99,.14,.14,.44],[1046.50,.21,.14,.45],
+       [1318.51,.28,.16,.46],[1568.00,.35,.18,.47],[2093.00,.42,.55,.48]]
+    : [[523.25,0,.14,.36],[659.25,.08,.14,.37],[783.99,.16,.14,.38],
+       [1046.50,.24,.16,.39],[1568.00,.32,.50,.40]];
+  seq.forEach(([f,dt,dur,peak])=>_tone(ac,t0,f,dt,dur,peak,"triangle"));
+  /* 收尾大三和弦，让结尾「站得住」而不是断在半空 */
+  [1046.50,1318.51,1568.00].forEach(f=>_tone(ac,t0,f,.42,.62,level>=2?.15:.12,"triangle"));
+  if(level>=2){
+    _tone(ac,t0,130.81,0,.72,.24,"sine");     // 二级才加低频垫底，厚而不糊
+    _tone(ac,t0,196.00,0,.72,.15,"sine");
+  }
+  _sparkle(ac,t0,.18,.30,level>=2?.20:.15,5200);
+  if(level>=2) _sparkle(ac,t0,.46,.40,.17,6400);
+}
+
+function flashScreen(level){
+  if(reduceMotion()) return;
+  let el=document.getElementById("streakFlash");
+  if(!el){ el=document.createElement("div"); el.id="streakFlash"; el.className="streak-flash"; document.body.appendChild(el); }
+  el.classList.remove("go","lv2");
+  void el.offsetWidth;
+  if(level>=2) el.classList.add("lv2");
+  el.classList.add("go");
+  clearTimeout(el.__t);
+  el.__t=setTimeout(()=>el.classList.remove("go","lv2"),1200);
+}
+function showStreakToast(n,level){
+  let el=document.getElementById("streakToast");
+  if(!el){ el=document.createElement("div"); el.id="streakToast"; document.body.appendChild(el); }
+  el.className="streak-toast"+(level>=2?" lv2":"");
+  el.innerHTML='<b>连对 '+n+' 题</b><span>'+(level>=2?"手感火热，继续保持":"状态来了")+'</span>';
+  void el.offsetWidth;
+  el.classList.add("show");
+  clearTimeout(el.__t);
+  el.__t=setTimeout(()=>el.classList.remove("show"),2400);
+}
+function streakReward(level){
+  playFanfare(level);
+  burstVolley(level);
+  flashScreen(level);
+  showStreakToast(okStreak,level);
+}
+
 /* txtEl 传了就让反馈文字也动一下；和 el 同一个元素时跳过，否则两个 animation 会打架 */
 function okFeedback(el,txtEl){
-  playOkSound();
-  burstConfetti(el,120);
+  okStreak++; saveStreak();
+  /* 命中里程碑时只放礼炮，不和普通答对音效叠在一起糊成一团 */
+  const lv = (okStreak===5) ? 1 : (okStreak>=10 && okStreak%10===0) ? 2 : 0;
+  if(lv){ streakReward(lv); burstConfetti(el,60); }
+  else  { playOkSound();    burstConfetti(el,120); }
   flashOk(el);
   if(txtEl && txtEl!==el) flashCls(txtEl,"ok-flash-txt",600);
 }
@@ -1039,6 +1176,88 @@ function badFeedback(el,txtEl){
   playBadSound();
   flashBad(el);
   if(txtEl && txtEl!==el) flashCls(txtEl,"bad-flash-txt",600);
+  if(okStreak){ okStreak=0; saveStreak(); }
+}
+
+/* ==================== 每日学习时长 ====================
+   只统计「页面可见 + 两分钟内有操作」的时间：切走标签页、挂着不动都不算。
+   每秒进内存，每 15 秒落一次盘，切后台/关页面再补一次——不每秒写 localStorage。 */
+const TIME_KEY="vocab-daily-time";
+let _todaySec=0,_accSec=0,_lastAct=Date.now(),_dayNow=null;
+function dayKey(d){
+  const x=d||new Date();
+  return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");
+}
+function timeMap(){
+  try{ const o=JSON.parse(STORE.getItem(TIME_KEY)||"{}"); return (o&&typeof o==="object")?o:{}; }catch(e){ return {}; }
+}
+function fmtDur(s){
+  s=Math.max(0,Math.round(s));
+  if(s<60) return s+" 秒";
+  const m=Math.round(s/60);
+  if(m<60) return m+" 分钟";
+  return Math.floor(m/60)+" 小时 "+String(m%60).padStart(2,"0")+" 分";
+}
+function flushTime(key){
+  if(!_accSec) return;
+  const m=timeMap(), k=key||_dayNow||dayKey();
+  m[k]=Math.round((m[k]||0)+_accSec);
+  const ks=Object.keys(m).sort();
+  while(ks.length>90) delete m[ks.shift()];        // 只留三个月，别无限长
+  try{ STORE.setItem(TIME_KEY, JSON.stringify(m)); }catch(e){}
+  _accSec=0;
+}
+function renderTimeNum(){
+  const el=$("todayTime");
+  if(el) el.textContent=fmtDur(_todaySec);
+}
+function renderTimeStrip(){
+  const box=$("timeStrip"); if(!box) return;
+  const m=timeMap(), now=new Date(), today=dayKey(now), days=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);
+    const k=dayKey(d);
+    days.push({k, label:(d.getMonth()+1)+"/"+d.getDate(), sec:(k===today? Math.max(m[k]||0,_todaySec) : (m[k]||0))});
+  }
+  const max=Math.max(60,...days.map(x=>x.sec));
+  box.innerHTML="";
+  days.forEach(x=>{
+    const c=document.createElement("div"); c.className="ts-day";
+    const bar=document.createElement("div");
+    bar.className="ts-bar"+(x.k===today?" today":"");
+    bar.style.height=Math.max(3,Math.round(x.sec/max*56))+"px";
+    bar.title=x.label+" · "+fmtDur(x.sec);
+    const val=document.createElement("span"); val.className="ts-val";
+    val.textContent = x.sec>=60 ? Math.round(x.sec/60)+"′" : (x.sec>0 ? "‹1′" : "");
+    const lab=document.createElement("span"); lab.className="ts-lab"; lab.textContent=x.label;
+    c.appendChild(bar); c.appendChild(val); c.appendChild(lab);
+    box.appendChild(c);
+  });
+}
+_todaySec=Math.round(timeMap()[dayKey()]||0);
+_dayNow=dayKey();
+renderTimeNum();
+/* 有操作就刷新「活跃」时间戳；滚动/触摸/按键都算 */
+["pointerdown","keydown","wheel","touchstart","scroll"].forEach(ev=>
+  document.addEventListener(ev,()=>{ _lastAct=Date.now(); },{passive:true}));
+let _tickN=0;
+setInterval(()=>{
+  const k=dayKey();
+  if(k!==_dayNow){ flushTime(_dayNow); _dayNow=k; _todaySec=0; }   // 跨零点归零
+  if(document.visibilityState!=="visible") return;
+  if(Date.now()-_lastAct>120000) return;                            // 两分钟没动 = 挂机
+  _todaySec++; _accSec++;
+  if(_accSec>=15) flushTime();
+  renderTimeNum();
+  if(++_tickN%10===0) renderTimeStrip();                            // 柱状图 10 秒刷一次就够
+},1000);
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden") flushTime(); });
+window.addEventListener("pagehide",()=>flushTime());
+{ const s=$("statTime"), strip=$("timeStrip");
+  if(s&&strip) s.onclick=()=>{
+    strip.classList.toggle("hidden");
+    if(!strip.classList.contains("hidden")) renderTimeStrip();
+  };
 }
 
 /* ==================== 本地存储 ==================== */
