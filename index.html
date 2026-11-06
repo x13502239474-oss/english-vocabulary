@@ -194,6 +194,54 @@ button.primary:active:not(:disabled){background:var(--green);border-color:var(--
   letter-spacing:-.012em;
 }
 .phonetic{color:var(--accent-soft);font-size:15px;letter-spacing:.01em}
+
+/* ---- 音标学习：分类分组、符号卡、例词、自测 ---- */
+.ipa-group{margin:0 0 30px}
+.ipa-group-title{display:flex;align-items:baseline;gap:10px;margin:0 0 12px}
+.ipa-group-title h3{font-family:var(--serif);font-size:19px;font-weight:600;margin:0;letter-spacing:-.01em}
+.ipa-group-title span{color:var(--muted);font-size:13px}
+.ipa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.ipa-card{
+  display:flex;flex-direction:column;gap:6px;padding:14px 14px 12px;
+  border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
+  transition:border-color .18s var(--ease),box-shadow .18s var(--ease);
+}
+.ipa-card:hover{border-color:var(--line-2)}
+.ipa-card:focus-within{border-color:var(--accent)}
+.ipa-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.ipa-sym{font-family:var(--serif);font-size:28px;line-height:1.05;color:var(--accent);letter-spacing:.01em}
+.ipa-say{
+  display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;
+  border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--muted);cursor:pointer;
+}
+.ipa-say:hover{color:var(--accent);border-color:var(--accent)}
+.ipa-say.speaking{color:var(--accent);border-color:var(--accent)}
+.ipa-say svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ipa-desc{font-size:12.5px;line-height:1.5;color:var(--muted)}
+.ipa-ex{margin-top:2px;padding-top:8px;border-top:1px solid var(--rule);font-size:13px;line-height:1.6}
+.ipa-ex b{font-weight:600;color:var(--ink)}
+.ipa-ex .ex-word{color:var(--accent-soft);cursor:pointer;font-family:var(--serif);font-size:15px}
+.ipa-ex .ex-word:hover{text-decoration:underline}
+.ipa-ex .ex-ph{color:var(--muted);font-family:var(--serif)}
+.ipa-ex .ex-zh{color:var(--muted)}
+.ipa-empty{font-size:12.5px;color:var(--muted);font-style:italic}
+.ipa-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:0 0 18px}
+.ipa-toolbar .seg button{padding:5px 12px;font-size:13px}
+.ipa-score{font-variant-numeric:tabular-nums}
+.ipa-q{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 18px}
+.ipa-q .ipa-sym{font-size:clamp(44px,8vw,64px)}
+.ipa-opts{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 16px}
+.ipa-opts button{
+  padding:10px 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
+  color:var(--ink);cursor:pointer;font-family:var(--serif);font-size:20px;
+  transition:border-color .15s var(--ease),color .15s var(--ease),background .15s var(--ease);
+}
+.ipa-opts button:hover{border-color:var(--accent);color:var(--accent)}
+.ipa-opts button.correct{border-color:var(--green);color:var(--green);background:rgba(20,110,88,.08)}
+.ipa-opts button.wrong{border-color:var(--red);color:var(--red);background:rgba(162,53,42,.08)}
+.ipa-feedback{min-height:24px;margin:0 0 14px;font-size:14px}
+.ipa-feedback.good{color:var(--green)}
+.ipa-feedback.bad{color:var(--red)}
 .definition{
   font-size:21px;margin:30px 0 0;line-height:1.7;max-width:62ch;
   padding-top:28px;border-top:1px solid var(--line);
@@ -632,6 +680,7 @@ body.kb .word{font-size:clamp(34px,9vw,48px)}
   <button class="tab active" data-view="study">单词学习</button>
   <button class="tab" data-view="sent">短句学习</button>
   <button class="tab" data-view="grammar">语法学习</button>
+  <button class="tab" data-view="phonetics">音标学习</button>
   <button class="tab" data-view="list">词库检索</button>
   <button class="tab" data-view="review">待复习</button>
   <button class="tab" data-view="mastered">已掌握</button>
@@ -726,6 +775,31 @@ body.kb .word{font-size:clamp(34px,9vw,48px)}
   <div id="sAnswer" class="hidden"><div class="detail"><b>中文</b><span id="sZh"></span></div></div>
   <div class="actions"><button class="primary" id="sReveal">显示中文</button><button id="sUnknown">还不熟</button><button id="sMaster">标记掌握</button><button id="sPrev">上一句</button><button id="sNext">下一句</button></div>
  </article>
+</section>
+
+<!-- ================= 音标学习 ================= -->
+<section id="phonetics" class="view hidden">
+ <div class="section-title"><h2>音标学习</h2><span id="ipaStat">48 个国际音标 · 20 元音 + 28 辅音</span></div>
+ <div class="ipa-toolbar">
+  <span>视图</span>
+  <span class="seg" id="ipaSeg">
+   <button data-ipamode="chart" class="on">总表</button>
+   <button data-ipamode="listen">听音辨音</button>
+   <button data-ipamode="read">认读音标</button>
+  </span>
+ </div>
+ <div id="ipaChart"></div>
+ <div id="ipaQuiz" class="hidden">
+  <div class="section-title" style="margin-top:8px"><h2 id="ipaQuizTitle">听音辨音</h2><span class="ipa-score" id="ipaScore">得分：0</span></div>
+  <p class="eyebrow" id="ipaQuizHint"></p>
+  <div class="ipa-q">
+   <span class="ipa-sym" id="ipaQuizSym">—</span>
+   <button class="speak" id="ipaQuizSpeak" title="播放发音" aria-label="播放发音"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg><span>播放</span></button>
+  </div>
+  <div class="ipa-opts" id="ipaQuizOpts"></div>
+  <div class="ipa-feedback" id="ipaQuizFb"></div>
+  <div class="actions"><button class="primary" id="ipaNext">下一题</button></div>
+ </div>
 </section>
 
 <!-- ================= 小测验 ================= -->
@@ -3677,12 +3751,191 @@ function showView(id){
   if(id==="mastered"){ masteredShown=MASTER_PAGE; renderMastered(); }
   if(id==="paper"){ if(paper) renderPaper(); else newPaper(); }
   if(id==="list") renderList();
+  if(id==="phonetics") renderIpa();
   if(id==="listen" && !lCur) newListen();
   if(id==="speak" && !pCur) newP();
   if(id==="dict" && !dCur) pickDict(0);
   if(id==="dict") setTimeout(()=>{ try{ $("dInput").focus(); }catch(_){} }, 50);
 }
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+
+/* ==================== 音标学习 ==================== */
+/* 48 个国际音标：20 元音（12 单元音 + 8 双元音）+ 28 辅音。
+   symbol=音标符号；voice=发音提示词（供 TTS 朗读，发音最接近该音素）；
+   desc=口型/发音要点；sample=兜底标准例词（词库无匹配时用）。 */
+const IPA_SET = [
+  /* 单元音 */
+  {sym:"iː",  cat:"长元音", voice:"see",   desc:"舌前部抬高、靠近硬腭，嘴角向两侧咧开，长音", sample:["see","eat","tree"]},
+  {sym:"ɪ",   cat:"短元音", voice:"sit",   desc:"舌位比 /iː/ 略低略后，短促有力，口型放松", sample:["sit","big","fish"]},
+  {sym:"e",   cat:"短元音", voice:"bed",   desc:"舌尖抵下齿，舌前部稍抬，口半开", sample:["bed","red","pen"]},
+  {sym:"æ",   cat:"短元音", voice:"cat",   desc:"口张开较大，舌前部压低，短促", sample:["cat","bag","map"]},
+  {sym:"ɑː",  cat:"长元音", voice:"car",   desc:"口大张，舌后部压低，发音靠后，长音", sample:["car","far","star"]},
+  {sym:"ɒ",   cat:"短元音", voice:"hot",   desc:"口大张，舌后部稍抬，短促圆唇", sample:["hot","dog","box"]},
+  {sym:"ɔː",  cat:"长元音", voice:"door",  desc:"圆唇，舌后部抬起，长音，双唇收圆前突", sample:["door","law","call"]},
+  {sym:"ʊ",   cat:"短元音", voice:"book",  desc:"双唇收圆略前突，舌后部抬起，短促", sample:["book","good","put"]},
+  {sym:"uː",  cat:"长元音", voice:"blue",  desc:"双唇用力收圆前突，舌后部抬高，长音", sample:["blue","food","moon"]},
+  {sym:"ʌ",   cat:"短元音", voice:"cup",   desc:"舌中部放松，口半开，短促清晰", sample:["cup","sun","bus"]},
+  {sym:"ɜː",  cat:"长元音", voice:"bird",  desc:"舌中部抬起，唇形自然，长音", sample:["bird","girl","work"]},
+  {sym:"ə",   cat:"短元音", voice:"about", desc:"舌中部最放松，口自然微张，轻而短，弱读", sample:["about","ago","away"]},
+  /* 双元音 */
+  {sym:"eɪ",  cat:"双元音", voice:"say",   desc:"由 /e/ 滑向 /ɪ/，前长后短，一气呵成", sample:["say","day","name"]},
+  {sym:"aɪ",  cat:"双元音", voice:"my",    desc:"由 /a/ 滑向 /ɪ/，口由大到小", sample:["my","time","like"]},
+  {sym:"ɔɪ",  cat:"双元音", voice:"boy",   desc:"由 /ɔ/ 滑向 /ɪ/，圆唇渐变为扁唇", sample:["boy","toy","coin"]},
+  {sym:"aʊ",  cat:"双元音", voice:"now",   desc:"由 /a/ 滑向 /ʊ/，口由大收圆", sample:["now","house","how"]},
+  {sym:"əʊ",  cat:"双元音", voice:"go",    desc:"由 /ə/ 滑向 /ʊ/，口渐收圆", sample:["go","home","boat"]},
+  {sym:"ɪə",  cat:"双元音", voice:"ear",   desc:"由 /ɪ/ 滑向 /ə/，舌位略降", sample:["ear","near","here"]},
+  {sym:"eə",  cat:"双元音", voice:"air",   desc:"由 /e/ 滑向 /ə/，口略开", sample:["air","hair","care"]},
+  {sym:"ʊə",  cat:"双元音", voice:"tour",  desc:"由 /ʊ/ 滑向 /ə/，圆唇渐松", sample:["tour","sure","poor"]},
+  /* 清辅音 */
+  {sym:"p",   cat:"清辅音", voice:"pea",   desc:"双唇紧闭后突然分开，气流冲出，声带不振动", sample:["pen","cup","apple"]},
+  {sym:"t",   cat:"清辅音", voice:"tea",   desc:"舌尖抵上齿龈，突然放开，声带不振动", sample:["tea","hot","water"]},
+  {sym:"k",   cat:"清辅音", voice:"key",   desc:"舌后部抵软腭，突然放开，声带不振动", sample:["key","cat","back"]},
+  {sym:"f",   cat:"清辅音", voice:"fee",   desc:"上齿轻咬下唇，气流从缝隙挤出", sample:["fee","fish","off"]},
+  {sym:"θ",   cat:"清辅音", voice:"thin",  desc:"舌尖轻触上齿间，气流挤出，声带不振动", sample:["thin","think","mouth"]},
+  {sym:"s",   cat:"清辅音", voice:"sea",   desc:"舌尖靠近上齿龈，气流摩擦而出", sample:["sea","sun","bus"]},
+  {sym:"ʃ",   cat:"清辅音", voice:"she",   desc:"双唇微圆前突，舌尖抬向硬腭，摩擦出声", sample:["she","ship","wash"]},
+  {sym:"tʃ",  cat:"清辅音", voice:"chin",  desc:"舌尖抵上齿龈，气流爆破后摩擦，声带不振动", sample:["chin","chair","watch"]},
+  {sym:"tr",  cat:"清辅音", voice:"tree",  desc:"舌尖上卷抵上齿龈后部，爆破后摩擦", sample:["tree","try","train"]},
+  {sym:"ts",  cat:"清辅音", voice:"cats",  desc:"舌尖抵上齿龈，爆破后摩擦，只出现在词尾", sample:["cats","hats","sports"]},
+  {sym:"h",   cat:"清辅音", voice:"he",    desc:"气流从声门呼出，轻而自然，声带不振动", sample:["he","hot","hand"]},
+  /* 浊辅音 */
+  {sym:"b",   cat:"浊辅音", voice:"bee",   desc:"双唇紧闭后突然分开，声带振动", sample:["bee","big","baby"]},
+  {sym:"d",   cat:"浊辅音", voice:"day",   desc:"舌尖抵上齿龈突然放开，声带振动", sample:["day","dog","bed"]},
+  {sym:"g",   cat:"浊辅音", voice:"go",    desc:"舌后部抵软腭突然放开，声带振动", sample:["go","bag","egg"]},
+  {sym:"v",   cat:"浊辅音", voice:"vee",   desc:"上齿轻咬下唇，声带振动", sample:["vee","very","love"]},
+  {sym:"ð",   cat:"浊辅音", voice:"this",  desc:"舌尖轻触上齿间，声带振动", sample:["this","that","mother"]},
+  {sym:"z",   cat:"浊辅音", voice:"zoo",   desc:"舌尖靠近上齿龈，声带振动", sample:["zoo","zero","music"]},
+  {sym:"ʒ",   cat:"浊辅音", voice:"vision",desc:"双唇微圆前突，摩擦出声，声带振动", sample:["vision","measure","usual"]},
+  {sym:"dʒ",  cat:"浊辅音", voice:"joke",  desc:"舌尖抵上齿龈，爆破后摩擦，声带振动", sample:["joke","page","orange"]},
+  {sym:"dr",  cat:"浊辅音", voice:"draw",  desc:"舌尖上卷，爆破后摩擦，声带振动", sample:["draw","drive","dream"]},
+  {sym:"dz",  cat:"浊辅音", voice:"beds",  desc:"舌尖抵上齿龈，爆破后摩擦，声带振动，多在词尾", sample:["beds","cards","friends"]},
+  {sym:"m",   cat:"浊辅音", voice:"me",    desc:"双唇紧闭，气流从鼻腔出，声带振动", sample:["me","map","home"]},
+  {sym:"n",   cat:"浊辅音", voice:"no",    desc:"舌尖抵上齿龈，气流从鼻腔出", sample:["no","name","sun"]},
+  {sym:"ŋ",   cat:"浊辅音", voice:"sing",  desc:"舌后部抵软腭，气流从鼻腔出", sample:["sing","long","ring"]},
+  {sym:"l",   cat:"浊辅音", voice:"leg",   desc:"舌尖抵上齿龈，气流从舌两侧出", sample:["leg","love","little"]},
+  {sym:"r",   cat:"浊辅音", voice:"red",   desc:"舌尖卷起但不触上颚，气流从舌面过", sample:["red","run","right"]},
+  {sym:"w",   cat:"浊辅音", voice:"we",    desc:"双唇收圆前突，迅速滑向下一元音", sample:["we","water","window"]},
+  {sym:"j",   cat:"浊辅音", voice:"yes",   desc:"舌前部抬高靠近硬腭，迅速滑向下一元音", sample:["yes","you","yellow"]},
+];
+const IPA_CATS = ["长元音","短元音","双元音","清辅音","浊辅音"];
+/* 词库 → 音标例词索引：把词库音标按出现过的 IPA 符号归类，供总表联动。
+   初中版音标用 ASCII 冒号 : 表示长音（如 [ə'brɔ:d]），且无手写体 ɡ/连字 ʤ 变体，
+   匹配前统一把 : 归一化为长音符 ː，确保长元音例词抽取不漏。 */
+let _ipaIndex = null;
+function ipaIndex(){
+  if(_ipaIndex) return _ipaIndex;
+  _ipaIndex = {};
+  IPA_SET.forEach(p=>_ipaIndex[p.sym]=[]);
+  (words||[]).forEach(w=>{
+    if(!w.phonetic) return;
+    const ph = w.phonetic.replace(/:/g,"ː").replace(/ɡ/g,"g").replace(/ʤ/g,"dʒ");
+    IPA_SET.forEach(p=>{
+      if(ph.indexOf(p.sym)>=0 && _ipaIndex[p.sym].length<4) _ipaIndex[p.sym].push(w);
+    });
+  });
+  return _ipaIndex;
+}
+/* 总表：按分类分组渲染 48 音标卡 */
+function renderIpaChart(){
+  const box=$("ipaChart"); box.innerHTML="";
+  IPA_CATS.forEach(cat=>{
+    const items=IPA_SET.filter(p=>p.cat===cat);
+    if(!items.length) return;
+    const g=document.createElement("div"); g.className="ipa-group";
+    const t=document.createElement("div"); t.className="ipa-group-title";
+    const h=document.createElement("h3"); h.textContent=cat;
+    const s=document.createElement("span"); s.textContent=items.length+" 个";
+    t.appendChild(h); t.appendChild(s); g.appendChild(t);
+    const grid=document.createElement("div"); grid.className="ipa-grid";
+    items.forEach(p=>{
+      const c=document.createElement("div"); c.className="ipa-card";
+      const top=document.createElement("div"); top.className="ipa-top";
+      const sym=document.createElement("span"); sym.className="ipa-sym"; sym.textContent=p.sym;
+      const say=document.createElement("button"); say.className="ipa-say"; say.title="播放发音"; say.setAttribute("aria-label","播放发音 "+p.sym);
+      say.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg>';
+      say.onclick=()=>speak(p.voice, say, {forceTTS:true});
+      top.appendChild(sym); top.appendChild(say);
+      const desc=document.createElement("div"); desc.className="ipa-desc"; desc.textContent=p.desc;
+      const ex=document.createElement("div"); ex.className="ipa-ex";
+      const idx=ipaIndex(); const pool=idx[p.sym];
+      if(pool.length){
+        pool.forEach(w=>{
+          const line=document.createElement("div");
+          const a=document.createElement("span"); a.className="ex-word"; a.textContent=w.word;
+          a.title="在词库检索中查看"; a.onclick=()=>{showWord(words.indexOf(w));document.querySelector('[data-view="study"]').click()};
+          const ph=document.createElement("span"); ph.className="ex-ph"; ph.textContent=" "+w.phonetic;
+          const zh=document.createElement("span"); zh.className="ex-zh"; zh.textContent=" "+(w.definition||"").split(/[;；,，]/)[0].slice(0,14);
+          line.appendChild(a); line.appendChild(ph); line.appendChild(zh);
+          ex.appendChild(line);
+        });
+      }else{
+        const line=document.createElement("div"); line.className="ipa-empty";
+        line.textContent="例词："+p.sample.join(" · ");
+        ex.appendChild(line);
+      }
+      c.appendChild(top); c.appendChild(desc); c.appendChild(ex);
+      grid.appendChild(c);
+    });
+    g.appendChild(grid); box.appendChild(g);
+  });
+}
+/* 自测：听音辨音（听 → 选音标）/ 认读音标（看音标 → 选例词） */
+let ipaMode="chart", ipaQ=null, ipaScore=0, ipaTotal=0;
+function ipaSetMode(m){
+  ipaMode=m;
+  $("ipaSeg").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.ipamode===m));
+  $("ipaChart").classList.toggle("hidden", m!=="chart");
+  $("ipaQuiz").classList.toggle("hidden", m==="chart");
+  if(m!=="chart"){ ipaScore=0; ipaTotal=0; $("ipaScore").textContent="得分：0"; ipaNextQ(); }
+}
+function ipaNextQ(){
+  const p=IPA_SET[Math.floor(Math.random()*IPA_SET.length)];
+  ipaQ=p;
+  $("ipaQuizTitle").textContent = ipaMode==="listen" ? "听音辨音" : "认读音标";
+  $("ipaQuizHint").textContent = ipaMode==="listen" ? "听发音，选出对应的音标符号。" : "看音标，选出含该音标的单词。";
+  $("ipaQuizFb").textContent=""; $("ipaQuizFb").className="ipa-feedback";
+  if(ipaMode==="listen"){
+    $("ipaQuizSym").textContent="?";
+    $("ipaQuizSpeak").classList.remove("hidden");
+    /* 出题后自动读一遍（延后，避开切换的点击焦点） */
+    setTimeout(()=>speak(p.voice, $("ipaQuizSpeak"), {forceTTS:true}), 250);
+  }else{
+    $("ipaQuizSym").textContent=p.sym;
+    $("ipaQuizSpeak").classList.add("hidden");
+  }
+  /* 干扰项：随机另取 3 个不同音标 */
+  const others=IPA_SET.filter(x=>x.sym!==p.sym).sort(()=>Math.random()-.5).slice(0,3);
+  const opts=[p].concat(others).sort(()=>Math.random()-.5);
+  const box=$("ipaQuizOpts"); box.innerHTML="";
+  opts.forEach(o=>{
+    const b=document.createElement("button");
+    if(ipaMode==="listen"){ b.textContent=o.sym; }
+    else{ b.textContent=o.voice; } /* 认读：选项显示例词发音提示词（即该音素代表词） */
+    b.onclick=()=>ipaAnswer(b, o);
+    box.appendChild(b);
+  });
+}
+function ipaAnswer(btn, chosen){
+  const correct = chosen.sym===ipaQ.sym;
+  ipaTotal++;
+  const fb=$("ipaQuizFb");
+  if(correct){ ipaScore++; fb.textContent="正确！"+ipaQ.sym+" —— "+ipaQ.desc; fb.className="ipa-feedback good"; btn.classList.add("correct"); }
+  else{
+    fb.textContent="再想想。正确答案是 "+ipaQ.sym+"（"+ipaQ.desc+"）"; fb.className="ipa-feedback bad"; btn.classList.add("wrong");
+    $("ipaQuizOpts").querySelectorAll("button").forEach(x=>{ if(x.textContent===(ipaMode==="listen"?ipaQ.sym:ipaQ.voice)) x.classList.add("correct"); });
+  }
+  $("ipaScore").textContent="得分："+ipaScore+"/"+ipaTotal;
+  $("ipaQuizOpts").querySelectorAll("button").forEach(x=>x.disabled=true);
+  $("ipaNext").textContent="下一题";
+  if(ipaMode==="listen"){ $("ipaQuizSym").textContent=ipaQ.sym; }
+}
+function renderIpa(){
+  if(!$("ipaChart").childElementCount) renderIpaChart();
+}
+/* 事件绑定 */
+$("ipaSeg").onclick=e=>{ const b=e.target.closest("button[data-ipamode]"); if(!b) return; ipaSetMode(b.dataset.ipamode); };
+$("ipaQuizSpeak").onclick=()=>{ if(ipaQ) speak(ipaQ.voice, $("ipaQuizSpeak"), {forceTTS:true}); };
+$("ipaNext").onclick=()=>ipaNextQ();
 
 /* 点统计卡直接进「已掌握」：单词卡停在顶部，短句卡滚到短句那一组 */
 function openMastered(kind){
