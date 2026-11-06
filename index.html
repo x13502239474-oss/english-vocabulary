@@ -220,10 +220,13 @@ button.primary:active:not(:disabled){background:var(--green);border-color:var(--
 .ipa-desc{font-size:12.5px;line-height:1.5;color:var(--muted)}
 .ipa-ex{margin-top:2px;padding-top:8px;border-top:1px solid var(--rule);font-size:13px;line-height:1.6}
 .ipa-ex b{font-weight:600;color:var(--ink)}
+.ipa-ex .ipa-ex-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .ipa-ex .ex-word{color:var(--accent-soft);cursor:pointer;font-family:var(--serif);font-size:15px}
 .ipa-ex .ex-word:hover{text-decoration:underline}
 .ipa-ex .ex-ph{color:var(--muted);font-family:var(--serif)}
 .ipa-ex .ex-zh{color:var(--muted)}
+.ipa-ex .ipa-ex-line .ipa-say{width:22px;height:22px;flex:none;border-radius:5px}
+.ipa-ex .ipa-ex-line .ipa-say svg{width:12px;height:12px}
 .ipa-empty{font-size:12.5px;color:var(--muted);font-style:italic}
 .ipa-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:0 0 18px}
 .ipa-toolbar .seg button{padding:5px 12px;font-size:13px}
@@ -681,17 +684,18 @@ body.kb .word{font-size:clamp(34px,9vw,48px)}
   <button class="tab" data-view="sent">短句学习</button>
   <button class="tab" data-view="grammar">语法学习</button>
   <button class="tab" data-view="phonetics">音标学习</button>
-  <button class="tab" data-view="list">词库检索</button>
-  <button class="tab" data-view="review">待复习</button>
-  <button class="tab" data-view="mastered">已掌握</button>
  </div>
  <div class="tab-row">
   <button class="tab" data-view="quiz">小测验</button>
   <button class="tab" data-view="listen">听力测试</button>
   <button class="tab" data-view="speak">口语跟读</button>
   <button class="tab" data-view="dict">默写练习</button>
+ </div>
+ <div class="tab-row">
   <button class="tab" data-view="paper">测试卷</button>
   <button class="tab" data-view="gramq">语法测试</button>
+  <button class="tab" data-view="review">待复习</button>
+  <button class="tab" data-view="mastered">已掌握</button>
  </div>
 </nav>
 
@@ -905,19 +909,6 @@ body.kb .word{font-size:clamp(34px,9vw,48px)}
 </div></section>
 
 <!-- ================= 词库检索 ================= -->
-<section id="list" class="view hidden">
- <div class="controls"><input id="searchList" placeholder="输入英文、中文、词根联想…"><select id="listFilter"><option value="">全部 Word List</option></select><button id="clearSearch">清空搜索</button></div>
- <div class="mode-bar"><span>内容</span>
-  <span class="seg" id="listKindSeg">
-   <button data-lkind="word" class="on">单词</button>
-   <button data-lkind="sent">短句</button>
-  </span>
- </div>
- <div class="section-title"><h2 id="listTitle">词库</h2><span id="resultCount"></span></div>
- <div id="wordList" class="list"></div>
- <div class="actions"><button id="more">加载更多</button></div>
-</section>
-
 <!-- ================= 待复习 ================= -->
 <section id="review" class="view hidden">
  <div class="section-title"><h2>待复习单词</h2><span id="reviewCount"></span></div>
@@ -1051,7 +1042,7 @@ function reportErr(msg){
 let words=[], sents=[], index=0, sentIndex=0, visibleCount=80, quizCurrent=null, score=0, answered=false;
 /* 单词学习的「卡片内默写」状态（提前声明：showWord / speakActive 都要读） */
 let wDict=false, wDictAnswered=false, wRightN=0, wTotalN=0, wStreakN=0;
-let listKind="word", wMode="seq", sMode="seq";
+let wMode="seq", sMode="seq";
 const $=id=>document.getElementById(id);
 
 /* ==================== 答题反馈：音效 + 动画 + 彩带礼花 ====================
@@ -1843,7 +1834,7 @@ function updateStats(){
 /* ==================== 单词学习 ==================== */
 function optionsForLists(){
   let lists=[...new Set(words.map(w=>w.list))].sort((a,b)=>parseInt(a.split(" ").pop())-parseInt(b.split(" ").pop()));
-  for(let id of ["listStudy","listFilter"]) for(let l of lists){let o=document.createElement("option");o.value=l;o.textContent=l;$(id).appendChild(o)}
+  for(let id of ["listStudy"]) for(let l of lists){let o=document.createElement("option");o.value=l;o.textContent=l;$(id).appendChild(o)}
   let slists=[...new Set(sents.map(s=>s.list).filter(Boolean))].sort((a,b)=>parseInt(a.split(" ").pop())-parseInt(b.split(" ").pop()));
   for(let l of slists){let o=document.createElement("option");o.value=l;o.textContent=l;$("listSent").appendChild(o)}
 }
@@ -2923,47 +2914,6 @@ function bindClear(btnId, inpId){
 bindClear("wdictClear", "wdictInput");
 bindClear("dClear", "dInput");
 
-/* ==================== 词库检索 ==================== */
-function renderList(){
-  const arr = listKind==="word"
-    ? filtered($("searchList").value,$("listFilter").value)
-    : filteredSent($("searchList").value,$("listFilter").value);
-  $("listTitle").textContent = listKind==="word" ? "词库" : "短句库";
-  $("resultCount").textContent=`${arr.length} 条结果`;
-  $("wordList").innerHTML="";
-  arr.slice(0,visibleCount).forEach(it=>{
-    const d=document.createElement("div"); d.className="item";
-    const left=document.createElement("div");
-    const big=document.createElement("span"); big.className="w";
-    const small=document.createElement("small");
-    const acts=document.createElement("div"); acts.className="item-actions";
-    const bSpk=document.createElement("button"); bSpk.className="speak"; bSpk.title="朗读"; bSpk.textContent="朗读";
-    const bGo=document.createElement("button"); bGo.textContent="学习";
-    if(listKind==="word"){
-      big.textContent=it.word+" "+it.phonetic; small.textContent=it.definition;
-      bSpk.onclick=()=>speak(it.word,bSpk);
-      bGo.onclick=()=>{showWord(words.indexOf(it));document.querySelector('[data-view="study"]').click()};
-    }else{
-      big.textContent=it.en; small.textContent=(it.zh||"")+(it.word?"　·　"+it.word:"");
-      bSpk.onclick=()=>speak(it.en,bSpk);
-      bGo.onclick=()=>{showSent(sents.indexOf(it));document.querySelector('[data-view="sent"]').click()};
-    }
-    left.appendChild(big); left.appendChild(small);
-    acts.appendChild(bSpk); acts.appendChild(bGo);
-    d.appendChild(left); d.appendChild(acts);
-    $("wordList").appendChild(d);
-  });
-  $("more").classList.toggle("hidden",arr.length<=visibleCount);
-}
-$("searchList").oninput=()=>{visibleCount=80;renderList()};
-$("listFilter").onchange=()=>{visibleCount=80;renderList()};
-$("more").onclick=()=>{visibleCount+=80;renderList()};
-$("clearSearch").onclick=()=>{$("searchList").value="";$("listFilter").value="";visibleCount=80;renderList()};
-$("listKindSeg").onclick=e=>{ const b=e.target.closest("button[data-lkind]"); if(!b)return;
-  listKind=b.dataset.lkind; visibleCount=80;
-  [...$("listKindSeg").children].forEach(x=>x.classList.toggle("on",x===b));
-  $("listFilter").value=""; renderList(); };
-
 /* ==================== 待复习 ==================== */
 function renderReview(){
   const arr=words.filter(w=>review.has(w.word));
@@ -3750,7 +3700,6 @@ function showView(id){
   if(id==="review") renderReview();
   if(id==="mastered"){ masteredShown=MASTER_PAGE; renderMastered(); }
   if(id==="paper"){ if(paper) renderPaper(); else newPaper(); }
-  if(id==="list") renderList();
   if(id==="phonetics") renderIpa();
   if(id==="listen" && !lCur) newListen();
   if(id==="speak" && !pCur) newP();
@@ -3860,12 +3809,15 @@ function renderIpaChart(){
       const idx=ipaIndex(); const pool=idx[p.sym];
       if(pool.length){
         pool.forEach(w=>{
-          const line=document.createElement("div");
+          const line=document.createElement("div"); line.className="ipa-ex-line";
+          const say=document.createElement("button"); say.className="ipa-say"; say.title="朗读 "+w.word; say.setAttribute("aria-label","朗读 "+w.word);
+          say.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg>';
+          say.onclick=()=>speak(w.word, say, {forceTTS:true});
           const a=document.createElement("span"); a.className="ex-word"; a.textContent=w.word;
-          a.title="在词库检索中查看"; a.onclick=()=>{showWord(words.indexOf(w));document.querySelector('[data-view="study"]').click()};
-          const ph=document.createElement("span"); ph.className="ex-ph"; ph.textContent=" "+w.phonetic;
-          const zh=document.createElement("span"); zh.className="ex-zh"; zh.textContent=" "+(w.definition||"").split(/[;；,，]/)[0].slice(0,14);
-          line.appendChild(a); line.appendChild(ph); line.appendChild(zh);
+          a.title="在单词学习中查看"; a.onclick=()=>{showWord(words.indexOf(w));document.querySelector('[data-view="study"]').click()};
+          const ph=document.createElement("span"); ph.className="ex-ph"; ph.textContent=w.phonetic;
+          const zh=document.createElement("span"); zh.className="ex-zh"; zh.textContent=(w.definition||"").split(/[;；,，]/)[0].slice(0,14);
+          line.appendChild(say); line.appendChild(a); line.appendChild(ph); line.appendChild(zh);
           ex.appendChild(line);
         });
       }else{
@@ -4191,7 +4143,7 @@ Promise.resolve(
   showWord(Number.isFinite(pos)?pos:0);
   const spos=parseInt(STORE.getItem("vocab-sent-pos")||"0",10);
   showSent(Number.isFinite(spos)?spos:0);
-  renderList(); renderReview(); renderMastered(); newQuiz(); newListen(); newP(); pickDict(0);
+  renderReview(); renderMastered(); newQuiz(); newListen(); newP(); pickDict(0);
   if(!sents.length){
     $("sEn").textContent="短句库加载失败";
     $("sZh").textContent="请确认 sentences.json 与 index.html 位于同一文件夹。";
