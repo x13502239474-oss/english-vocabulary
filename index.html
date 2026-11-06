@@ -214,8 +214,7 @@ button.primary:active:not(:disabled){background:var(--green);border-color:var(--
 .ipa-ex{margin-top:2px;padding-top:8px;border-top:1px solid var(--rule);font-size:13px;line-height:1.6}
 .ipa-ex b{font-weight:600;color:var(--ink)}
 .ipa-ex .ipa-ex-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.ipa-ex .ex-word{color:var(--accent-soft);cursor:pointer;font-family:var(--serif);font-size:15px}
-.ipa-ex .ex-word:hover{text-decoration:underline}
+.ipa-ex .ex-word{color:var(--accent-soft);font-family:var(--serif);font-size:15px}
 .ipa-ex .ex-ph{color:var(--muted);font-family:var(--serif)}
 .ipa-ex .ex-zh{color:var(--muted)}
 .ipa-ex .ipa-ex-line .speak.mini{padding:3px;margin-left:0;color:var(--accent-soft)}
@@ -3807,7 +3806,6 @@ function renderIpaChart(){
           say.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg>';
           say.onclick=()=>speak(w.word, say, {forceTTS:true});
           const a=document.createElement("span"); a.className="ex-word"; a.textContent=w.word;
-          a.title="在单词学习中查看"; a.onclick=()=>{showWord(words.indexOf(w));document.querySelector('[data-view="study"]').click()};
           const ph=document.createElement("span"); ph.className="ex-ph"; ph.textContent=w.phonetic;
           const zh=document.createElement("span"); zh.className="ex-zh"; zh.textContent=(w.definition||"").split(/[;；,，]/)[0].slice(0,14);
           line.appendChild(say); line.appendChild(a); line.appendChild(ph); line.appendChild(zh);
