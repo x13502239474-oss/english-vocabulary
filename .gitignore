@@ -1,0 +1,9 @@
+# 备份与临时文件
+index.backup-*.html
+*.bak
+
+# WorkBuddy 项目数据
+.workbuddy/
+
+# 构建中间产物（可选保留，先注释掉）
+# _ipa_check.js
