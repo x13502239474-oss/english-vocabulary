@@ -210,13 +210,6 @@ button.primary:active:not(:disabled){background:var(--green);border-color:var(--
 .ipa-card:focus-within{border-color:var(--accent)}
 .ipa-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
 .ipa-sym{font-family:var(--serif);font-size:28px;line-height:1.05;color:var(--accent);letter-spacing:.01em}
-.ipa-say{
-  display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;
-  border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--muted);cursor:pointer;
-}
-.ipa-say:hover{color:var(--accent);border-color:var(--accent)}
-.ipa-say.speaking{color:var(--accent);border-color:var(--accent)}
-.ipa-say svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .ipa-desc{font-size:12.5px;line-height:1.5;color:var(--muted)}
 .ipa-ex{margin-top:2px;padding-top:8px;border-top:1px solid var(--rule);font-size:13px;line-height:1.6}
 .ipa-ex b{font-weight:600;color:var(--ink)}
@@ -225,8 +218,8 @@ button.primary:active:not(:disabled){background:var(--green);border-color:var(--
 .ipa-ex .ex-word:hover{text-decoration:underline}
 .ipa-ex .ex-ph{color:var(--muted);font-family:var(--serif)}
 .ipa-ex .ex-zh{color:var(--muted)}
-.ipa-ex .ipa-ex-line .ipa-say{width:22px;height:22px;flex:none;border-radius:5px}
-.ipa-ex .ipa-ex-line .ipa-say svg{width:12px;height:12px}
+.ipa-ex .ipa-ex-line .speak.mini{padding:3px;margin-left:0;color:var(--accent-soft)}
+.ipa-ex .ipa-ex-line .speak.mini svg{width:15px;height:15px}
 .ipa-empty{font-size:12.5px;color:var(--muted);font-style:italic}
 .ipa-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:0 0 18px}
 .ipa-toolbar .seg button{padding:5px 12px;font-size:13px}
@@ -3800,7 +3793,7 @@ function renderIpaChart(){
       const c=document.createElement("div"); c.className="ipa-card";
       const top=document.createElement("div"); top.className="ipa-top";
       const sym=document.createElement("span"); sym.className="ipa-sym"; sym.textContent=p.sym;
-      const say=document.createElement("button"); say.className="ipa-say"; say.title="播放发音"; say.setAttribute("aria-label","播放发音 "+p.sym);
+      const say=document.createElement("button"); say.className="speak mini"; say.title="播放发音"; say.setAttribute("aria-label","播放发音 "+p.sym);
       say.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg>';
       say.onclick=()=>speak(p.voice, say, {forceTTS:true});
       top.appendChild(sym); top.appendChild(say);
@@ -3810,7 +3803,7 @@ function renderIpaChart(){
       if(pool.length){
         pool.forEach(w=>{
           const line=document.createElement("div"); line.className="ipa-ex-line";
-          const say=document.createElement("button"); say.className="ipa-say"; say.title="朗读 "+w.word; say.setAttribute("aria-label","朗读 "+w.word);
+          const say=document.createElement("button"); say.className="speak mini"; say.title="朗读 "+w.word; say.setAttribute("aria-label","朗读 "+w.word);
           say.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg>';
           say.onclick=()=>speak(w.word, say, {forceTTS:true});
           const a=document.createElement("span"); a.className="ex-word"; a.textContent=w.word;
