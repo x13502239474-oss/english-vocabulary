@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B1418">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="烟雨江湖 —— 一座雨中的江南武侠小镇，一本安静放在江湖里的初中英语词谱。">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="apple-touch-icon.png" type="image/png">
+<title>烟雨江湖 · 江南旧梦｜初中英语词汇</title>
+<link rel="stylesheet" href="fonts/wenkai/lxgwwenkai-regular.css">
+<link rel="stylesheet" href="yanyu-jianghu.css?v=20261108a">
+</head>
+<body>
+
+<!-- ══ 烟雨江南 · 全景场景（暗色水墨，多层纵深） ══ -->
+<div class="scene" aria-hidden="true">
+  <div class="scene-far"></div>
+  <div class="scene-town"></div>
+  <div class="scene-mist mist-a"></div>
+  <div class="scene-mist mist-b"></div>
+  <div class="scene-rain rain-a"></div>
+  <div class="scene-rain rain-b"></div>
+  <div class="scene-vignette"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+<div class="seal-mark" aria-hidden="true"><div>烟</div><div>雨</div></div>
+<div class="colophon" aria-hidden="true">烟雨江南 · 丙午年冬十一月初七</div>
+
+<div class="chassis">
+
+  <!-- ── 报头 · 江湖门楣 ─────────────────────────────── -->
+  <header class="tuner-head">
+    <div class="th-left">
+      <div class="power-lamp" aria-hidden="true"><i></i></div>
+      <div class="brand">
+        <div class="brand-word">烟雨江湖 <em>THE MISTY JIANGHU</em></div>
+        <div class="brand-sub">江南旧梦 · 初中英语词汇 · 一千八百三十词</div>
+      </div>
+    </div>
+    <div class="th-mid">
+      <div class="mini-wave" aria-hidden="true"><canvas id="headWave"></canvas></div>
+      <div class="on-air"><i></i><span>入 谱</span><b id="hdrClock">--:--</b></div>
+    </div>
+    <div class="th-right">
+      <button class="head-key" id="btnRecords" title="修行记录">修行</button>
+      <button class="head-key" id="btnSettings" title="江湖设置">江湖</button>
+    </div>
+  </header>
+
+  <div class="deck">
+    <!-- ── 卷目 · 江湖入口 ─────────────────────────────── -->
+    <nav class="band-rail" aria-label="主导航">
+      <div class="rail-cap"><span>卷 目</span><small>THE JIANGHU MANUAL</small></div>
+      <button class="band on" data-view="home"><i>壹</i><span>总览</span><small>江湖入口</small><em></em></button>
+      <button class="band" data-view="study"><i>贰</i><span>习词</span><small>词汇修习</small><em></em></button>
+      <button class="band" data-view="drill"><i>叁</i><span>试剑</span><small>闯关试炼</small><em></em></button>
+      <button class="band" data-view="review"><i>肆</i><span>温故</span><small>待温习</small><em></em></button>
+      <button class="band" data-view="case"><i>伍</i><span>词谱</span><small>江湖词谱</small><em></em></button>
+      <button class="band" data-view="records"><i>陆</i><span>修行</span><small>修行记录</small><em></em></button>
+      <button class="band" data-view="settings"><i>柒</i><span>江湖</span><small>江湖设置</small><em></em></button>
+      <div class="rail-foot">
+        <div class="rf-dial" aria-hidden="true"><span></span></div>
+        <p>三十二卷 · 六重境界<br>谱藏于本机，不示外人</p>
+      </div>
+    </nav>
+
+    <main class="stage">
+
+      <!-- 壹 · 总览 / 江湖入口 ─────────────────────────── -->
+      <section class="view on" id="view-home">
+
+        <!-- 主题 KV 主视觉 · 烟雨江南 -->
+        <figure class="kv" id="kvBanner" aria-label="烟雨江湖主视觉">
+          <div class="kv-scene" id="kvScene" aria-hidden="true"></div>
+          <figcaption class="kv-caption">
+            <span class="kv-brand">烟雨江湖</span>
+            <span class="kv-sub" id="kvSub">江 南 旧 梦 · 初中英语词汇</span>
+            <span class="kv-verse" id="kvVerse">一蓑烟雨，词入江湖。</span>
+          </figcaption>
+          <span class="kv-seal" id="kvSeal" aria-hidden="true">烟<br>雨</span>
+          <div class="kv-actions">
+            <button class="kv-btn" id="kvStart">开始今日修习 →</button>
+            <span class="kv-note" id="kvNote">已习 <b id="kvCount">—</b> / 1830 词</span>
+          </div>
+        </figure>
+
+        <div class="hero-head">
+          <div>
+            <div class="kicker">TODAY'S PAGE ／ 今日谱页</div>
+            <h1>十年磨一剑，<span>今日试锋芒</span>。</h1>
+            <p class="lede">一千八百三十词，散落在这片烟雨里。每习得一词，江湖便多一分你的名号。</p>
+          </div>
+          <div class="hero-date"><b id="homeDate">--.--</b><span id="homeWeekday">TODAY</span></div>
+        </div>
+
+        <div class="receiver">
+          <div class="recv-left">
+            <div class="recv-cap"><span>谱 页 全 图 <em>THE MANUAL</em></span><span id="spectrumCount">— / 1830 词已习</span></div>
+            <div class="freq-readout">
+              <span class="fm">词</span><b id="homeFreq">0159</b><span class="mhz">号</span>
+              <span class="ch">卷 <b id="homeCh">0159</b> / 1830</span>
+            </div>
+            <div class="spectrum-wrap" id="spectrumWrap">
+              <canvas id="spectrumCanvas" aria-label="词谱全图：三十二卷，墨色深浅即各词熟稔，朱签为今日待温"></canvas>
+              <div class="spec-needle" id="homeNeedle" aria-hidden="true"></div>
+              <div class="spectrum-tip" id="spectrumTip" hidden></div>
+            </div>
+            <div class="spectrum-scale"><span>卷一</span><span>卷八</span><span>卷十六</span><span>卷廿四</span><span>卷廿八</span><span>卷卅二</span></div>
+            <div class="spectrum-legend">
+              <span><i class="lg lg-0"></i>未习</span><span><i class="lg lg-1"></i>已练</span>
+              <span><i class="lg lg-2"></i>已掌握</span><span><i class="lg lg-3"></i>今日待温</span>
+              <span><i class="lg lg-4"></i>收藏</span>
+              <span class="lg-hint">点卷格可查看词条 · 拖动剑痕可定位</span>
+            </div>
+          </div>
+
+          <aside class="recv-right">
+            <div class="meter-cap">今 日 修 行 <em>TODAY'S LOG</em></div>
+            <div class="meter-grid">
+              <div class="meter"><span>今日新习</span><b id="stNew">0</b><small>词</small></div>
+              <div class="meter"><span>今日待温</span><b id="stDue">0</b><small>词</small></div>
+              <div class="meter"><span>已掌握</span><b id="stMastered">0</b><small>词</small></div>
+              <div class="meter"><span>不辍功</span><b id="stStreak">0</b><small>日</small></div>
+            </div>
+            <div class="coverage">
+              <div class="cov-label"><span>词谱覆盖</span><b id="stProgress">0%</b></div>
+              <div class="cov-track"><i id="covFill"></i></div>
+              <small id="covNote">—</small>
+            </div>
+            <button class="key-key" id="btnStartToday"><span>开始今日修习</span><b aria-hidden="true">→</b></button>
+            <div class="recv-note">※ 学习记录只保存在本机浏览器</div>
+          </aside>
+        </div>
+
+        <div class="sec-head mt"><h2>今日词笺</h2><span id="presetMeta">—</span></div>
+        <div class="preset-strip" id="presetStrip"></div>
+
+        <div class="lower-grid">
+          <section class="lower-block">
+            <div class="sec-head"><h2>不辍功</h2><span>最近 14 天 · 每格一天</span></div>
+            <div class="day-wave" id="dayWave"></div>
+            <div class="wave-axis"><span>14 天前</span><span>今天</span></div>
+          </section>
+          <section class="lower-block">
+            <div class="sec-head"><h2>最近习词</h2><span>最近 10 词</span></div>
+            <div class="tape" id="recentTape"></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- 贰 · 习词 / 词汇修习 ─────────────────────────── -->
+      <section class="view" id="view-study">
+        <div class="study-top">
+          <div class="study-id"><span class="kicker">NOW PRACTISING ／ 词 汇 修 习</span><b id="studyNo">词 0159</b><span id="studyList">卷 三</span></div>
+          <div class="study-nav">
+            <select id="studyScope" aria-label="修习范围">
+              <option value="all">全部词汇</option><option value="unmastered">未掌握</option>
+              <option value="review">待温习</option><option value="favorites">我的收藏</option>
+              <option value="wrong">错词</option><option value="list">当前卷</option>
+            </select>
+            <button class="nav-key" id="btnPrev" title="上一个（←）">← <span>上一词</span></button>
+            <button class="nav-key" id="btnRandom" title="随机（R）">⌁ <span>随机</span></button>
+            <button class="nav-key" id="btnNext" title="下一个（→）"><span>下一词</span> →</button>
+          </div>
+        </div>
+
+        <div class="study-grid">
+          <div class="tuning-window" id="tuningWindow">
+            <div class="tw-top">
+              <span class="tw-tag" id="twTag">第 0159 词</span>
+              <span class="tw-bars" id="twBars" aria-label="掌握程度"></span>
+              <button class="fav-key" id="btnFav" title="收藏此词"><span>☆</span> 收藏</button>
+            </div>
+
+            <div class="tw-body">
+              <canvas class="tw-wave" id="wordWave" aria-hidden="true"></canvas>
+              <div class="tw-word" id="tbWord">—</div>
+              <div class="tw-ph" id="tbPhonetic"></div>
+              <div class="vu-row" id="vuRow" aria-hidden="true"></div>
+              <div class="audio-keys">
+                <button class="a-key on" id="btnSpeakWord">▶ 朗读</button>
+                <button class="a-key" id="btnRepeatAudio">↻ 重播</button>
+                <span class="rate-seg" id="rateSeg" aria-label="语速"><button data-rate="0.6">慢</button><button data-rate="0.8" class="on">常</button><button data-rate="1">快</button></span>
+                <button class="a-key" id="btnShadow">跟读</button>
+              </div>
+            </div>
+
+            <div class="decode-zone">
+              <button class="decode-key" id="btnReveal"><span>起笔释义</span><small>SPACE</small></button>
+              <div class="decode-line" id="decodeLine" aria-hidden="true"></div>
+              <div class="decoded" id="tbAnswer" hidden>
+                <div class="def-line"><span class="pos" id="tbPos" hidden></span><span id="tbDef"></span></div>
+                <div class="ex-line" id="tbExampleRow" hidden><p class="en" id="tbExampleEn"></p><p class="cn" id="tbExampleCn"></p>
+                  <button class="a-key" id="btnSpeakExample">▶ 例句朗读</button></div>
+                <div class="ph-line" id="tbPhraseRow" hidden><span>常见搭配</span><b id="tbPhrase"></b></div>
+                <div class="mem-line" id="tbMemoryRow" hidden><span>词笺批注 · 原词条</span><p id="tbMemory"></p></div>
+              </div>
+            </div>
+
+            <div class="tune-strip">
+              <div class="tune-label"><span>词谱 ／ 拖动剑痕定位</span><b id="tuneReadout">0159 词</b></div>
+              <div class="tune-track" id="tuneTrack">
+                <canvas id="tuneCanvas"></canvas>
+                <div class="tune-needle" id="tuneNeedle" aria-hidden="true"></div>
+                <div class="tune-bubble" id="tuneBubble" hidden></div>
+              </div>
+              <div class="tune-scale"><span>卷一</span><span>卷八</span><span>卷十六</span><span>卷廿四</span><span>卷廿八</span><span>卷卅二</span></div>
+            </div>
+          </div>
+
+          <aside class="signal-card">
+            <div class="sc-cap">词条档案 <em>WORD FILE</em></div>
+            <div class="sc-lamp" id="scLamp"><i></i><b id="scStatus">未入谱</b></div>
+            <div class="sc-bars" id="levelRuler" aria-label="掌握程度 0-6"></div>
+            <div class="sc-scale"><span>生</span><span>六格 = 已掌握</span><span>熟</span></div>
+            <div class="sc-rows">
+              <div><span>下次温习</span><b id="metaDue">—</b></div>
+              <div><span>已习次数</span><b id="metaTimes">0</b></div>
+              <div><span>错词记录</span><b id="metaWrong">0</b></div>
+              <div><span>所属卷</span><b id="metaList">—</b></div>
+            </div>
+            <button class="a-key full" id="btnOpenDetail">查看完整词条档案 →</button>
+            <div class="sc-note">答对加深一格，温习按 0 / 1 / 3 / 7 / 15 / 30 天递进。</div>
+          </aside>
+        </div>
+
+        <div class="grade-row">
+          <button class="grade g-unknown" data-grade="unknown"><i>1</i><b>不识</b><small>不认识 · 当天回炉</small></button>
+          <button class="grade g-fuzzy" data-grade="fuzzy"><i>2</i><b>模糊</b><small>模糊 · 明日再练</small></button>
+          <button class="grade g-known" data-grade="known"><i>3</i><b>认识</b><small>认识 · 加深一格</small></button>
+        </div>
+        <div class="study-foot"><span>← / → 换词　·　空格 释义　·　R 随机　·　1 / 2 / 3 判定</span><span id="studyHint"></span></div>
+      </section>
+
+      <!-- 叁 · 试剑 / 闯关试炼 ─────────────────────────── -->
+      <section class="view" id="view-drill">
+        <div class="hero-head compact">
+          <div><div class="kicker">TRIAL ／ 试 剑 台</div><h1>试 剑 台</h1>
+          <p class="lede">辨其形、识其义。错处自动记为一处破绽，需回炉再练。</p></div>
+        </div>
+        <div class="mode-strip" id="drillModes">
+          <button class="on" data-mode="en2cn"><i>Ⅰ</i><b>辨义</b><small>看词选义</small></button>
+          <button data-mode="cn2en"><i>Ⅱ</i><b>寻词</b><small>看义选词</small></button>
+          <button data-mode="listen"><i>Ⅲ</i><b>听音</b><small>听音辨词</small></button>
+          <button data-mode="spell"><i>Ⅳ</i><b>默写</b><small>手书一词</small></button>
+          <button data-mode="quick"><i>Ⅴ</i><b>速温</b><small>自评过卡</small></button>
+        </div>
+        <div class="drill-config">
+          <label>取词范围 <select id="drillScope"><option value="all">全部词汇</option><option value="unmastered">未掌握</option><option value="review">待温习</option><option value="wrong">错词</option><option value="favorites">收藏</option></select></label>
+          <label>每轮词数 <select id="drillCount"><option>8</option><option selected>10</option><option>15</option><option>20</option></select></label>
+          <button class="key-key small" id="btnDrillStart"><span>开始试剑</span><b>→</b></button>
+        </div>
+        <div class="drill-body" id="drillBody">
+          <div class="empty-panel"><div class="empty-dial">剑</div><p>选一道试炼，按下「开始试剑」。<br>十词一轮，拔剑见真章。</p></div>
+        </div>
+      </section>
+
+      <!-- 肆 · 温故 / 待温习 ───────────────────────────── -->
+      <section class="view" id="view-review">
+        <div class="hero-head compact">
+          <div><div class="kicker">REVIEW ／ 温 故 台</div><h1>温 故 台</h1>
+          <p class="lede">久不温则生。按日子回来温习一次，词才入骨。</p></div>
+        </div>
+        <div class="interval-bar">
+          <span class="ib-cap">温习间隔 <em>REVIEW CYCLE</em></span>
+          <div class="ib-track"><span>当天</span><span>1 天</span><span>3 天</span><span>7 天</span><span>15 天</span><span>30 天</span></div>
+          <span class="ib-note">六重境界 · 答对进一格 · 遗忘回到当天</span>
+        </div>
+        <div class="review-grid">
+          <div class="review-col"><div class="sec-head"><h2>今日待温习</h2><span id="dueCount">0 词</span></div><div class="station-rows" id="dueRows"></div></div>
+          <div class="review-col"><div class="sec-head"><h2>逾期未温习</h2><span id="overdueCount">0 词</span></div><div class="station-rows" id="overdueRows"></div></div>
+        </div>
+        <div class="sec-head mt"><h2>错词 · 破绽重练</h2><span id="wrongCount">0 词</span></div>
+        <div class="station-rows" id="wrongRows"></div>
+      </section>
+
+      <!-- 伍 · 词谱 / 江湖词谱 ─────────────────────────── -->
+      <section class="view" id="view-case">
+        <div class="hero-head compact">
+          <div><div class="kicker">LEXICON ／ 江 湖 词 谱</div><h1>江 湖 词 谱</h1>
+          <p class="lede">三十二卷，一千八百三十词。搜英文、搜中文，都能找到。</p></div>
+          <button class="outline-key" id="btnAddWord">＋ 自添一词</button>
+        </div>
+        <div class="scan-bar">
+          <span class="scan-ico" aria-hidden="true">⌕</span>
+          <input id="caseSearch" type="search" placeholder="搜英文单词或中文释义…" autocomplete="off">
+          <span class="scan-count" id="caseCount">—</span>
+        </div>
+        <div class="band-filters">
+          <div class="band-group" id="listFilters"></div>
+          <div class="chip-group" id="stateFilters">
+            <button class="on" data-state="all">全部</button><button data-state="unmastered">未掌握</button>
+            <button data-state="mastered">已掌握</button><button data-state="review">待温习</button>
+            <button data-state="favorites">收藏</button><button data-state="wrong">错词</button>
+            <button data-state="custom">自添</button>
+          </div>
+        </div>
+        <div class="station-grid" id="caseGrid"></div>
+        <div class="pager" id="casePager"></div>
+      </section>
+
+      <!-- 陆 · 修行 / 修行记录 ─────────────────────────── -->
+      <section class="view" id="view-records">
+        <div class="hero-head compact">
+          <div><div class="kicker">PRACTICE LOG ／ 修 行 记 录</div><h1>修 行 记 录</h1>
+          <p class="lede">所有数字来自你的真实修习记录，不做修饰。</p></div>
+        </div>
+        <div class="readout-row">
+          <div class="readout"><span>已掌握</span><b id="recMastered">0</b><small>词</small></div>
+          <div class="readout"><span>待温习</span><b id="recReview">0</b><small>词</small></div>
+          <div class="readout"><span>修行天数</span><b id="recDays">0</b><small>日</small></div>
+          <div class="readout"><span>错词记录</span><b id="recWrong">0</b><small>词</small></div>
+        </div>
+        <div class="sec-head mt"><h2>每日习词量</h2><span>最近 14 天</span></div>
+        <div class="log-wave-wrap"><canvas id="logWave"></canvas></div>
+        <div class="sec-head mt"><h2>每日台账</h2><span>新习 / 温习 / 试剑</span></div>
+        <div class="daily-ledger" id="dailyLedger"></div>
+        <div class="sec-head mt"><h2>错词清单</h2><span id="recWrongMeta">—</span></div>
+        <div class="tape" id="wrongLedger"></div>
+      </section>
+
+      <!-- 柒 · 江湖 / 江湖设置 ─────────────────────────── -->
+      <section class="view" id="view-settings">
+        <div class="hero-head compact">
+          <div><div class="kicker">SETTINGS ／ 江 湖 设 置</div><h1>江 湖</h1>
+          <p class="lede">修习数据长期保存在本机，可随时导出、恢复。</p></div>
+        </div>
+
+        <div class="theme-panel" id="themePanel"></div>
+
+        <div class="shop-block">
+          <h2>数据接续与备份 <small>DATA MIGRATION</small></h2>
+          <div class="migrate-status" id="migrateStatus">—</div>
+          <p class="shop-note">升级前的浏览器修习记录已完整备份。下面是可恢复的词谱；切换时取并集，不会删除任何一条。</p>
+          <div class="source-list" id="sourceList"></div>
+          <div class="shop-actions">
+            <button class="key-key small" id="btnExport"><span>导出全部修习数据 JSON</span><b>↓</b></button>
+            <button class="outline-key" id="btnImport">从 JSON 恢复</button>
+            <input type="file" id="importFile" accept="application/json,.json" hidden>
+          </div>
+        </div>
+
+        <div class="shop-block">
+          <h2>发音与跟读 <small>PRONUNCIATION</small></h2>
+          <div class="shop-row"><span>发音方式</span><select id="audioSource"><option value="browser">浏览器原生朗读（推荐）</option><option value="online">在线真人发音（需联网）</option></select></div>
+          <div class="shop-row"><span>朗读语速</span><select id="audioRate"><option value="0.6">慢速 0.6×</option><option value="0.8" selected>常速 0.8×</option><option value="1">快速 1.0×</option><option value="1.2">很快 1.2×</option></select></div>
+          <div class="shop-row"><span>翻到新词自动朗读</span><input type="checkbox" id="autoSpeak"></div>
+          <div class="shop-row"><span>每日新习目标</span><select id="dailyGoal"><option value="8">8 词</option><option value="12" selected>12 词</option><option value="20">20 词</option><option value="30">30 词</option></select></div>
+          <div class="shop-actions"><button class="outline-key" id="btnTestAudio">试听发音</button><button class="outline-key" id="btnShadowSettings">打开跟读练习</button></div>
+          <p class="shop-note" id="audioCapability">—</p>
+        </div>
+
+        <div class="shop-block">
+          <h2>关于这片江湖 <small>ABOUT</small></h2>
+          <p class="shop-note">烟雨江湖 · 江南旧梦 ／ 纯前端单页，无账号、无服务器、无付费接口。词库沿用原有 1830 个初中词汇，学习状态沿用原有 <code>vocab-*</code> 键；新增的复习间隔、收藏、错词与每日记录独立存放，互不覆盖。</p>
+          <p class="shop-note">四套界面共用同一份学习记录：当前为「烟雨江湖」，<a href="index.html">切到「词频 · 词汇电台」</a>；<a href="index.wuxia.html">「残谱」水墨界面</a>；<a href="index.print.html">「词印 · 活字词坊」</a>；<a href="index.legacy.html" target="_blank" rel="noopener">打开最初原版</a>。</p>
+          <p class="shop-note" id="dataHealth">—</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- 手机底部导航 -->
+  <nav class="mobile-tabs" aria-label="手机导航">
+    <button class="on" data-view="home"><i>壹</i><span>总览</span></button>
+    <button data-view="study"><i>贰</i><span>习词</span></button>
+    <button data-view="drill"><i>叁</i><span>试剑</span></button>
+    <button data-view="review"><i>肆</i><span>温故</span></button>
+    <button data-view="case"><i>伍</i><span>词谱</span></button>
+  </nav>
+</div>
+
+<!-- 词条档案抽屉 -->
+<div class="overlay" id="detailOverlay" hidden>
+  <div class="drawer" role="dialog" aria-modal="true" aria-label="词条档案">
+    <button class="drawer-close" id="btnCloseDetail" aria-label="关闭">×</button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- 跟读练习 -->
+<div class="overlay" id="shadowOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-label="跟读练习">
+    <button class="drawer-close" id="btnCloseShadow" aria-label="关闭">×</button>
+    <div class="kicker">SHADOWING ／ 跟读</div>
+    <h2 id="shadowWord">—</h2>
+    <div class="shadow-ph" id="shadowPh"></div>
+    <div class="vu-row big" id="shadowVu" aria-hidden="true"></div>
+    <div class="shop-actions">
+      <button class="key-key small" id="btnShadowPlay"><span>播放示范</span><b>▶</b></button>
+      <button class="outline-key" id="btnShadowRec">开始跟读</button>
+    </div>
+    <div class="shadow-result" id="shadowResult">先听一遍，再跟着读出来。</div>
+    <p class="shop-note" id="shadowCap">—</p>
+  </div>
+</div>
+
+<!-- 自添单词 -->
+<div class="overlay" id="addOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-label="添加单词">
+    <button class="drawer-close" id="btnCloseAdd" aria-label="关闭">×</button>
+    <div class="kicker">NEW WORD ／ 自添一词</div>
+    <h2>添一个自己的词</h2>
+    <div class="form-grid">
+      <label>英文单词 <input id="nwWord" required placeholder="例如 notebook"></label>
+      <label>音标 <input id="nwPh" placeholder="[ˈnəʊtbʊk]"></label>
+      <label class="wide">中文释义 <input id="nwDef" required placeholder="n. 笔记本"></label>
+      <label class="wide">例句（可留空）<input id="nwEx" placeholder="This is my notebook.这是我的笔记本。"></label>
+      <label>归入卷 <select id="nwList"></select></label>
+    </div>
+    <p class="shop-note">自添词汇只保存在本机，不改动原词库文件，也会一并导出到备份 JSON。</p>
+    <button class="key-key" id="btnSaveWord"><span>写入词谱</span><b>→</b></button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="signal-fx" id="signalFx" aria-hidden="true"></div>
+
+<script src="data/words.js?v=20261108d"></script>
+<script src="data/progress-seed.js?v=20261108d"></script>
+<script src="yanyu-jianghu.js?v=20261108a"></script>
+</body>
+</html>
