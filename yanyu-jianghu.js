@@ -1151,6 +1151,15 @@ function bind(){
       jumpTo((next>=0?words[next]:words[0]).word);
     }
   };
+  const kvSwitch=$('kvSwitch');
+  if(kvSwitch) kvSwitch.onclick=()=>switchKv(1);
+  const kvDots=$('kvDots');
+  if(kvDots) kvDots.addEventListener('click',e=>{
+    const dot=e.target.closest('i'); if(!dot) return;
+    const arr=Array.from(kvDots.children);
+    const i=arr.indexOf(dot);
+    if(i>=0&&i!==currentKvIndex()){ kvIndex=i; set(KV_KEY,String(i)); applyKv(); }
+  });
   $('btnPrev').onclick=()=>step(-1);
   $('btnNext').onclick=()=>step(1);
   $('btnRandom').onclick=()=>step(1,true);
@@ -1225,7 +1234,7 @@ function bind(){
 }
 
 
-/* ═════════ 主题 KV 轮换：按日期一天一张，七张周而复始 ═════════ */
+/* ═════════ 主题 KV 轮换：按日期一天一张，七张周而复始；可手动换 ═════════ */
 const KV_LIST=[
   {img:'kv-1.png', sub:'江 南 旧 梦 · 初中英语词汇', verse:'一蓑烟雨，词入江湖。', seal:'烟\n雨'},
   {img:'kv-2.png', sub:'夜 雨 剑 影 · 初中英语词汇', verse:'夜雨江湖，剑气未收。', seal:'夜\n雨'},
@@ -1235,18 +1244,37 @@ const KV_LIST=[
   {img:'kv-6.png', sub:'月 下 孤 影 · 初中英语词汇', verse:'冷月孤悬，词心可鉴。', seal:'月\n下'},
   {img:'kv-7.png', sub:'初 雪 寒 江 · 初中英语词汇', verse:'寒江初雪，温故知新。', seal:'初\n雪'}
 ];
+const KV_KEY='vocab-kv-index';  // 手动选择的 KV 序号（独立键，不碰学习数据）
+let kvIndex=null;
 function kvIndexOfToday(){
   const d=new Date();
   const start=new Date(d.getFullYear(),0,0);
   const doy=Math.floor((d-start)/86400000);
   return doy % KV_LIST.length;
 }
+function currentKvIndex(){
+  if(kvIndex===null){
+    const saved=parseInt(get(KV_KEY,''),10);
+    if(!isNaN(saved)&&saved>=0&&saved<KV_LIST.length) kvIndex=saved;
+    else kvIndex=kvIndexOfToday();
+  }
+  return kvIndex;
+}
 function applyKv(){
-  const k=KV_LIST[kvIndexOfToday()];
+  const k=KV_LIST[currentKvIndex()];
   const scene=$('kvScene'); if(scene) scene.style.backgroundImage="url('"+k.img+"')";
   const sub=$('kvSub'); if(sub) sub.textContent=k.sub;
   const verse=$('kvVerse'); if(verse) verse.textContent=k.verse;
   const seal=$('kvSeal'); if(seal) seal.innerHTML=k.seal.replace('\n','<br>');
+  // 更新圆点指示器
+  const dots=$('kvDots'); if(dots){
+    dots.innerHTML=KV_LIST.map((_,i)=>'<i class="'+(i===currentKvIndex()?'on':'')+'"></i>').join('');
+  }
+}
+function switchKv(dir){
+  kvIndex=(currentKvIndex()+dir+KV_LIST.length)%KV_LIST.length;
+  set(KV_KEY,String(kvIndex));
+  applyKv();
 }
 
 /* ═════════ 主题定制：独立键 vocab-wuxia-theme，绝不触碰学习数据 ═════════ */

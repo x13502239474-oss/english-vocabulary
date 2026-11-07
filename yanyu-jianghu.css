@@ -187,6 +187,15 @@ em{font-style:normal}
 .kv-btn:active{transform:translateY(2px)}
 .kv-note{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--yy-text);text-shadow:0 1px 6px rgba(0,0,0,.6)}
 .kv-note b{color:var(--yy-gold-2);font-size:13px;font-weight:500}
+.kv-switch{border:1px solid rgba(237,231,218,.45);color:var(--yy-paper);background:rgba(16,30,35,.45);
+  font-family:var(--wx-font);font-size:12px;letter-spacing:2px;padding:8px 14px;min-height:38px;
+  backdrop-filter:blur(4px);transition:.15s;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.kv-switch:hover{border-color:var(--yy-gold-2);color:var(--yy-gold-2);background:rgba(42,62,68,.5)}
+.kv-switch:active{transform:translateY(1px)}
+.kv-dots{position:absolute;right:28px;bottom:12px;z-index:2;display:flex;gap:6px;align-items:center}
+.kv-dots i{width:7px;height:7px;border-radius:50%;background:rgba(237,231,218,.35);cursor:pointer;transition:.15s;
+  box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.kv-dots i.on{background:var(--yy-gold-2);transform:scale(1.35);box-shadow:0 0 8px var(--yy-gold)}
 @media(max-width:760px){
   .kv{margin:0 -16px 26px;min-height:280px}
   .kv-caption{padding:0 0 24px 20px;max-width:none}
@@ -197,6 +206,9 @@ em{font-style:normal}
   .kv-actions{right:16px;bottom:18px}
   .kv-btn{padding:11px 18px;min-height:44px;font-size:12.5px;letter-spacing:2px}
   .kv-note{font-size:9px}
+  .kv-switch{padding:7px 12px;min-height:36px;font-size:11px;letter-spacing:1px}
+  .kv-dots{right:16px;bottom:10px;gap:5px}
+  .kv-dots i{width:6px;height:6px}
 }
 
 /* ══ 通用排印 ══ */
