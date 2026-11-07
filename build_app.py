@@ -96,7 +96,7 @@ print('inline JSON: %.2f MB | gram lessons: %d' % (len(inline) / 1048576, len(gr
 
 # ---------- 2. 文案适配 ----------
 repls = [
-    ('<title>词根联想英语词汇</title>', '<title>高中词根联想 · 英语词汇</title>', 'title'),
+    ('<title>词根联想英语词汇</title>', '<title>北境词林 · 高中英语自学本</title>', 'title'),
     ('初中英语综合测试卷', '高中英语综合测试卷', 'paper title'),
     ('英语测试卷（初中级别 · 自动生成）', '英语测试卷（高中词汇 · 自动生成）', 'paper comment'),
     ('听力扩展语料（初中水平，内置在页面里，离线版自动带）',
@@ -112,17 +112,10 @@ for old, new, label in repls:
     s = rep(s, old, new, label)
 
 # ---------- 3. 顶部说明条 ----------
-head = (
-    '<div style="padding:20px 20px 4px;max-width:1100px;margin:0 auto">'
-    '<div style="font:500 21px/1.3 var(--serif);color:var(--ink)">高中词根联想 · 英语词汇</div>'
-    '<div style="font:13px/1.65 var(--sans);color:var(--muted);margin-top:6px">'
-    '{:,} 词 · {:,} 短句　｜　数据源：绿宝书系列版（主词库）＋ 20 天背完高考核心词汇（高频标记 / 真题例句 / 20 天计划）＋ 海豚版（校补）'
-    '　｜　语法课程与听力语料沿用初中版，作为衔接复习</div>'
-    '<div style="font:12px/1.6 var(--sans);color:var(--muted);margin-top:4px">'
-    '在「全部 Word List」下拉中可选「高考高频」或「20 天冲刺 · Day 01–20」；学习进度与初中版相互独立</div>'
-    '</div>'
-).format(meta['total'], meta['sents'])
-s = rep(s, '<div class="stats">', head + ' <div class="stats">', 'head note')
+# 数据源说明已并入扉页的「版本记录 / COLOPHON」，不再在页首塞一条说明。
+# 保留插入点，方便以后要加版本铭牌时直接改这里。
+head = ''
+s = rep(s, '<div class="stats">', head + '<div class="stats">', 'head note')
 
 # ---------- 4. 虚拟分组：高考高频 + 20 天冲刺 ----------
 NEW_FILTERED = '''function hsListPred(list){
