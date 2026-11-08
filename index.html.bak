@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>词根联想英语词汇</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#1e293b;--muted:#64748b;--blue:#2563eb;--line:#e2e8f0;--green:#15803d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:linear-gradient(120deg,#173b75,#3478e5);color:white;padding:25px max(18px,calc((100% - 1100px)/2)) 22px}
+header h1{margin:0;font-size:clamp(23px,4vw,32px)}header p{margin:5px 0 0;color:#e4edff}
+main{max-width:1100px;margin:22px auto;padding:0 16px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}.stat,.panel,.word-card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 4px 14px #0f172a08}.stat{padding:14px 16px}.stat strong{display:block;font-size:24px}.stat span{color:var(--muted);font-size:13px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,button,select,input{font:inherit}.tab,button{border:1px solid var(--line);background:white;border-radius:10px;padding:9px 13px;cursor:pointer}.tab.active,button.primary{background:var(--blue);color:white;border-color:var(--blue)}button:disabled{opacity:.45;cursor:not-allowed}
+.controls{display:grid;grid-template-columns:minmax(180px,1fr) 180px auto;gap:10px;margin-bottom:14px}.controls input,.controls select{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:white}
+.panel{padding:20px}.word-card{padding:clamp(18px,4vw,32px);min-height:270px;display:flex;flex-direction:column;justify-content:center}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}.word{font-size:clamp(32px,6vw,48px);font-weight:750;letter-spacing:-.03em;margin:3px 0}.phonetic{color:var(--muted)}.definition{font-size:21px;margin:18px 0 8px}.detail{padding-top:12px;border-top:1px solid var(--line);margin-top:12px;white-space:pre-wrap}.detail b{display:block;color:#334155;font-size:13px;margin-bottom:4px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}.list{display:grid;gap:8px}.item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:white;border:1px solid var(--line);border-radius:12px;padding:12px 14px}.item .w{font-weight:700}.item small{display:block;color:var(--muted)}.item button{padding:6px 10px}.hidden{display:none!important}.progress{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin:10px 0 18px}.progress div{height:100%;background:#22c55e;width:0;transition:width .2s}.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.quiz-options button{text-align:left;min-height:52px}.feedback{margin-top:14px;font-weight:600}.footer{color:var(--muted);font-size:12px;text-align:center;margin:28px 0}
+@media(max-width:620px){.stats{gap:7px}.stat{padding:10px}.stat strong{font-size:20px}.controls{grid-template-columns:1fr}.quiz-options{grid-template-columns:1fr}.item{padding:10px}}
+</style>
+</head>
+<body>
+<header><h1>词根联想 · 英语词汇</h1><p>把单词拆开、联想、复习，让记忆更轻松。</p></header>
+<main>
+<div class="stats">
+ <div class="stat"><strong id="total">—</strong><span>词库单词</span></div>
+ <div class="stat"><strong id="learned">0</strong><span>已掌握</span></div>
+ <div class="stat"><strong id="today">30</strong><span>今日学习目标</span></div>
+</div>
+<div class="progress"><div id="progress"></div></div>
+<div class="tabs">
+ <button class="tab active" data-view="study">单词学习</button>
+ <button class="tab" data-view="quiz">小测验</button>
+ <button class="tab" data-view="list">词库检索</button>
+ <button class="tab" data-view="review">待复习</button>
+</div>
+<section id="study" class="view">
+ <div class="controls"><input id="searchStudy" placeholder="搜索单词或中文释义…"><select id="listStudy"><option value="">全部 Word List</option></select><button id="shuffle">随机抽词</button></div>
+ <article class="word-card">
+  <div class="eyebrow" id="counter">准备开始</div><div class="word" id="word">Welcome!</div><div class="phonetic" id="phonetic">点击“显示释义”开始学习</div>
+  <div id="answer" class="hidden"><div class="definition" id="definition"></div><div class="detail" id="memoryWrap"><b>记忆提示</b><span id="memory"></span></div><div class="detail" id="exampleWrap"><b>例句</b><span id="example"></span></div></div>
+  <div class="actions"><button class="primary" id="reveal">显示释义</button><button id="unknown">还不熟</button><button id="master">标记掌握 ✓</button><button id="prev">上一个</button><button id="next">下一个 →</button></div>
+ </article>
+</section>
+<section id="quiz" class="view hidden"><div class="panel"><div class="section-title"><h2>单词小测验</h2><span id="quizScore">得分：0</span></div><p id="quizPrompt">选择正确的中文释义。</p><div class="word" id="quizWord">—</div><div class="phonetic" id="quizPhonetic"></div><div class="quiz-options" id="quizOptions"></div><div id="quizFeedback" class="feedback"></div><div class="actions"><button class="primary" id="nextQuiz">下一题</button></div></div></section>
+<section id="list" class="view hidden"><div class="controls"><input id="searchList" placeholder="输入英文、中文、词根联想…"><select id="listFilter"><option value="">全部 Word List</option></select><button id="clearSearch">清空搜索</button></div><div class="section-title"><h2>词库</h2><span id="resultCount"></span></div><div id="wordList" class="list"></div><div class="actions"><button id="more">加载更多</button></div></section>
+<section id="review" class="view hidden"><div class="section-title"><h2>待复习单词</h2><span id="reviewCount"></span></div><p style="color:var(--muted)">点“还不熟”会加入这里；掌握后可以从待复习中移除。</p><div id="reviewList" class="list"></div></section>
+<p class="footer">学习记录保存在当前浏览器中。此网页为个人学习辅助工具；词库内容来自你提供的电子书，仅建议个人学习使用。</p>
+</main>
+<script>
+let words=[], index=0, visibleCount=80, quizCurrent=null, score=0, answered=false;
+const $=id=>document.getElementById(id);
+const loadSet=(key)=>new Set(JSON.parse(localStorage.getItem(key)||"[]"));
+let mastered=loadSet("vocab-mastered"), review=loadSet("vocab-review");
+function save(){localStorage.setItem("vocab-mastered",JSON.stringify([...mastered]));localStorage.setItem("vocab-review",JSON.stringify([...review]));updateStats()}
+function updateStats(){$("total").textContent=words.length.toLocaleString();$("learned").textContent=mastered.size;$("progress").style.width=(words.length?Math.min(100,mastered.size/words.length*100):0)+"%"}
+function optionsForLists(){let lists=[...new Set(words.map(w=>w.list))].sort((a,b)=>parseInt(a.split(" ").pop())-parseInt(b.split(" ").pop()));for(let id of ["listStudy","listFilter"])for(let l of lists){let o=document.createElement("option");o.value=l;o.textContent=l;$(id).appendChild(o)}}
+function filtered(search="", list=""){search=search.trim().toLowerCase();return words.filter(w=>(!list||w.list===list)&&(!search||[w.word,w.phonetic,w.definition,w.memory,w.example].join(" ").toLowerCase().includes(search)))}
+function showWord(i){if(!words.length)return;index=(i+words.length)%words.length;let w=words[index];$("counter").textContent=`${w.list} · ${index+1} / ${words.length}`;$("word").textContent=w.word;$("phonetic").textContent=w.phonetic||"暂无音标";$("definition").textContent=w.definition||"暂无释义";$("memory").textContent=w.memory||"这条词条没有单独的记忆提示。";$("example").textContent=w.example||"暂无例句";$("memoryWrap").classList.toggle("hidden",!w.memory);$("exampleWrap").classList.toggle("hidden",!w.example);$("answer").classList.add("hidden");$("reveal").textContent="显示释义";$("master").textContent=mastered.has(w.word)?"已掌握 ✓":"标记掌握 ✓"}
+function activeWord(){return words[index]}
+$("reveal").onclick=()=>{$("answer").classList.toggle("hidden");$("reveal").textContent=$("answer").classList.contains("hidden")?"显示释义":"收起释义"};
+$("next").onclick=()=>showWord(index+1);$("prev").onclick=()=>showWord(index-1);
+$("shuffle").onclick=()=>showWord(Math.floor(Math.random()*words.length));
+$("master").onclick=()=>{let w=activeWord();if(mastered.has(w.word))mastered.delete(w.word);else{mastered.add(w.word);review.delete(w.word)}save();showWord(index);};
+$("unknown").onclick=()=>{review.add(activeWord().word);mastered.delete(activeWord().word);save();renderReview();showWord(index+1)};
+$("searchStudy").oninput=()=>{let arr=filtered($("searchStudy").value,$("listStudy").value);if(arr.length)showWord(words.indexOf(arr[0]));};
+$("listStudy").onchange=()=>{let arr=filtered($("searchStudy").value,$("listStudy").value);if(arr.length)showWord(words.indexOf(arr[0]));};
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".view").forEach(x=>x.classList.toggle("hidden",x.id!==b.dataset.view));if(b.dataset.view==="review")renderReview();if(b.dataset.view==="list")renderList()});
+function renderList(){let arr=filtered($("searchList").value,$("listFilter").value);$("resultCount").textContent=`${arr.length} 条结果`;$("wordList").innerHTML="";arr.slice(0,visibleCount).forEach(w=>{let d=document.createElement("div");d.className="item";d.innerHTML=`<div><span class="w"></span><small></small></div><button>学习</button>`;d.querySelector(".w").textContent=w.word+" "+w.phonetic;d.querySelector("small").textContent=w.definition;d.querySelector("button").onclick=()=>{showWord(words.indexOf(w));document.querySelector('[data-view="study"]').click()};$("wordList").appendChild(d)});$("more").classList.toggle("hidden",arr.length<=visibleCount)}
+$("searchList").oninput=()=>{visibleCount=80;renderList()};$("listFilter").onchange=()=>{visibleCount=80;renderList()};$("more").onclick=()=>{visibleCount+=80;renderList()};$("clearSearch").onclick=()=>{$("searchList").value="";$("listFilter").value="";visibleCount=80;renderList()};
+function renderReview(){let arr=words.filter(w=>review.has(w.word));$("reviewCount").textContent=`${arr.length} 个单词`;$("reviewList").innerHTML="";arr.forEach(w=>{let d=document.createElement("div");d.className="item";d.innerHTML='<div><span class="w"></span><small></small></div><button>重新学习</button>';d.querySelector(".w").textContent=w.word+" "+w.phonetic;d.querySelector("small").textContent=w.definition;d.querySelector("button").onclick=()=>{showWord(words.indexOf(w));document.querySelector('[data-view="study"]').click()};$("reviewList").appendChild(d)});if(!arr.length)$("reviewList").innerHTML='<p>太棒了！当前没有待复习词汇。</p>'}
+function newQuiz(){answered=false;$("quizFeedback").textContent="";$("nextQuiz").textContent="下一题";quizCurrent=words[Math.floor(Math.random()*words.length)];$("quizWord").textContent=quizCurrent.word;$("quizPhonetic").textContent=quizCurrent.phonetic;let others=[];while(others.length<3){let w=words[Math.floor(Math.random()*words.length)];if(w.word!==quizCurrent.word&&!others.some(x=>x.word===w.word)&&w.definition)others.push(w)}let choices=[quizCurrent,...others].sort(()=>Math.random()-.5);$("quizOptions").innerHTML="";choices.forEach(w=>{let b=document.createElement("button");b.textContent=w.definition||"暂无释义";b.onclick=()=>{if(answered)return;answered=true;if(w.word===quizCurrent.word){score++;$("quizFeedback").textContent="回答正确！";$("quizFeedback").style.color="#15803d"}else{$("quizFeedback").textContent="再记一下："+quizCurrent.word+" — "+quizCurrent.definition;$("quizFeedback").style.color="#b45309"}$("quizScore").textContent="得分："+score;[...$("quizOptions").children].forEach(x=>x.disabled=true)};$("quizOptions").appendChild(b)})}
+$("nextQuiz").onclick=newQuiz;
+fetch("words.json").then(r=>r.json()).then(data=>{words=data;optionsForLists();updateStats();showWord(0);renderList();newQuiz()}).catch(()=>{$("word").textContent="词库加载失败";$("phonetic").textContent="请确认 words.json 与 index.html 位于同一文件夹，并通过本地服务器打开。" });
+</script>
+</body></html>
