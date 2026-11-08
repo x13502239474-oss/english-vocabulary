@@ -242,6 +242,54 @@ function vuStop(){
 function audioRate(){ return parseFloat(get('vocab-rate','0.8'))||0.8; }
 function audioSource(){ return settings.audioSource||get('vocab-audio-source','browser')||'browser'; }
 
+/* ── 手机静音播放 ───────────────────────────────────────
+   iOS 16.4+（Safari / WKWebView，含 iOS 上的其他浏览器）支持 navigator.audioSession，
+   把会话声明为 playback 后，网页音频按「媒体播放」处理，可绕过硬件静音拨杆。
+   Android 静音模式一般只静音铃声与通知，媒体声道独立；若用户把「媒体音量」
+   调到 0，网页无法修改系统音量，只能给出引导。iOS 16.3 及以下无标准 API，
+   用「首次交互播放一段极短静音音频」的会话解锁技巧尽力而为，不保证有效。
+   ───────────────────────────────────────────────────── */
+let audioSessionState='unsupported', audioUnlocked=false;
+const SILENT_WAV='data:audio/wav;base64,UklGRrQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
+function setupAudioSession(){
+  try{
+    const s=navigator.audioSession;
+    if(s){ s.type='playback'; audioSessionState='playback'; return true; }
+  }catch(e){}
+  return false;
+}
+function isIOSDevice(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)||
+         (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+}
+function unlockAudioSession(){
+  if(audioUnlocked) return;
+  audioUnlocked=true;
+  setupAudioSession();
+  /* HTML5 audio 元素会把 iOS 会话提升为媒体播放，用一段听不见的静音激活它 */
+  try{
+    const a=new Audio(SILENT_WAV);
+    a.volume=0.01; a.muted=false;
+    const p=a.play(); if(p&&typeof p.catch==='function') p.catch(()=>{});
+    setTimeout(()=>{ try{ a.pause(); a.removeAttribute('src'); }catch(e){} },900);
+  }catch(e){}
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(AC){
+      const c=new AC();
+      if(c.resume) { const r=c.resume(); if(r&&r.catch) r.catch(()=>{}); }
+      setTimeout(()=>{ try{ c.close(); }catch(e){} },900);
+    }
+  }catch(e){}
+}
+function silentCapabilityText(){
+  if(audioSessionState==='playback')
+    return '静音可播：已启用 iOS 媒体播放模式（iOS 16.4+），手机拨到静音侧仍可听到发音。此模式可能暂停手机上正在播放的其他音乐。';
+  if(isIOSDevice())
+    return '静音可播：当前系统/浏览器不支持（需 iOS 16.4+，用 Safari 或系统 WebView）。若听不到声音，请拨回静音拨杆，并用音量键调高媒体音量。';
+  return '静音可播：Android 静音通常不影响媒体声道；若听不到声音，请按音量键把「媒体音量」调高。媒体音量被调到 0 时网页无法修改系统音量。';
+}
+
 let speakSeq=0, speakTimers=[], ttsBeat=null, voiceList=[], voicesReady=false, userActivated=false, curUtterance=null;
 function refreshVoices(){
   try{
@@ -259,7 +307,7 @@ if('speechSynthesis' in window){
   try{ window.speechSynthesis.addEventListener('voiceschanged',refreshVoices); }catch(e){}
 }
 ['pointerdown','keydown','touchstart'].forEach(ev=>{
-  document.addEventListener(ev,()=>{ userActivated=true; },{once:true,capture:true,passive:true});
+  document.addEventListener(ev,()=>{ userActivated=true; unlockAudioSession(); },{once:true,capture:true,passive:true});
 });
 
 function speakLater(fn,ms){ const t=setTimeout(fn,ms); speakTimers.push(t); return t; }
@@ -286,7 +334,7 @@ function onlineUrl(t){
 }
 
 /* 在线真人发音：以 onplaying 判定「确实出声」，error / play reject / 6s 超时均判失败 */
-function speakOnline(txt,onFail,onOk){
+function speakOnline(txt,onFail,onOk,rate){
   if(!txt){ onFail(); return; }
   let settled=false;
   const ok=()=>{ if(settled) return; settled=true; if(onOk) onOk(); };
@@ -294,7 +342,7 @@ function speakOnline(txt,onFail,onOk){
   try{
     const a=new Audio(); audioEl=a;
     a.preload='auto';
-    a.playbackRate=Math.max(0.5,Math.min(2,audioRate()*1.25));
+    a.playbackRate=Math.max(0.5,Math.min(2,(rate||audioRate())*1.25));
     a.onplaying=ok;
     a.onended=()=>vuStop();
     a.onerror=fail;
@@ -306,7 +354,7 @@ function speakOnline(txt,onFail,onOk){
 }
 
 /* 浏览器朗读：静默失败是本机无英文语音包的典型表现，必须主动探测 */
-function speakTTS(txt,onFail,onOk){
+function speakTTS(txt,onFail,onOk,rate){
   if(!('speechSynthesis' in window)||!txt){ onFail(); return; }
   refreshVoices();
   const ss=window.speechSynthesis, v=englishVoice();
@@ -316,7 +364,7 @@ function speakTTS(txt,onFail,onOk){
   let u;
   try{
     u=new SpeechSynthesisUtterance(txt);
-    u.lang='en-US'; u.rate=audioRate(); u.pitch=1; u.volume=1;
+    u.lang='en-US'; u.rate=(rate||audioRate()); u.pitch=1; u.volume=1;
     if(v) u.voice=v;
   }catch(e){ onFail(); return; }
   curUtterance=u;
@@ -350,7 +398,7 @@ function speakTTS(txt,onFail,onOk){
 }
 
 /* 两条链路互备：browser → TTS → 真人；online → 真人 → TTS */
-function speak(text,force,report){
+function speak(text,force,report,rateOverride){
   if(!text) return;
   text=String(text).trim();
   if(!text) return;
@@ -358,24 +406,26 @@ function speak(text,force,report){
   const txt=ttsText(text)||text;
   const seq=++speakSeq;
   const alive=()=>seq===speakSeq;
+  const rate=parseFloat(rateOverride)||audioRate();
+  unlockAudioSession();
   clearSpeakTimers(); stopAudioEl(); stopTTS();
   vuStart();
-  const msg=m=>{ if(report) toast(m); };
+  const msg=m=>{ if(report) toast(m+(audioSessionState==='playback'?' · 静音可播':'')); };
   let allFailed=false;
   const failAll=()=>{
     if(allFailed||!alive()) return;
     allFailed=true; vuStop();
-    toast('发音不可用：本机未启用英文朗读，在线真人发音也未能加载（请检查网络，或在「江湖设置」里切换发音方式）');
+    toast('发音不可用：请检查网络；手机静音时请关闭静音拨杆，并用音量键调高「媒体音量」');
   };
   const useOnline=()=>{
     speakOnline(txt,
-      ()=>{ if(alive()) speakTTS(txt,failAll,()=>msg('发音正常 · 浏览器朗读（在线发音不可用）')); },
-      ()=>msg('发音正常 · 在线真人发音'));
+      ()=>{ if(alive()) speakTTS(txt,failAll,()=>msg('发音正常 · 浏览器朗读（在线发音不可用）'),rate); },
+      ()=>msg('发音正常 · 在线真人发音'),rate);
   };
   const useTTS=()=>{
     speakTTS(txt,
       ()=>{ if(alive()) useOnline(); },
-      ()=>msg('发音正常 · 浏览器朗读'));
+      ()=>msg('发音正常 · 浏览器朗读'),rate);
   };
   let src=(force==='online'||force==='browser')?force:audioSource();
   /* 已确认本机没有英文语音时直接走真人发音，不必白等 TTS 超时 */
@@ -870,6 +920,170 @@ function finishQuiz(){
   if($('qWrong')) $('qWrong').onclick=()=>{ $('drillScope').value='wrong'; startQuiz(); };
 }
 
+/* ── 捌 · 听写台 / DICTATION ────────────────────────────
+   独立板块：只听发音、不看词形，输入拼写后逐字批改。
+   成绩记在独立键 vocab-dictation-log，原有 vocab-* 学习数据只按既有规则追加。
+   ─────────────────────────────────────────────────── */
+const DICT_LOG='vocab-dictation-log';
+let dict=null;
+function dictLogAll(){ return getObj(DICT_LOG); }
+function dictStreak(log){
+  let n=0; const d=new Date();
+  const t=dayKey(d);
+  if(!log[t]||!log[t].rounds) d.setDate(d.getDate()-1);
+  for(let guard=0;guard<3650;guard++){
+    const r=log[dayKey(d)];
+    if(!r||!r.rounds) break;
+    n++; d.setDate(d.getDate()-1);
+  }
+  return n;
+}
+function renderDictStats(){
+  const el=$('dictStats'); if(!el) return;
+  const log=dictLogAll();
+  let rounds=0,total=0,right=0;
+  Object.keys(log).forEach(k=>{ const r=log[k]||{}; rounds+=r.rounds||0; total+=r.total||0; right+=r.right||0; });
+  const pct=total?Math.round(right/total*100):0;
+  const last=log[TODAY()]||{};
+  el.innerHTML='<div><b>'+rounds+'</b><span>累计轮数</span></div>'+
+    '<div><b>'+pct+'%</b><span>累计正确率</span></div>'+
+    '<div><b>'+dictStreak(log)+'</b><span>连续听写 / 天</span></div>'+
+    '<div><b>'+(last.rounds||0)+'</b><span>今日轮数</span></div>';
+}
+function dictPool(){
+  const scope=$('dictScope').value;
+  const todayNew=(daily[TODAY()]||{}).new||[];
+  let arr=words.filter(x=>{
+    if(!x.word||x.word.length<2) return false;
+    if(scope==='unmastered') return !mastered.has(x.word);
+    if(scope==='review') return review.has(x.word);
+    if(scope==='wrong') return wrong.has(x.word);
+    if(scope==='favorites') return favorites.has(x.word);
+    if(scope==='today') return todayNew.indexOf(x.word)>=0;
+    return true;
+  });
+  if(!arr.length) arr=words.filter(x=>x.word&&x.word.length>1).slice();
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=arr[i];arr[i]=arr[j];arr[j]=t; }
+  return arr.slice(0,parseInt($('dictCount').value,10)||10);
+}
+function maskText(word,mode){
+  if(mode==='mask') return word.split('').map(()=>'▁').join(' ');
+  if(mode==='first') return word.charAt(0)+word.slice(1).replace(/[A-Za-z]/g,' ·');
+  return '· '.repeat(word.length).trim();
+}
+function diffHTML(answer,correct){
+  const a=String(answer||''), c=String(correct||'');
+  let out='';
+  for(let i=0;i<c.length;i++){
+    const x=c[i];
+    const same=a[i]&&a[i].toLowerCase()===x.toLowerCase();
+    out+='<span class="'+(same?'dict-ok':'dict-bad')+'">'+esc(x)+'</span>';
+  }
+  return out;
+}
+function startDict(){
+  const list=dictPool();
+  if(!list.length){ toast('取词范围为空，请换一个范围'); return; }
+  dict={list:list,i:0,right:0,wrongWords:[],answered:false,hintUsed:0,revealed:false,finished:false};
+  renderDict();
+}
+function renderDict(){
+  const box=$('dictBody'); if(!box) return;
+  if(!dict){
+    box.innerHTML='<div class="empty-panel"><div class="empty-dial">听</div><p>按下「开始听写」，只凭耳朵落笔。<br>听不清可反复重播，慢速或字母提示随时可用。</p></div>';
+    return;
+  }
+  if(dict.finished) return;
+  if(dict.i>=dict.list.length){ finishDict(); return; }
+  const q=dict.list[dict.i], hintMode=$('dictHint').value;
+  const mask=maskText(q.word,hintMode);
+  const prog='<div class="quiz-progress"><span>第 '+(dict.i+1)+' / '+dict.list.length+' 词</span><span>听写 · '+esc(q.list||'')+'</span></div>';
+  box.innerHTML='<div class="quiz-card">'+prog+
+    '<div class="quiz-q" style="font-size:clamp(24px,4vw,38px)">◖ 听 写 ◗</div>'+
+    '<div class="quiz-sub">只听发音，不看词形 · 听清后写出完整单词</div>'+
+    '<div class="dict-play-row">'+
+      '<button class="a-key on" id="dictPlay">▶ 播放发音</button>'+
+      '<button class="a-key" id="dictSlow">↻ 慢速重播</button>'+
+      '<button class="a-key" id="dictHintBtn">⌁ 字母提示</button>'+
+    '</div>'+
+    '<div class="dict-mask" id="dictMask">'+mask+'</div>'+
+    '<input class="spell-input" id="dictInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="写下听到的单词">'+
+    '<div style="margin-top:10px"><button class="a-key on" id="dictGo">校 对</button></div>'+
+    '<p class="dict-tip">Enter 提交 · 忽略大小写与多余空格 · 提示不扣分</p>'+
+    '<div id="dictFeedback"></div></div>';
+  const play=rate=>speak(q.word,null,false,rate);
+  $('dictPlay').onclick=()=>play();
+  $('dictSlow').onclick=()=>play(0.6);
+  $('dictHintBtn').onclick=()=>{
+    dict.hintUsed++;
+    dict.revealed=!dict.revealed;
+    $('dictMask').textContent=dict.revealed?(q.word.charAt(0)+' '+q.word.slice(1).replace(/[A-Za-z]/g,' _')):mask;
+    if(dict.revealed) toast('已给出首字母与长度提示');
+  };
+  const go=()=>{
+    if(dict.answered) return;
+    const input=$('dictInput'), raw=input?input.value:'';
+    const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,'');
+    dictAnswer(norm(raw)===norm(q.word),q,raw);
+  };
+  $('dictGo').onclick=go;
+  $('dictInput').onkeydown=e=>{ if(e.key==='Enter') go(); };
+  $('dictInput').focus();
+  /* 不自动播放：让播放始终发生在明确的用户手势里，避免移动端被自动播放策略拦截 */
+}
+function dictAnswer(ok,q,raw){
+  dict.answered=true;
+  logDay('q',q.word);
+  const st=srs[q.word]||{level:0,times:0,wrong:0};
+  delete st.seed;
+  if(ok){
+    dict.right++; logDay('correct',q.word);
+    st.times=(st.times||0)+1;
+    st.level=Math.min(6,(st.level||0)+1);
+    st.due=addDays(INTERVALS[Math.min(st.level,5)]);
+    if(st.level>=6){ mastered.add(q.word); review.delete(q.word); }
+    else { review.add(q.word); reviewArchive.add(q.word); }
+  } else {
+    dict.wrongWords.push(q.word); wrong.add(q.word);
+    st.level=0; st.due=TODAY(); st.wrong=(st.wrong||0)+1;
+    review.add(q.word); reviewArchive.add(q.word);
+  }
+  srs[q.word]=st; persist();
+  const inp=$('dictInput'); if(inp) inp.disabled=true;
+  const btn=$('dictGo'); if(btn) btn.disabled=true;
+  const f=$('dictFeedback');
+  if(f) f.innerHTML='<div class="quiz-feedback'+(ok?'':' bad')+'">'+(ok?'✓ 听写正确':'✕ 正解是 '+esc(q.word))+'</div>'+
+    (ok?'':'<div class="dict-diff"><div><em>你写的</em><b>'+esc(raw||'（空）')+'</b></div>'+
+      '<div><em>正确拼写</em><b>'+diffHTML(raw,q.word)+'</b></div></div>')+
+    '<div class="dict-def">'+esc(q.phonetic||'')+'　·　'+esc(shortDef(q,60))+'</div>'+
+    '<button class="a-key" id="dictNext" style="margin-top:12px">'+(dict.i+1>=dict.list.length?'查看报告':'下一词 →')+'</button>';
+  const n=$('dictNext'); if(n) n.onclick=()=>{ dict.i++; dict.answered=false; dict.revealed=false; renderDict(); };
+}
+function finishDict(){
+  if(!dict||dict.finished) return;
+  dict.finished=true;
+  const total=dict.list.length, right=dict.right, pct=Math.round(right/total*100);
+  dict.wrongWords.forEach(w=>logDay('review',w));
+  const log=dictLogAll(), k=TODAY();
+  if(!log[k]) log[k]={rounds:0,total:0,right:0};
+  log[k].rounds++; log[k].total+=total; log[k].right+=right;
+  setObj(DICT_LOG,log); persist(); renderDictStats();
+  $('dictBody').innerHTML='<div class="result-sheet"><div class="cap">听 写 报 告 ／ DICTATION REPORT</div>'+
+    '<div class="big">'+pct+'<span style="font-size:24px">%</span></div>'+
+    '<div class="result-grid"><div><b>'+total+'</b><span>听写词数</span></div><div><b>'+right+'</b><span>拼写正确</span></div>'+
+    '<div><b>'+(total-right)+'</b><span>写错之词</span></div></div>'+
+    (dict.wrongWords.length?'<div class="cap" style="margin-top:20px">写 错 之 词 ／ 已记入错词</div><div class="wrong-chips">'+dict.wrongWords.map(w=>'<span>'+esc(w)+'</span>').join('')+'</div>':'<p class="shop-note">字字落笔无误，这一轮没有破绽。</p>')+
+    '<p class="shop-note">本轮用了 '+dict.hintUsed+' 次字母提示 · 连续听写 '+dictStreak(log)+' 天</p>'+
+    '<div class="shop-actions" style="justify-content:center"><button class="key-key small" id="dictAgain"><span>再来一轮</span><b>→</b></button>'+
+    (dict.wrongWords.length?'<button class="outline-key" id="dictWrong">错词重听</button>':'')+
+    '<button class="outline-key" id="dictBack">回到总览</button></div></div>';
+  $('dictAgain').onclick=startDict;
+  $('dictBack').onclick=()=>switchView('home');
+  if($('dictWrong')) $('dictWrong').onclick=()=>{ $('dictScope').value='wrong'; startDict(); };
+}
+/* 切回本视图时只刷新统计，不打断正在进行的听写 */
+function renderDictation(){ renderDictStats(); }
+
 /* ── 回访 / REVISIT ─────────────────────────────────── */
 function reviewRow(w,overdue){
   const o=wordByName(w)||{definition:'',list:''};
@@ -1059,6 +1273,7 @@ function renderSettings(){
   const enV=!!englishVoice();
   $('audioCapability').textContent='本机能力：浏览器英文朗读 '+(tts&&enV?'可用':(tts?'语音包待加载，暂用真人发音':'不可用，自动用真人发音'))+
     '；语音识别 '+(sr?'可用':'不可用（跟读自动切换为自评模式）')+'。任一路失败会自动切换另一路；真人发音需联网。点「试听发音」可查看本次结果。';
+  const sc=$('silentCapability'); if(sc) sc.textContent=silentCapabilityText();
   $('shadowCap').textContent=sr?'点击「开始跟读」后对着麦克风读出单词，系统会自动比对。':'当前浏览器不支持语音识别，跟读提供「自评打卡」替代，不会留下无效按钮。';
   $('dataHealth').innerHTML='词库 '+BANK.length+' 枚（原有）+ '+getAny('vocab-custom-words').length+' 枚（自建）／已掌握 '+mastered.size+
     '／待温 '+review.size+'／错词 '+wrong.size+'／收藏 '+favorites.size+'／复习档案 '+Object.keys(srs).length+' 条／每日记录 '+Object.keys(daily).length+' 天。';
@@ -1158,6 +1373,7 @@ function renderAll(){
   else if(currentView==='review') renderReview();
   else if(currentView==='case') renderCase();
   else if(currentView==='records') renderRecords();
+  else if(currentView==='dictation') renderDictation();
   else if(currentView==='settings'){ renderSettings(); renderThemePanel(); }
   if(currentView==='home'){ renderHeadWave(); }
 }
@@ -1299,6 +1515,7 @@ function bind(){
   $$('#drillModes button').forEach(b=>b.onclick=()=>{ drillMode=b.dataset.mode;
     $$('#drillModes button').forEach(x=>x.classList.toggle('on',x===b)); });
   $('btnDrillStart').onclick=startQuiz;
+  $('btnDictStart').onclick=startDict;
 
   $$('#stateFilters button').forEach(b=>b.onclick=()=>{ caseState=b.dataset.state; casePage=0; renderCase(); });
   let searchTimer=null;
@@ -1481,6 +1698,7 @@ function clock(){
   const el=$('hdrClock'); if(el) el.textContent=pad(d.getHours())+':'+pad(d.getMinutes());
 }
 function init(){
+  setupAudioSession();
   loadTheme(); applyTheme();
   applyKv();
   ensureMigration();

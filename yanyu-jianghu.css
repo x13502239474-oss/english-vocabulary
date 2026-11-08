@@ -666,11 +666,11 @@ code{font-family:var(--mono);font-size:11px;background:rgba(22,40,46,.7);padding
   .readout-row{grid-template-columns:repeat(2,1fr)}
   .readout:nth-child(2){border-right:0}
   .readout:nth-child(-n+2){border-bottom:1px solid var(--yy-mist)}
-  .mobile-tabs{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:50;
+  .mobile-tabs{display:grid;grid-template-columns:repeat(6,1fr);position:fixed;left:0;right:0;bottom:0;z-index:50;
     background:linear-gradient(180deg,rgba(15,27,32,.95),rgba(11,20,24,.97));border-top:1px solid var(--yy-mist);padding-bottom:env(safe-area-inset-bottom);backdrop-filter:blur(8px)}
-  .mobile-tabs button{color:var(--yy-text-2);padding:9px 2px 8px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-  .mobile-tabs button i{font-family:var(--wx-font);font-size:11px;letter-spacing:1px;font-style:normal}
-  .mobile-tabs button span{font-size:12px;letter-spacing:1px}
+  .mobile-tabs button{color:var(--yy-text-2);padding:9px 1px 8px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .mobile-tabs button i{font-family:var(--wx-font);font-size:10px;letter-spacing:1px;font-style:normal}
+  .mobile-tabs button span{font-size:11px;letter-spacing:0}
   .mobile-tabs button.on{color:var(--yy-gold-2);background:rgba(42,62,68,.4)}
   .grade-row{position:fixed;left:0;right:0;bottom:calc(58px + env(safe-area-inset-bottom));z-index:40;
     background:linear-gradient(180deg,rgba(15,27,32,.96),rgba(11,20,24,.98));border-top:1px solid var(--yy-mist);padding:8px 10px;gap:7px;margin:0}
@@ -778,4 +778,28 @@ code{font-family:var(--mono);font-size:11px;background:rgba(22,40,46,.7);padding
 }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+/* ══ 捌 · 听写台 / DICTATION ══ */
+.dict-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--yy-mist);
+  border:1px solid var(--yy-mist);margin-bottom:22px}
+.dict-stats div{background:rgba(19,36,42,.72);padding:11px 12px;text-align:center}
+.dict-stats b{display:block;font-family:var(--wx-font);font-size:22px;line-height:1.3;color:var(--yy-gold-2)}
+.dict-stats span{font-family:var(--mono);font-size:9px;letter-spacing:1.2px;color:var(--yy-text-2)}
+.dict-play-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 16px}
+.dict-play-row .a-key{min-width:112px}
+.dict-mask{text-align:center;font-family:var(--mono);font-size:clamp(18px,3vw,24px);letter-spacing:5px;
+  color:var(--yy-gold-2);margin:0 0 16px;min-height:30px;word-break:break-all}
+.dict-tip{text-align:center;font-family:var(--mono);font-size:10px;color:var(--yy-text-3);margin:8px 0 0;letter-spacing:.6px}
+.dict-diff{margin-top:14px;text-align:left;background:rgba(16,30,35,.6);border:1px solid var(--yy-mist);
+  padding:11px 14px;font-family:var(--mono);font-size:14px;line-height:2}
+.dict-diff div{display:flex;gap:12px;align-items:baseline}
+.dict-diff em{font-style:normal;font-size:10px;color:var(--yy-text-3);min-width:54px;letter-spacing:1px}
+.dict-diff b{font-weight:500;letter-spacing:2px;color:var(--yy-paper);word-break:break-all}
+.dict-ok{color:var(--yy-jade-2)}
+.dict-bad{color:var(--yy-seal-2);text-decoration:underline}
+.dict-def{margin-top:10px;font-size:12px;color:var(--yy-text-2);text-align:center;line-height:1.7}
+@media(max-width:900px){
+  .dict-stats{grid-template-columns:repeat(2,1fr)}
+  .dict-play-row .a-key{min-width:0;flex:1 1 100px}
 }

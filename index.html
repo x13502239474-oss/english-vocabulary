@@ -12,7 +12,7 @@
 <link rel="icon" href="apple-touch-icon.png" type="image/png">
 <title>烟雨江湖 · 江南旧梦｜初中英语词汇</title>
 <link rel="stylesheet" href="fonts/wenkai/lxgwwenkai-regular.css">
-<link rel="stylesheet" href="yanyu-jianghu.css?v=20261108a">
+<link rel="stylesheet" href="yanyu-jianghu.css?v=20261108b">
 </head>
 <body>
 
@@ -62,6 +62,7 @@
       <button class="band" data-view="case"><i>伍</i><span>词谱</span><small>江湖词谱</small><em></em></button>
       <button class="band" data-view="records"><i>陆</i><span>修行</span><small>修行记录</small><em></em></button>
       <button class="band" data-view="settings"><i>柒</i><span>江湖</span><small>江湖设置</small><em></em></button>
+      <button class="band" data-view="dictation"><i>捌</i><span>听写</span><small>闻声落笔</small><em></em></button>
       <div class="rail-foot">
         <div class="rf-dial" aria-hidden="true"><span></span></div>
         <p>三十二卷 · 六重境界<br>谱藏于本机，不示外人</p>
@@ -261,6 +262,31 @@
         </div>
       </section>
 
+      <!-- 捌 · 听写 / 闻声落笔 ───────────────────────────── -->
+      <section class="view" id="view-dictation">
+        <div class="hero-head compact">
+          <div><div class="kicker">DICTATION ／ 听 写 台</div><h1>听 写 台</h1>
+          <p class="lede">只闻其声，不落其形。听准了，再把词一笔一笔写出来。</p></div>
+        </div>
+        <div class="drill-config">
+          <label>取词范围 <select id="dictScope">
+            <option value="all">全部词汇</option>
+            <option value="unmastered">未掌握</option>
+            <option value="review">待温习</option>
+            <option value="wrong">错词</option>
+            <option value="favorites">收藏</option>
+            <option value="today">今日新习</option>
+          </select></label>
+          <label>每轮词数 <select id="dictCount"><option>8</option><option selected>10</option><option>15</option><option>20</option></select></label>
+          <label>字母提示 <select id="dictHint"><option value="off">不给提示</option><option value="first" selected>首字母</option><option value="mask">字母格</option></select></label>
+          <button class="key-key small" id="btnDictStart"><span>开始听写</span><b>→</b></button>
+        </div>
+        <div class="dict-stats" id="dictStats"></div>
+        <div class="drill-body" id="dictBody">
+          <div class="empty-panel"><div class="empty-dial">听</div><p>按下「开始听写」，只凭耳朵落笔。<br>听不清可反复重播，慢速或字母提示随时可用。</p></div>
+        </div>
+      </section>
+
       <!-- 肆 · 温故 / 待温习 ───────────────────────────── -->
       <section class="view" id="view-review">
         <div class="hero-head compact">
@@ -354,6 +380,7 @@
           <div class="shop-row"><span>每日新习目标</span><select id="dailyGoal"><option value="8">8 词</option><option value="12" selected>12 词</option><option value="20">20 词</option><option value="30">30 词</option></select></div>
           <div class="shop-actions"><button class="outline-key" id="btnTestAudio">试听发音</button><button class="outline-key" id="btnShadowSettings">打开跟读练习</button></div>
           <p class="shop-note" id="audioCapability">—</p>
+          <p class="shop-note" id="silentCapability">—</p>
         </div>
 
         <div class="shop-block">
@@ -373,6 +400,7 @@
     <button data-view="drill"><i>叁</i><span>试剑</span></button>
     <button data-view="review"><i>肆</i><span>温故</span></button>
     <button data-view="case"><i>伍</i><span>词谱</span></button>
+    <button data-view="dictation"><i>捌</i><span>听写</span></button>
   </nav>
 </div>
 
@@ -424,6 +452,6 @@
 
 <script src="data/words.js?v=20261108d"></script>
 <script src="data/progress-seed.js?v=20261108d"></script>
-<script src="yanyu-jianghu.js?v=20261108b"></script>
+<script src="yanyu-jianghu.js?v=20261108c"></script>
 </body>
 </html>
