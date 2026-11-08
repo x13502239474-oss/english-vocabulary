@@ -229,50 +229,159 @@ function vuStop(){
   [$('vuRow'),$('shadowVu')].forEach(r=>{ if(r) $$('i',r).forEach(b=>{ b.classList.remove('live'); b.style.height=''; }); });
 }
 
-/* ── 发音 ───────────────────────────────────────────── */
+/* ── 发音 ─────────────────────────────────────────────
+   2026-11-08 修复「点朗读完全没声音」：
+   1) 浏览器 TTS 缺少英文语音包时会静默失败（不触发 onstart/onend/onerror），
+      原逻辑只等 8 秒停动画，既无声也不降级 → 增加 watchdog 自动换源。
+   2) 在线句子接口 fanyi.baidu.com/gettts 已失效（返回空 HTML），
+      统一改用 dict.youdao.com/dictvoice；长句偶发 500 时由 TTS 兜底。
+   3) Chrome 下 speechSynthesis.cancel() 后立即 speak() 会被吞 → 让出一帧。
+   4) 页面首次加载的自动朗读受自动播放策略拦截 → 等首次用户交互。
+   5) 每次朗读用序号 + 一次性回调，避免快速连点互相取消或重复降级。
+   ─────────────────────────────────────────────────── */
 function audioRate(){ return parseFloat(get('vocab-rate','0.8'))||0.8; }
 function audioSource(){ return settings.audioSource||get('vocab-audio-source','browser')||'browser'; }
-function playOnline(text,isSentence,tryBrowser){
-  if(audioEl){ try{audioEl.pause();}catch(e){} }
-  const url=isSentence
-    ? 'https://fanyi.baidu.com/gettts?lan=en&text='+encodeURIComponent(text)+'&spd=3&source=web'
-    : 'https://dict.youdao.com/dictvoice?audio='+encodeURIComponent(text)+'&type=2';
-  const a=new Audio(url); audioEl=a;
-  a.playbackRate=Math.max(0.5,Math.min(2,audioRate()*1.25));
-  a.onended=vuStop;
-  a.onerror=()=>{
-    vuStop();
-    if(tryBrowser && 'speechSynthesis' in window){
-      const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=audioRate();
-      speechSynthesis.cancel(); speechSynthesis.speak(u);
-    } else toast('在线发音不可用，请在工坊中切换为浏览器朗读');
-  };
-  a.play().catch(()=>a.onerror&&a.onerror());
+
+let speakSeq=0, speakTimers=[], ttsBeat=null, voiceList=[], voicesReady=false, userActivated=false, curUtterance=null;
+function refreshVoices(){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    voiceList=window.speechSynthesis.getVoices()||[];
+    voicesReady=voiceList.length>0;
+  }catch(e){ voiceList=[]; }
 }
-function speak(text,force){
+function englishVoice(){
+  const en=voiceList.filter(v=>/^en([-_]|$)/i.test(v.lang||''));
+  return en.find(v=>/en[-_]US/i.test(v.lang))||en.find(v=>/en[-_]GB/i.test(v.lang))||en[0]||null;
+}
+if('speechSynthesis' in window){
+  refreshVoices();
+  try{ window.speechSynthesis.addEventListener('voiceschanged',refreshVoices); }catch(e){}
+}
+['pointerdown','keydown','touchstart'].forEach(ev=>{
+  document.addEventListener(ev,()=>{ userActivated=true; },{once:true,capture:true,passive:true});
+});
+
+function speakLater(fn,ms){ const t=setTimeout(fn,ms); speakTimers.push(t); return t; }
+function clearSpeakTimers(){
+  speakTimers.forEach(t=>{ try{ clearTimeout(t); }catch(e){} }); speakTimers=[];
+  if(ttsBeat){ clearInterval(ttsBeat); ttsBeat=null; }
+}
+function stopAudioEl(){
+  if(audioEl){
+    try{ audioEl.pause(); audioEl.onplaying=audioEl.onerror=audioEl.onended=null; audioEl.removeAttribute('src'); }catch(e){}
+    audioEl=null;
+  }
+}
+function stopTTS(){
+  if(curUtterance){ try{ curUtterance.onstart=curUtterance.onend=curUtterance.onerror=null; }catch(e){} curUtterance=null; }
+  try{ if('speechSynthesis' in window) window.speechSynthesis.cancel(); }catch(e){}
+}
+function ttsText(t){
+  return String(t||'').replace(/[\u3400-\u9fff\u3000-\u303f\uff00-\uffef]/g,' ')
+                      .replace(/\s+/g,' ').trim();
+}
+function onlineUrl(t){
+  return 'https://dict.youdao.com/dictvoice?audio='+encodeURIComponent(t)+'&type=2&le=en';
+}
+
+/* 在线真人发音：以 onplaying 判定「确实出声」，error / play reject / 6s 超时均判失败 */
+function speakOnline(txt,onFail,onOk){
+  if(!txt){ onFail(); return; }
+  let settled=false;
+  const ok=()=>{ if(settled) return; settled=true; if(onOk) onOk(); };
+  const fail=()=>{ if(settled) return; settled=true; onFail(); };
+  try{
+    const a=new Audio(); audioEl=a;
+    a.preload='auto';
+    a.playbackRate=Math.max(0.5,Math.min(2,audioRate()*1.25));
+    a.onplaying=ok;
+    a.onended=()=>vuStop();
+    a.onerror=fail;
+    a.src=onlineUrl(txt);
+    const p=a.play();
+    if(p&&typeof p.catch==='function') p.catch(fail);
+  }catch(e){ fail(); return; }
+  speakLater(()=>{ if(!settled) fail(); },6000);
+}
+
+/* 浏览器朗读：静默失败是本机无英文语音包的典型表现，必须主动探测 */
+function speakTTS(txt,onFail,onOk){
+  if(!('speechSynthesis' in window)||!txt){ onFail(); return; }
+  refreshVoices();
+  const ss=window.speechSynthesis, v=englishVoice();
+  let started=false, dropped=false, okSent=false;
+  const markOk=()=>{ if(okSent) return; okSent=true; if(onOk) onOk(); };
+  const fail=()=>{ if(dropped) return; dropped=true; try{ ss.cancel(); }catch(e){} onFail(); };
+  let u;
+  try{
+    u=new SpeechSynthesisUtterance(txt);
+    u.lang='en-US'; u.rate=audioRate(); u.pitch=1; u.volume=1;
+    if(v) u.voice=v;
+  }catch(e){ onFail(); return; }
+  curUtterance=u;
+  u.onstart=()=>{ started=true; markOk(); };
+  u.onend=()=>{ if(dropped) return; vuStop(); clearSpeakTimers(); markOk(); };
+  u.onerror=()=>{ if(!started) fail(); };
+  try{
+    ss.cancel();
+    /* Chrome：cancel() 后需让出一帧再 speak，否则本次朗读会被吞 */
+    speakLater(()=>{
+      if(dropped) return;
+      try{
+        if(ss.paused&&ss.resume) ss.resume();
+        ss.speak(u);
+      }catch(e){ fail(); }
+    },60);
+    /* watchdog：1.4s 内未 onstart 且引擎不忙 → 判定静默失败并换源 */
+    speakLater(()=>{
+      if(dropped||started) return;
+      let busy=false; try{ busy=ss.speaking||ss.pending; }catch(e){}
+      if(!busy) fail();
+      else speakLater(()=>{ if(!started&&!dropped) fail(); },2600);
+    },1400);
+    /* Chrome 长句约 15s 会自动暂停，用 pause/resume 心跳维持 */
+    if(/\s/.test(txt)){
+      ttsBeat=setInterval(()=>{
+        try{ if(ss.speaking&&!ss.paused){ ss.pause(); ss.resume(); } }catch(e){}
+      },9000);
+    }
+  }catch(e){ fail(); }
+}
+
+/* 两条链路互备：browser → TTS → 真人；online → 真人 → TTS */
+function speak(text,force,report){
   if(!text) return;
   text=String(text).trim();
+  if(!text) return;
   lastUtterance=text;
-  const isSentence=/\s/.test(text)||text.length>30;
-  const src=audioSource();
+  const txt=ttsText(text)||text;
+  const seq=++speakSeq;
+  const alive=()=>seq===speakSeq;
+  clearSpeakTimers(); stopAudioEl(); stopTTS();
   vuStart();
-  if(force==='online'||src==='online'){ playOnline(text,isSentence,true); setTimeout(vuStop,6000); return; }
-  if('speechSynthesis' in window){
-    try{
-      const u=new SpeechSynthesisUtterance(text);
-      u.lang='en-US'; u.rate=audioRate(); u.pitch=1;
-      const vs=window.speechSynthesis.getVoices()||[];
-      const v=vs.find(x=>/en[-_]US/i.test(x.lang))||vs.find(x=>/^en/i.test(x.lang));
-      if(v) u.voice=v;
-      u.onend=vuStop;
-      u.onerror=()=>{ vuStop(); playOnline(text,isSentence,false); };
-      window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
-      setTimeout(vuStop,8000);
-      return;
-    }catch(e){}
-  }
-  playOnline(text,isSentence,false);
-  setTimeout(vuStop,6000);
+  const msg=m=>{ if(report) toast(m); };
+  let allFailed=false;
+  const failAll=()=>{
+    if(allFailed||!alive()) return;
+    allFailed=true; vuStop();
+    toast('发音不可用：本机未启用英文朗读，在线真人发音也未能加载（请检查网络，或在「江湖设置」里切换发音方式）');
+  };
+  const useOnline=()=>{
+    speakOnline(txt,
+      ()=>{ if(alive()) speakTTS(txt,failAll,()=>msg('发音正常 · 浏览器朗读（在线发音不可用）')); },
+      ()=>msg('发音正常 · 在线真人发音'));
+  };
+  const useTTS=()=>{
+    speakTTS(txt,
+      ()=>{ if(alive()) useOnline(); },
+      ()=>msg('发音正常 · 浏览器朗读'));
+  };
+  let src=(force==='online'||force==='browser')?force:audioSource();
+  /* 已确认本机没有英文语音时直接走真人发音，不必白等 TTS 超时 */
+  if(src==='browser'&&voicesReady&&!englishVoice()) src='online';
+  if(src==='online') useOnline(); else useTTS();
+  speakLater(vuStop,12000);
 }
 function repeatAudio(){ if(lastUtterance) speak(lastUtterance); else toast('先播放一次，才能重复'); }
 
@@ -534,7 +643,8 @@ function step(dir,random){
   set('vocab-pos',String(index));
   pushRecent(words[index].word);
   renderStudy(true);
-  if(settings.autoSpeak) speak(words[index].word);
+  /* 浏览器自动播放策略：未经用户交互的自动朗读会被静默拦截 */
+  if(settings.autoSpeak && userActivated) speak(words[index].word);
 }
 function tuneTo(i){
   index=Math.max(0,Math.min(words.length-1,i));
@@ -946,7 +1056,9 @@ function renderSettings(){
   $('dailyGoal').value=String(settings.dailyGoal||12);
   const tts='speechSynthesis' in window;
   const sr=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
-  $('audioCapability').textContent='本机能力：浏览器朗读 '+(tts?'可用':'不可用（自动切到在线发音）')+'；语音识别 '+(sr?'可用':'不可用（跟读自动切换为自评模式）')+'。在线发音使用免费公开接口，需联网。';
+  const enV=!!englishVoice();
+  $('audioCapability').textContent='本机能力：浏览器英文朗读 '+(tts&&enV?'可用':(tts?'语音包待加载，暂用真人发音':'不可用，自动用真人发音'))+
+    '；语音识别 '+(sr?'可用':'不可用（跟读自动切换为自评模式）')+'。任一路失败会自动切换另一路；真人发音需联网。点「试听发音」可查看本次结果。';
   $('shadowCap').textContent=sr?'点击「开始跟读」后对着麦克风读出单词，系统会自动比对。':'当前浏览器不支持语音识别，跟读提供「自评打卡」替代，不会留下无效按钮。';
   $('dataHealth').innerHTML='词库 '+BANK.length+' 枚（原有）+ '+getAny('vocab-custom-words').length+' 枚（自建）／已掌握 '+mastered.size+
     '／待温 '+review.size+'／错词 '+wrong.size+'／收藏 '+favorites.size+'／复习档案 '+Object.keys(srs).length+' 条／每日记录 '+Object.keys(daily).length+' 天。';
@@ -1210,7 +1322,7 @@ function bind(){
   $('audioRate').onchange=e=>{ settings.rate=parseFloat(e.target.value); setObj('vocab-settings',settings); set('vocab-rate',e.target.value); };
   $('autoSpeak').onchange=e=>{ settings.autoSpeak=e.target.checked; setObj('vocab-settings',settings); };
   $('dailyGoal').onchange=e=>{ settings.dailyGoal=parseInt(e.target.value,10); setObj('vocab-settings',settings); renderHome(); };
-  $('btnTestAudio').onclick=()=>speak('ability');
+  $('btnTestAudio').onclick=()=>speak('ability',null,true);
 
   bindSpectrum(); bindTune();
   window.addEventListener('resize',()=>{
