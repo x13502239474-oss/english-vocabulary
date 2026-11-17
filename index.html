@@ -855,7 +855,7 @@ button:active:not(:disabled){background:rgba(53,160,140,.14)}
 #appNav{height:auto;min-height:62px;padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
 main{padding:calc(76px + env(safe-area-inset-top)) 16px calc(104px + env(safe-area-inset-bottom))}
 @media(max-width:420px){main{padding-left:12px;padding-right:12px}}
-#study > .controls,#studySettings .controls,#study #wdictBox{display:none!important}
+#study > .controls,#studySettings .controls{display:none!important}
 #study #exampleWrap:not(.hidden){display:flex!important}
 #fc #memory,#fc #example{text-align:center;line-height:1.5}
 .card-tools{margin-top:14px}
@@ -867,6 +867,8 @@ main{padding:calc(76px + env(safe-area-inset-top)) 16px calc(104px + env(safe-ar
 #study .seg{display:inline-flex;gap:4px;background:var(--surface-sunk);border:1px solid var(--line);border-radius:10px;padding:3px}
 #study .seg button{border:0;background:transparent;color:var(--muted);border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer}
 #study .seg button.on{background:var(--accent);color:#fff;font-weight:600}
+/* 默写 / 已掌握 工具按钮激活态 */
+.tool-row>button.on{background:var(--accent);border-color:var(--accent);color:#fff}
 </style>
 </head>
 <body>
@@ -963,10 +965,10 @@ main{padding:calc(76px + env(safe-area-inset-top)) 16px calc(104px + env(safe-ar
     <div class="detail" id="memoryWrap"><b>记忆提示</b><span id="memory"></span></div>
     <div class="detail" id="exampleWrap"><div class="detail-head"><b>例句</b><button class="speak mini" id="exSpeak" title="朗读例句（只读英文部分）" aria-label="朗读例句"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg></button></div><span id="example"></span></div>
     <div id="wdictBox" class="hidden">
-     <div class="in-wrap"><input id="wdictInput" class="d-input" type="text" lang="en" placeholder="默写练习（已在首页移除）" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><button type="button" class="in-clear" id="wdictClear" tabindex="-1" aria-label="清空输入内容" title="清空全部"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+     <div class="in-wrap"><input id="wdictInput" class="d-input" type="text" lang="en" placeholder="看中文写英文后提交" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><button type="button" class="in-clear" id="wdictClear" tabindex="-1" aria-label="清空输入内容" title="清空全部"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
      <div class="feedback" id="wdictResult"></div>
      <div class="wdict-stat" id="wdictStat"></div>
-     <div class="fc-nav"><button class="primary hidden" id="wdictSubmit">提交（Enter）</button><button class="hidden" id="wdictGiveUp">看答案</button></div>
+     <div class="fc-nav"><button class="primary hidden" id="wdictSubmit">提交答案</button><button class="hidden" id="wdictGiveUp">看答案</button></div>
     </div>
    </div>
   </div>
@@ -983,6 +985,7 @@ main{padding:calc(76px + env(safe-area-inset-top)) 16px calc(104px + env(safe-ar
    <label class="tool-label">筛选<select id="wordScope"><option value="all" selected>全部</option><option value="unmastered">未掌握</option><option value="mastered">已掌握</option><option value="review">待复习</option></select></label>
    <span class="seg" id="wModeSeg"><button data-wmode="seq" class="on">顺序</button><button data-wmode="random">随机</button></span>
   </div>
+  <div class="tool-row"><button id="dictToggle">默写</button><button id="fcMarkMaster">标记已掌握</button></div>
  </div>
 </section>
 
@@ -2243,6 +2246,7 @@ function showWord(i){
   }
   applyWDictUI();
   resetWDict();
+  syncCardTools();
   STORE.setItem("vocab-pos", String(index));
   pushRecent(w.word);
   if(autoOn() && !wDict) speak(w.word, $("speakTop"));
@@ -3110,7 +3114,7 @@ $("dSpeak").onchange=()=>STORE.setItem("vocab-dict-speak",$("dSpeak").checked?"1
    与「默写练习」板块的区别：不换页面，学到一个词就地写一遍，
    判分复用同一套归一化与错题集，错题同样进「待复习」。
    默写期间不给任何提示：不露首字母、不露字母数、作答前不朗读。 */
-wDict = false;   /* 首页取消默写模式，不再出现 Enter 判分 */
+wDict = STORE.getItem("vocab-wdict") === "1";   /* 默写模式：默认关闭，可用卡片下方按钮切换并记忆 */
 
 function applyWDictUI(){
   const on=!!wDict, show=on&&!!activeWord();
@@ -3135,7 +3139,7 @@ function resetWDict(){
   const r=$("wdictResult");
   if(r){ r.textContent=""; r.style.color=""; }
   const btn=$("wdictSubmit");
-  if(btn) btn.textContent="提交（Enter）";
+  if(btn) btn.textContent="提交答案";
   /* 作答前禁用朗读按钮：听一遍等于给了提示 */
   const spk=$("speakTop");
   if(spk) spk.disabled = !!(wDict && activeWord());
@@ -3197,7 +3201,7 @@ function submitWDict(){
   }
   wdictRevealAnswer();
   updateWDictStat();
-  $("wdictSubmit").textContent="下一个（Enter）";
+  $("wdictSubmit").textContent="下一个";
 }
 $("wDictSeg").onclick=e=>{
   const b=e.target.closest("button[data-wdict]"); if(!b) return;
@@ -3206,6 +3210,30 @@ $("wDictSeg").onclick=e=>{
   wRightN=0; wTotalN=0; wStreakN=0;
   showWord(index);
 };
+/* ============ 卡片工具：默写切换 / 已掌握标记 ============ */
+function syncCardTools(){
+  const dt=$("dictToggle");
+  if(dt){ dt.classList.toggle("on", !!wDict); dt.textContent = wDict ? "退出默写" : "默写"; }
+  const mm=$("fcMarkMaster"), w=activeWord();
+  if(mm && w){
+    const on=mastered.has(w.word);
+    mm.classList.toggle("on", on);
+    mm.textContent = on ? "已掌握" : "标记已掌握";
+  }
+}
+$("dictToggle").onclick=()=>{
+  wDict=!wDict;
+  STORE.setItem("vocab-wdict", wDict?"1":"0");
+  wRightN=0; wTotalN=0; wStreakN=0;
+  showWord(index);
+};
+$("fcMarkMaster").onclick=()=>{
+  const w=activeWord(); if(!w) return;
+  if(mastered.has(w.word)) mastered.delete(w.word);
+  else { mastered.add(w.word); review.delete(w.word); fuzzy.delete(w.word); }
+  save(); renderReview(); syncCardTools();
+};
+syncCardTools();
 $("wdictSubmit").onclick=()=>submitWDict();
 $("wdictGiveUp").onclick=()=>{
   const w=activeWord(); if(!w || !wDict) return;
@@ -3217,7 +3245,7 @@ $("wdictGiveUp").onclick=()=>{
   res.style.color="var(--amber)";
   wdictWrongNote(); wdictRevealAnswer();
   updateWDictStat();
-  $("wdictSubmit").textContent="下一个（Enter）";
+  $("wdictSubmit").textContent="下一个";
 };
 $("wdictInput").addEventListener("keydown", e=>{
   if(e.key!=="Enter" || e.shiftKey || e.isComposing) return;   // 输入法选词不误触
