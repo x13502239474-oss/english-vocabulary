@@ -651,6 +651,118 @@ body.kb .controls{margin-bottom:10px;padding-bottom:6px}
 body.kb .word-card{padding-top:8px}
 body.kb .word{font-size:clamp(34px,9vw,48px)}
 
+/* ============================================================
+   全新外观 · Focus Cards（靛蓝 / 软卡片 / 翻卡记忆）
+   下面这一层覆盖上面的「练习本」主题；只改观感，不碰任何逻辑与数据。
+   ============================================================ */
+:root{
+  --bg:#F5F6FB;--surface:#FFFFFF;--surface-sunk:#EEF0F9;
+  --ink:#1B1C31;--muted:#71738B;
+  --line:rgba(27,28,49,.10);--line-2:rgba(27,28,49,.20);
+  --rule:rgba(27,28,49,.05);
+  --accent:#5A56DE;--accent-soft:#4743C4;
+  --plum:#8B5AD6;--green:#169A69;--red:#D44453;--amber:#CE7F19;
+  --serif:"Iowan Old Style","Palatino Linotype",Georgia,"Songti SC",serif;
+  --sans:"Inter",-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --r:10px;--r-lg:18px;
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+[data-theme="dark"]{
+  --bg:#101019;--surface:#1A1A28;--surface-sunk:#23233A;
+  --ink:#ECECF6;--muted:#9A9BB5;
+  --line:rgba(236,236,246,.12);--line-2:rgba(236,236,246,.22);
+  --accent:#908DFF;--accent-soft:#A6A3FF;
+  --green:#4ED2A0;--red:#FF7C89;--amber:#F0B55C;
+}
+::selection{background:rgba(90,86,222,.20)}
+html{-webkit-tap-highlight-color:rgba(90,86,222,.16)}
+a{color:var(--accent)}
+:is(button,a,input,select,textarea,[tabindex],summary):focus-visible{outline-color:var(--accent)}
+body{background:var(--bg)}
+main{max-width:960px;padding:26px 22px 84px}
+
+/* 统计：一行软卡片 */
+.stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;padding:0;border:0;margin-bottom:16px}
+.stat{flex-direction:column;align-items:flex-start;gap:3px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:12px 14px;box-shadow:0 2px 12px rgba(27,28,49,.04)}
+.stat strong{font-size:20px;font-weight:700;color:var(--accent)}
+.stat span{font-size:11.5px}
+#learned,#sentLearned{color:var(--green)}
+.stat.link:hover{border-color:var(--accent)}
+.progress{height:6px;border-radius:99px;background:var(--surface-sunk);border:1px solid var(--line);margin:0 0 18px}
+.progress div{border-radius:99px;background:var(--accent)}
+
+/* 导航：圆角胶囊，分组标签实心 */
+.tabs{position:static;background:transparent;border:0;padding:0;margin:0 0 22px}
+.tab-row{gap:8px}
+.tab-row+.tab-row{margin-top:8px}
+.tab-group{border:0;background:var(--accent);color:#fff;border-radius:8px;padding:5px 11px;margin-right:2px;opacity:1;font-weight:600;font-size:11px}
+.tab-row+.tab-row .tab-group{margin-top:0}
+.tab{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:7px 15px;margin-right:0;color:var(--muted);font-size:12.5px;box-shadow:0 1px 3px rgba(27,28,49,.03)}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.tab.active::after{display:none}
+
+/* 通用面板 / 控件 */
+.controls{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:12px 14px;margin-bottom:16px}
+.section-title h2{font-weight:700}
+.panel{margin-bottom:14px}
+button.primary{border-color:var(--accent);background:var(--accent);color:#fff;border-radius:var(--r)}
+button:active:not(:disabled){background:rgba(90,86,222,.14)}
+button.primary:active:not(:disabled){background:var(--accent-soft);border-color:var(--accent-soft)}
+.seg button.on{background:var(--accent)}
+.settings>summary{border:1px solid var(--line)}
+
+/* ---- 翻卡记忆 ---- */
+.word-card{padding:0}
+.fc-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 12px}
+.eyebrow{margin:0;font-weight:600;color:var(--muted)}
+.fc-prog{flex:1;max-width:240px;height:6px;background:var(--surface-sunk);border-radius:99px;overflow:hidden}
+.fc-prog i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .3s var(--ease)}
+.fc-stage{display:grid;min-height:336px}
+.fc-face{grid-area:1/1;background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:0 12px 34px rgba(27,28,49,.09);padding:40px 30px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.word-card.revealed .fc-front{display:none}
+.word-line{justify-content:center}
+.word{font-family:var(--sans);font-size:clamp(48px,9vw,82px);font-weight:700;color:var(--accent);line-height:1.05}
+.phonetic{font-size:16px;color:var(--muted);margin-top:10px}
+.fc-kicker{font-size:12px;color:var(--muted);margin-bottom:20px;letter-spacing:.1em}
+.fc-hint{font-size:12.5px;color:var(--muted);margin-top:30px;opacity:.85}
+.fc-back .definition{font-size:clamp(20px,3.4vw,26px);margin:0;padding:0;border:0;font-weight:600;color:var(--ink)}
+.fc-back .detail{font-size:14px;margin-top:18px;padding-top:15px;border-top:1px solid var(--line);text-align:left;width:100%;max-width:560px}
+.fc-back .detail-head{justify-content:flex-start}
+.fc-grade{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.fc-grade button{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:15px 10px;font-size:15px;font-weight:600;box-shadow:0 2px 10px rgba(27,28,49,.04)}
+.g-again{color:var(--red)}
+.g-hard{color:var(--amber)}
+.g-good{color:var(--green)}
+.fc-grade button.g-sel{box-shadow:inset 0 0 0 1.5px currentColor}
+#reveal{grid-column:1/-1;background:var(--accent);border-color:var(--accent);color:#fff;font-size:15px}
+@media(hover:hover){
+  .fc-grade .g-again:hover{border-color:var(--red);background:rgba(212,68,83,.06)}
+  .fc-grade .g-hard:hover{border-color:var(--amber);background:rgba(206,127,25,.06)}
+  .fc-grade .g-good:hover{border-color:var(--green);background:rgba(22,154,105,.06)}
+}
+.fc-nav{display:flex;gap:10px;margin-top:12px}
+.fc-nav button{flex:1;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--muted);padding:11px}
+.word-card.is-dict .fc-stage{display:block;min-height:0}
+.word-card.is-dict .fc-face{box-shadow:none;border:0;padding:20px 0;min-height:0}
+.word-card.is-dict .fc-front .phonetic,.word-card.is-dict .fc-hint{display:none}
+.word-card.is-dict .fc-back{padding-top:0}
+.word-card.is-dict .fc-back .definition{font-size:clamp(28px,6vw,48px);color:var(--accent)}
+
+@media(max-width:620px){
+  main{padding:14px 14px 60px}
+  .stats{grid-template-columns:repeat(3,1fr);gap:8px}
+  .stat{padding:10px 12px}
+  .stat strong{font-size:17px}
+  .stat span{font-size:11px}
+  .tab{font-size:12px;padding:6px 12px}
+  .fc-face{padding:32px 20px;min-height:280px}
+  .fc-grade{gap:7px}
+  .fc-grade button{padding:13px 4px;font-size:14px}
+  .fc-head{flex-wrap:wrap}
+  .fc-prog{max-width:none;flex-basis:100%;order:3}
+}
+
 </style>
 </head>
 <body>
@@ -727,17 +839,37 @@ body.kb .word{font-size:clamp(34px,9vw,48px)}
   <button id="shuffle">随机抽词</button>
  </div>
  <datalist id="wordOptions"></datalist>
- <article class="word-card">
-  <div class="eyebrow" id="counter">准备开始</div>
-  <div class="word-line"><div class="word" id="word">Welcome!</div><button class="speak" id="speakTop" title="朗读单词（快捷键 S）" aria-label="朗读"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg></button></div>
-  <div class="phonetic" id="phonetic">点击“显示释义”开始学习</div>
-  <div id="answer" class="hidden"><div class="definition" id="definition"></div><div class="detail" id="memoryWrap"><b>记忆提示</b><span id="memory"></span></div><div class="detail" id="exampleWrap"><div class="detail-head"><b>例句</b><button class="speak mini" id="exSpeak" title="朗读例句（只读英文部分）" aria-label="朗读例句"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg></button></div><span id="example"></span></div></div>
-  <div id="wdictBox" class="hidden">
-   <div class="in-wrap"><input id="wdictInput" class="d-input" type="text" lang="en" placeholder="看中文写英文，按 Enter 判分；判完再按 Enter 进入下一个" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><button type="button" class="in-clear" id="wdictClear" tabindex="-1" aria-label="清空输入内容" title="清空全部"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-   <div class="feedback" id="wdictResult"></div>
-   <div class="wdict-stat" id="wdictStat"></div>
+ <article class="word-card" id="fc">
+  <div class="fc-head">
+   <div class="eyebrow" id="counter">准备开始</div>
+   <div class="fc-prog"><i id="fcProg"></i></div>
   </div>
-  <div class="actions"><button class="primary" id="reveal">显示释义</button><button id="unknown">还不熟</button><button class="primary hidden" id="wdictSubmit">提交（Enter）</button><button class="hidden" id="wdictGiveUp">看答案</button><button id="master">标记掌握</button><button id="prev">上一个</button><button id="next">下一个</button></div>
+  <div class="fc-stage">
+   <div class="fc-face fc-front">
+    <div class="fc-kicker">先在心里回想一下意思</div>
+    <div class="word-line"><div class="word" id="word">Welcome!</div><button class="speak" id="speakTop" title="朗读单词（快捷键 S）" aria-label="朗读"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg></button></div>
+    <div class="phonetic" id="phonetic">点击卡片或下方按钮翻面</div>
+    <div class="fc-hint">点击卡片翻面 →</div>
+   </div>
+   <div class="fc-face fc-back hidden" id="answer">
+    <div class="definition" id="definition"></div>
+    <div class="detail" id="memoryWrap"><b>记忆提示</b><span id="memory"></span></div>
+    <div class="detail" id="exampleWrap"><div class="detail-head"><b>例句</b><button class="speak mini" id="exSpeak" title="朗读例句（只读英文部分）" aria-label="朗读例句"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg></button></div><span id="example"></span></div>
+    <div id="wdictBox" class="hidden">
+     <div class="in-wrap"><input id="wdictInput" class="d-input" type="text" lang="en" placeholder="看中文写英文，按 Enter 判分；判完再按 Enter 进入下一个" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><button type="button" class="in-clear" id="wdictClear" tabindex="-1" aria-label="清空输入内容" title="清空全部"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+     <div class="feedback" id="wdictResult"></div>
+     <div class="wdict-stat" id="wdictStat"></div>
+     <div class="fc-nav"><button class="primary hidden" id="wdictSubmit">提交（Enter）</button><button class="hidden" id="wdictGiveUp">看答案</button></div>
+    </div>
+   </div>
+  </div>
+  <div class="fc-grade" id="fcGrade">
+   <button class="primary" id="reveal">翻面看释义</button>
+   <button class="g-again" id="unknown">不认识</button>
+   <button class="g-hard" id="fuzzy">模糊</button>
+   <button class="g-good" id="master">认识</button>
+  </div>
+  <div class="fc-nav"><button id="prev">← 上一个</button><button id="shuffle">随机抽词</button><button id="next">下一个 →</button></div>
  </article>
 </section>
 
@@ -1487,14 +1619,14 @@ window.addEventListener("pagehide",()=>flushTime());
 /* ==================== 本地存储 ==================== */
 const loadSet=k=>{try{return new Set(JSON.parse(STORE.getItem(k)||"[]"))}catch(e){return new Set()}};
 const saveSet=(k,s)=>STORE.setItem(k,JSON.stringify([...s]));
-let mastered=loadSet("vocab-mastered"), review=loadSet("vocab-review");
+let mastered=loadSet("vocab-mastered"), review=loadSet("vocab-review"), fuzzy=loadSet("vocab-fuzzy");
 let sMastered=loadSet("vocab-sent-mastered"), sReview=loadSet("vocab-sent-review");
 /* 最近学过 / 浏览过的单词，最新的排最前，最多 10 个 */
 let recentWords=(()=>{
   try{ const a=JSON.parse(STORE.getItem("vocab-recent")||"[]");
        return Array.isArray(a)?a.filter(x=>typeof x==="string").slice(0,10):[] }catch(e){ return [] }
 })();
-function save(){saveSet("vocab-mastered",mastered);saveSet("vocab-review",review);updateStats();refreshMastered()}
+function save(){saveSet("vocab-mastered",mastered);saveSet("vocab-review",review);saveSet("vocab-fuzzy",fuzzy);updateStats();refreshMastered()}
 function saveS(){saveSet("vocab-sent-mastered",sMastered);saveSet("vocab-sent-review",sReview);updateStats();refreshMastered()}
 
 /* ==================== 发音模块（双通道） ====================
@@ -1906,6 +2038,12 @@ function jumpToWord(q){
   if(tip) tip.textContent="";
   showWord(i);
 }
+function setFlipped(on){
+  const fc=$("fc"); if(!fc) return;
+  fc.classList.toggle("revealed", !!on);
+  $("answer").classList.toggle("hidden", !on);
+  const rv=$("reveal"); if(rv) rv.textContent = on ? "收起释义" : "翻面看释义";
+}
 function showWord(i){
   if(!words.length) return;
   const n=words.length; index=((i%n)+n)%n;
@@ -1915,25 +2053,30 @@ function showWord(i){
   $("definition").textContent=w.definition||"暂无释义";
   $("memory").textContent=w.memory||"这条词条没有单独的记忆提示。";
   $("example").textContent=w.example||"暂无例句";
-  /* 例句只有中文（或为空）时，喇叭按钮没意义，直接藏掉 */
   { const eb=$("exSpeak");
     if(eb){ eb.classList.toggle("hidden", !enPart(w.example)); eb.classList.remove("speaking"); } }
-  $("reveal").textContent="显示释义";
-  $("master").textContent=mastered.has(w.word)?"已掌握":"标记掌握";
+  /* 进度条：当前在词库中的位置 */
+  { const pg=$("fcProg"); if(pg) pg.style.width=((index+1)/n*100).toFixed(2)+"%"; }
+  /* 认识/模糊/不认识 三档按钮的当前态 */
+  { const s=fuzzy.has(w.word)?"模糊":(mastered.has(w.word)?"已掌握":(review.has(w.word)?"待复习":""));
+    ["master","fuzzy","unknown"].forEach(id=>{ const b=$(id); if(b) b.classList.remove("g-sel"); });
+    const sel = s==="已掌握"?"master":s==="模糊"?"fuzzy":s==="待复习"?"unknown":null;
+    if(sel && $(sel)) $(sel).classList.add("g-sel");
+  }
   if(wDict){
-    /* 默写模式：题面 = 中文释义 + 音标，英文一个字都不给（不给首字母、不给字母数）；
-       记忆提示/例句里常含答案，答完再放出 */
     $("word").textContent="默写";
     $("word").classList.add("mask");
-    $("answer").classList.remove("hidden");
     $("memoryWrap").classList.add("hidden");
     $("exampleWrap").classList.add("hidden");
+    $("fc").classList.add("is-dict");
+    setFlipped(true);
   }else{
     $("word").textContent=w.word;
     $("word").classList.remove("mask");
     $("memoryWrap").classList.toggle("hidden",!w.memory);
     $("exampleWrap").classList.toggle("hidden",!w.example);
-    $("answer").classList.add("hidden");
+    $("fc").classList.remove("is-dict");
+    setFlipped(false);
   }
   applyWDictUI();
   resetWDict();
@@ -1957,7 +2100,15 @@ function stepWord(dir){
   }
   return index;
 }
-$("reveal").onclick=()=>{$("answer").classList.toggle("hidden");$("reveal").textContent=$("answer").classList.contains("hidden")?"显示释义":"收起释义"};
+$("reveal").onclick=()=>setFlipped($("answer").classList.contains("hidden"));
+/* 点正面任意位置翻面；但要避开喇叭按钮，否则一点发音就翻面 */
+{ const front=$("fc") && $("fc").querySelector(".fc-front");
+  if(front) front.addEventListener("click", e=>{
+    if(e.target.closest("button")) return;
+    if(!$("answer").classList.contains("hidden")) return;
+    setFlipped(true);
+  });
+}
 $("exSpeak").onclick=()=>{
   const w=activeWord(); if(!w) return;
   const ex=enPart(w.example);
@@ -1967,8 +2118,20 @@ $("next").onclick=()=>showWord(stepWord(1));
 $("prev").onclick=()=>showWord(stepWord(-1));
 $("shuffle").onclick=()=>showWord(Math.floor(Math.random()*words.length));
 $("restart").onclick=()=>{ showWord(0); wRightN=0; wTotalN=0; wStreakN=0; updateWDictStat(); };
-$("master").onclick=()=>{let w=activeWord();if(mastered.has(w.word))mastered.delete(w.word);else{mastered.add(w.word);review.delete(w.word)}save();renderReview();showWord(index)};
-$("unknown").onclick=()=>{review.add(activeWord().word);mastered.delete(activeWord().word);save();renderReview();showWord(stepWord(1))};
+/* 三档反馈：认识 → 移入已掌握；模糊 → 移入待复习并标模糊；不认识 → 移入待复习。
+   三档都自动进入下一个词，符合「翻卡→评估→下一个」的记忆节奏。 */
+function gradeWord(level){
+  const w=activeWord(); if(!w) return;
+  const key=w.word;
+  if(level==="known"){ mastered.add(key); review.delete(key); fuzzy.delete(key); }
+  else if(level==="fuzzy"){ review.add(key); fuzzy.add(key); mastered.delete(key); }
+  else { review.add(key); mastered.delete(key); fuzzy.delete(key); }
+  save(); renderReview();
+  showWord(stepWord(1));
+}
+$("master").onclick=()=>gradeWord("known");
+$("fuzzy").onclick=()=>gradeWord("fuzzy");
+$("unknown").onclick=()=>gradeWord("again");
 $("searchStudy").oninput=()=>{let arr=filtered($("searchStudy").value,$("listStudy").value);if(arr.length)showWord(words.indexOf(arr[0]))};
 $("listStudy").onchange=()=>{let arr=filtered($("searchStudy").value,$("listStudy").value);if(arr.length)showWord(words.indexOf(arr[0]))};
 $("wordScope").onchange=()=>{ STORE.setItem("vocab-scope",$("wordScope").value); showWord(stepWord(1)) };
@@ -2788,8 +2951,8 @@ wDict = STORE.getItem("vocab-wdict")==="1";
 function applyWDictUI(){
   const on=!!wDict, show=on&&!!activeWord();
   $("wdictBox").classList.toggle("hidden", !show);
-  $("reveal").classList.toggle("hidden", on);
-  $("unknown").classList.toggle("hidden", on);
+  /* 默写模式隐藏三档反馈，露出默写提交/看答案；平时反之 */
+  { const g=$("fcGrade"); if(g) g.classList.toggle("hidden", on); }
   $("wdictSubmit").classList.toggle("hidden", !show);
   $("wdictGiveUp").classList.toggle("hidden", !show);
   const seg=$("wDictSeg");
