@@ -843,6 +843,30 @@ main{max-width:560px;margin:0 auto;padding:72px 16px 96px;min-height:100vh}
 .note-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;color:var(--muted);font-size:13px;line-height:1.6}
 #studySettings .controls{display:flex!important;flex-wrap:wrap}
 @media (max-width:420px){main{padding:70px 12px 96px}#fc{padding:28px 18px 20px}}
+
+/* ==== 本轮调整：薄荷绿还原 / 手机适配 / 卡片工具条 ==== */
+:root{--accent:#35a08c;--accent-soft:#1c7d6b;--app-blue:#35a08c;--app-blue-soft:#e4f4ef;--green:#146e58}
+[data-theme="dark"]{--accent:#82d9bd;--accent-soft:#a3e8cd}
+::selection{background:rgba(53,160,140,.20)}
+html{-webkit-tap-highlight-color:rgba(53,160,140,.16);-webkit-text-size-adjust:100%}
+button:active:not(:disabled){background:rgba(53,160,140,.14)}
+.mode-chip{box-shadow:0 3px 9px rgba(53,160,140,.22)}
+#appHeader{height:auto;min-height:56px;padding:env(safe-area-inset-top) 14px 0}
+#appNav{height:auto;min-height:62px;padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
+main{padding:calc(76px + env(safe-area-inset-top)) 16px calc(104px + env(safe-area-inset-bottom))}
+@media(max-width:420px){main{padding-left:12px;padding-right:12px}}
+#study > .controls,#studySettings .controls,#study #wdictBox{display:none!important}
+#study #exampleWrap:not(.hidden){display:flex!important}
+#fc #memory,#fc #example{text-align:center;line-height:1.5}
+.card-tools{margin-top:14px}
+.tool-row{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.tool-row>button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 18px;color:var(--muted);font-weight:600;font-size:14px;flex:1;min-width:110px;cursor:pointer}
+.tool-row>button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.tool-label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.tool-label select{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--ink);font-size:13px}
+#study .seg{display:inline-flex;gap:4px;background:var(--surface-sunk);border:1px solid var(--line);border-radius:10px;padding:3px}
+#study .seg button{border:0;background:transparent;color:var(--muted);border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer}
+#study .seg button.on{background:var(--accent);color:#fff;font-weight:600}
 </style>
 </head>
 <body>
@@ -890,8 +914,6 @@ main{max-width:560px;margin:0 auto;padding:72px 16px 96px;min-height:100vh}
 
 <!-- ================= 单词学习 ================= -->
 <section id="study" class="view">
- <div class="mode-caption"><i></i>记忆<i></i></div>
- <div class="today-row"><div class="today-label">今日 <b id="todayDone">0</b>/<b>50</b></div><button class="mode-chip" id="modeChip">记忆</button></div>
  <div class="controls">
   <input id="searchStudy" placeholder="搜索单词或中文释义…">
   <select id="listStudy"><option value="">全部 Word List</option></select>
@@ -906,11 +928,8 @@ main{max-width:560px;margin:0 auto;padding:72px 16px 96px;min-height:100vh}
      <span id="voiceInfo"></span>
     </div>
     <div class="row">
-     <span class="lbl">学习方式</span>
-     <span class="seg" id="wModeSeg"><button data-wmode="seq" class="on">按顺序</button><button data-wmode="random">随机</button></span>
      <span class="lbl">呈现</span>
      <span class="seg" id="wDictSeg"><button data-wdict="0" class="on">学习卡片</button><button data-wdict="1">默写</button></span>
-     <label>范围<select id="wordScope"><option value="all" selected>全部单词</option><option value="unmastered">只看未掌握</option><option value="review">只看待复习</option></select></label>
      <button id="restart">从头开始</button>
      <label><input type="checkbox" id="okFx" checked> 答题音效</label>
      <label><input type="checkbox" id="cfx" checked> 彩带礼花</label>
@@ -944,7 +963,7 @@ main{max-width:560px;margin:0 auto;padding:72px 16px 96px;min-height:100vh}
     <div class="detail" id="memoryWrap"><b>记忆提示</b><span id="memory"></span></div>
     <div class="detail" id="exampleWrap"><div class="detail-head"><b>例句</b><button class="speak mini" id="exSpeak" title="朗读例句（只读英文部分）" aria-label="朗读例句"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4 4 0 0 1 0 7"/><path d="M19.5 6a7.5 7.5 0 0 1 0 12"/></svg></button></div><span id="example"></span></div>
     <div id="wdictBox" class="hidden">
-     <div class="in-wrap"><input id="wdictInput" class="d-input" type="text" lang="en" placeholder="看中文写英文，按 Enter 判分；判完再按 Enter 进入下一个" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><button type="button" class="in-clear" id="wdictClear" tabindex="-1" aria-label="清空输入内容" title="清空全部"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+     <div class="in-wrap"><input id="wdictInput" class="d-input" type="text" lang="en" placeholder="默写练习（已在首页移除）" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><button type="button" class="in-clear" id="wdictClear" tabindex="-1" aria-label="清空输入内容" title="清空全部"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
      <div class="feedback" id="wdictResult"></div>
      <div class="wdict-stat" id="wdictStat"></div>
      <div class="fc-nav"><button class="primary hidden" id="wdictSubmit">提交（Enter）</button><button class="hidden" id="wdictGiveUp">看答案</button></div>
@@ -957,8 +976,14 @@ main{max-width:560px;margin:0 auto;padding:72px 16px 96px;min-height:100vh}
    <button class="g-hard" id="fuzzy">模糊</button>
    <button class="g-good" id="master">认识</button>
   </div>
-  <div class="fc-nav"><button id="prev">← 上一个</button><button id="shuffle">随机抽词</button><button id="next">下一个 →</button></div>
  </article>
+ <div class="card-tools">
+  <div class="tool-row"><button id="prev">← 上一个</button><button id="next" class="primary">下一个 →</button></div>
+  <div class="tool-row">
+   <label class="tool-label">筛选<select id="wordScope"><option value="all" selected>全部</option><option value="unmastered">未掌握</option><option value="mastered">已掌握</option><option value="review">待复习</option></select></label>
+   <span class="seg" id="wModeSeg"><button data-wmode="seq" class="on">顺序</button><button data-wmode="random">随机</button></span>
+  </div>
+ </div>
 </section>
 
 <!-- ================= 短句学习 ================= -->
@@ -1255,9 +1280,9 @@ main{max-width:560px;margin:0 auto;padding:72px 16px 96px;min-height:100vh}
 <button class="hub-item" data-goto="review"><span class="hub-ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="13" height="14" rx="2"/><path d="M8 3h9a2 2 0 0 1 2 2v11"/></svg></span><b>待复习清单</b><small>还没记牢的词句</small></button>
 </div></section>
 <section id="studySettings" class="view hidden">
-<div class="hub-head"><h2>学习设置</h2><p>朗读声音、语速、学习方式与范围。</p></div>
+<div class="hub-head"><h2>学习设置</h2><p>偏好已固定，无需设置。</p></div>
 <div id="settingsHost"></div>
-<div class="note-card">改动会立即保存在本机；换设备时可在「词库同步」中导入导出。</div>
+<p class="note-card">发音与学习参数已采用推荐默认值。<br>学习进度保存在本机浏览器中。</p>
 </section>
 </main>
 <nav id="appNav" aria-label="主菜单">
@@ -1882,7 +1907,7 @@ function guessGender(name){
   if(maleRe.test(n)) return "male";
   return "";                       // 未知
 }
-function genderPref(){ return $("gender") ? $("gender").value : "female"; }
+function genderPref(){ return "female"; }
 /* 例句/整句默认走在线神经语音。系统自带的朗读引擎（Windows 的 Zira、很多安卓
    机的默认 TTS）念单词还行，念整句就是一股「逐字播报」的机械味，语调和停顿都
    是平的。在线源是神经网络合成的，连读、重音、句尾降调都在。
@@ -1890,7 +1915,7 @@ function genderPref(){ return $("gender") ? $("gender").value : "female"; }
    ⚠️ 这两个必须声明在 updateVoiceInfo 之前：初始化时 pickVoice() 会调
    updateVoiceInfo()，而后者要用 naturalOn()。放后面的话，某些浏览器
    getVoices() 同步就返回结果，会直接撞 TDZ 报错、整个脚本挂掉。 */
-const naturalOn = ()=> STORE.getItem("vocab-natural") !== "0";
+const naturalOn = ()=> true;
 /* 带空格的才算整句；再卡一个长度上限，超长段落（口语跟读的长文）交给本机引擎，
    免得在线接口截断或直接报错，白等一个来回 */
 const isSentence = t => { const s=String(t||"").trim(); return /\s/.test(s) && s.length<=400; };
@@ -1973,7 +1998,7 @@ function ttsSpeak(text, btn, opts){
   u.lang = lang;                        // 注意：一旦设置 voice，lang 会被该语音的口音覆盖
   const v = voiceFor(lang);
   if(v) u.voice = v;
-  u.rate = opts.rate || parseFloat($("rate").value) || 0.85;
+  u.rate = opts.rate || 0.85;
   u.pitch = opts.pitch || 1;
   u.volume = 1;
   let started = false, failed = false;
@@ -2004,10 +2029,10 @@ function ttsSpeak(text, btn, opts){
   };
   speakTimer = setTimeout(startNow, 80);
 }
-function autoOn(){ return userActed && $("autoSpeak").checked; }
+function autoOn(){ return false; }
 /* 答对后读音：默认开。和 autoOn() 分开是因为 autoOn 还管「切换时自动朗读」，
    那个默认关（翻页就念太吵），但答对后念一遍是刚需，不能被它连坐。 */
-const okSpeakOn = ()=> STORE.getItem("vocab-ok-speak") !== "0";
+const okSpeakOn = ()=> true;
 /* 答对的那一下先让「叮」的琶音走完（约 0.57s）再读音，
    两路声音叠在一起会糊，手机上还会互相抢音频焦点 */
 let _speakLaterT = 0;
@@ -2123,6 +2148,7 @@ function wPred(){
   const s=$("wordScope").value;
   if(s==="unmastered") return w=>!mastered.has(w.word);
   if(s==="review") return w=>review.has(w.word);
+  if(s==="mastered") return w=>mastered.has(w.word);
   return ()=>true;
 }
 /* ==================== 跳到单词 / 最近学过 ==================== */
@@ -2264,6 +2290,7 @@ function gradeWord(level){
   else if(level==="fuzzy"){ review.add(key); fuzzy.add(key); mastered.delete(key); }
   else { review.add(key); mastered.delete(key); fuzzy.delete(key); }
   save(); renderReview();
+  if(level==="known" && okSpeakOn()) speak(w.word, $("speakTop"));   // 答对后读音（默认开）
   showWord(stepWord(1));
 }
 $("master").onclick=()=>gradeWord("known");
@@ -2607,7 +2634,7 @@ function speakSeq(parts, btn){
     u.lang=currentLang();
     const v = p.voice!==undefined ? p.voice : v1;
     if(v) u.voice=v;
-    u.rate = p.rate || parseFloat($("rate").value) || 0.85;
+    u.rate = p.rate || 0.85;
     u.pitch = p.pitch || 1;
     u.volume = 1;
     u.onstart = ()=>{ speakRetried=0; clearSpeakWarn(); };
@@ -3083,7 +3110,7 @@ $("dSpeak").onchange=()=>STORE.setItem("vocab-dict-speak",$("dSpeak").checked?"1
    与「默写练习」板块的区别：不换页面，学到一个词就地写一遍，
    判分复用同一套归一化与错题集，错题同样进「待复习」。
    默写期间不给任何提示：不露首字母、不露字母数、作答前不朗读。 */
-wDict = STORE.getItem("vocab-wdict")==="1";
+wDict = false;   /* 首页取消默写模式，不再出现 Enter 判分 */
 
 function applyWDictUI(){
   const on=!!wDict, show=on&&!!activeWord();
