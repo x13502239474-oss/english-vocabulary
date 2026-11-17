@@ -3244,13 +3244,12 @@ $("wdictGiveUp").onclick=()=>{
   const w=activeWord(); if(!w || !wDict) return;
   if(wDictAnswered){ wdictRevealAnswer(); return; }
   wDictAnswered=true; wTotalN++; wStreakN=0;
-  $("wdictInput").className="d-input bad";
-  const res=$("wdictResult");
-  res.textContent="已显示答案，这条已加入待复习与默写错题集。";
-  res.style.color="var(--amber)";
-  wdictWrongNote(); wdictRevealAnswer();
+  wdictWrongNote();               // 加入待复习与默写错题集
   updateWDictStat();
-  $("wdictSubmit").textContent="下一个";
+  /* 看答案 = 退出默写，跳转回该词的完整学习卡片（单词/音标/释义/例句） */
+  wDict=false;
+  STORE.setItem("vocab-wdict","0");
+  showWord(index);
 };
 $("wdictInput").addEventListener("keydown", e=>{
   if(e.key!=="Enter" || e.shiftKey || e.isComposing) return;   // 输入法选词不误触
